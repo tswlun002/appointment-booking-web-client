@@ -1,0 +1,10 @@
+<svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+    <!-- NB Text -->
+    <text x="60" y="35" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="red">NB</text>
+
+    <!-- First underline -->
+    <line x1="20" y1="50" x2="100" y2="50" stroke="red" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Second underline -->
+    <line x1="25" y1="60" x2="95" y2="60" stroke="red" stroke-width="2" stroke-linecap="round"/>
+</svg>
