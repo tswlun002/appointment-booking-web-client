@@ -9,7 +9,7 @@ export const USER_NAMES_MAX_LENGTH = 32
 export const Firstname = z.string().min(USER_NAMES_MIN_LENGTH, "Firstname must be at least 2 char").max(USER_NAMES_MAX_LENGTH,"Name is too long")
 export const Lastname = z.string().min(USER_NAMES_MIN_LENGTH, "Firstname must be at least 2 char").max(USER_NAMES_MAX_LENGTH,"Name is too long")
 export const Email = z.email("Invalid email address");
-export const USERNAME = z.string().regex(USERNAME_REGEX, "BID must be 10 digits")
+export const USERNAME = z.string().regex(USERNAME_REGEX, "Username must be 10 digits")
 export const Password = z.string().regex(PASSWORD_REGEX,"Password must be 6+ char with uppercase,lowercase ,digit and special char ")
 
 
