@@ -28,7 +28,7 @@ const useAuthStore = create<Auth>((set, get) => ({
       const clientRoles = payload.resource_access;
 
       const user:User ={
-          bid: payload.bid,
+          username: payload.username,
           email:payload.email,
           firstname: payload.given_name,
           lastname: payload.family_name,
@@ -62,7 +62,7 @@ const useAuthStore = create<Auth>((set, get) => ({
             emailVerificationResponseMessage:data.message   ,
             user:{
                 email: data.email,
-                bid: "",
+                username: "",
                 firstname: "",
                 lastname: "",
             }
