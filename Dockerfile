@@ -19,4 +19,7 @@ COPY ./package.json package-lock.json /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
 WORKDIR /app
+USER 100
+EXPOSE 3000
+ENV TZ="Africa/Johannesburg"
 CMD ["npm", "run", "start"]
