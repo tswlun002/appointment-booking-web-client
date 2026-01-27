@@ -8,6 +8,8 @@
 html,
 body {
   @apply bg-white dark:bg-gray-950;
+    color: #3A3A3A;
+    background: #FFFFFF;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
