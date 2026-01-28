@@ -1,5 +1,5 @@
 import React from 'react';
-import {CONTACT_SUPPORT_TEAM_MESSAGE, PAGE_NOT_FOUND_MESSAGE} from "~/resourses/labels/auth/labels";
+import {CONTACT_SUPPORT_TEAM_MESSAGE, PAGE_NOT_FOUND_MESSAGE} from "~/resources/auth/labels";
 
 const PageNotFound = () => {
     return (
