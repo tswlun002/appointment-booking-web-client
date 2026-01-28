@@ -2,14 +2,14 @@ import { defineConfig } from "orval";
 
 export default defineConfig({
     branchLocatorApi: {
-        input: './app/resourses/contract/location-api.yaml',
+        input: './app/resources/contract/location-api.yaml',
         output: {
-            mode: 'tags-split', // Create a folder per Swagger tag
-            target: './app/api/generated/endpoints', // Path for hooks
-            schemas: './app/api/generated/model', // Separate folder for TypeScript types
+            mode: 'tags-split',
+            target: './app/api/branch-locator/generated/endpoints',
+            schemas: './app/domain/branch-locator/generated/model',
             client: 'react-query',
-            clean: true, // Automatically delete old files before generating
-            prettier: true, // Use your project's formatting
+            clean: true,
+            prettier: true,
             override: {
                 mutator: {
                     path: './app/lib/axios/default-axios.ts',
@@ -17,5 +17,40 @@ export default defineConfig({
                 }
             }
         }
-    }
+    },
+    branchLocatorApiZod: {
+        input: './app/resources/contract/location-api.yaml',
+        output: {
+            target: './app/domain/branch-locator/generated/zod/index.ts',
+            client: 'zod',
+            clean: true,
+            prettier: true
+        }
+    },
+    // userApi: {
+    //     input: './app/resources/contract/user-api.yaml',
+    //     output: {
+    //         mode: 'tags-split',
+    //         target: './app/api/user/generated/endpoints',
+    //         schemas: './app/domain/user/generated/model',
+    //         client: 'react-query',
+    //         clean: true,
+    //         prettier: true,
+    //         override: {
+    //             mutator: {
+    //                 path: './app/lib/axios/default-axios.ts',
+    //                 name: 'axiosJSONContentDefaultInstanceWrapper'
+    //             }
+    //         }
+    //     }
+    // },
+    // userApiZod: {
+    //     input: './app/resources/contract/user-api.yaml',
+    //     output: {
+    //         target: './app/domain/user/generated/zod/index.ts',
+    //         client: 'zod',
+    //         clean: true,
+    //         prettier: true
+    //     }
+    // }
 });
