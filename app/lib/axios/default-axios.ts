@@ -33,4 +33,13 @@ const axiosConfig: AxiosRequestConfig = {
 export const axiosJSONContentDefaultInstance: AxiosInstance = axios.create(axiosJSONConfig);
 export const axiosDefaultInstance: AxiosInstance = axios.create(axiosConfig);
 
-
+export const axiosJSONContentDefaultInstanceWrapper = <T>(
+    config: AxiosRequestConfig,
+    options?: AxiosRequestConfig,
+): Promise<T> => {
+    // We pass the config from Orval into our instance
+    return axiosJSONContentDefaultInstance({
+        ...config,
+        ...options,
+    }).then(({ data }) => data); // Orval expects the raw data returned
+};
