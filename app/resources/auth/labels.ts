@@ -30,7 +30,17 @@ export const registerScreenResources = {
     headerInstruction: "Appointment-Booking Registration",
     subHeaderInstruction: {
         icon: "/capitec.svg",
-        message: "Capitec client? verification  will be send to Capitec email",
+        message: "Capitec client? Please use your registered email with Capitec.",
+    },
+    idNumber:{
+      type:"text",
+      id: "idNumber",
+      label: "ID/Passport Number",
+    },
+    isCapitecClient:{
+        type:"checkbox",
+        id: "isCapitecClient",
+        label: "I am a Capitec client",
     },
     firstname: {
         type:"text",

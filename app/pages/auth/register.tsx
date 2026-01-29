@@ -6,6 +6,7 @@ import {useRegisterModel} from "~/model/auth/RegisterViewModel";
 import {registerScreenResources} from "~/resources/auth/labels";
 import Error from "~/components/ui/error";
 import type {NewUserRequest} from "~/domain/user/generated/model";
+import CustomerCheckBox from "~/components/ui/check-box";
 
 export default function register() {
 
@@ -61,6 +62,19 @@ export default function register() {
                     responseElement
                 }
                 <div className="flex flex-col gap-2.5">
+                    <CustomerCheckBox
+                      isChecked={state.userData?.isCapitecClient!}
+                      onToggle={()=>model.onToggle(`isCapitecClient`)}
+                      label={registerScreenResources?.isCapitecClient?.label}
+                    />
+                    <CustomerInput<NewUserRequest>
+                        id={registerScreenResources?.idNumber?.id}
+                        label={registerScreenResources?.idNumber?.label}
+                        value={state.userData?.idNumber}
+                        error={state?.errors}
+                        type="text"
+                        onChange={model.onChange}
+                    />
                     <CustomerInput<NewUserRequest>
                         id={registerScreenResources?.firstname?.id}
                         label={registerScreenResources?.firstname?.label}
