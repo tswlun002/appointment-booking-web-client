@@ -149,6 +149,12 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
       },NAVIGATION_DELAY_TIME_SECOND)
     }
   }
+
+    onToggle(key:string ) {
+        const field = key as keyof NewUserRequest;
+        const value = !this.state.userData.isCapitecClient;
+        this.dispatch({type: ActionEvent.TOGGLE_MODAL, field: field, value: value});
+    }
 }
 const createDefaultError = (): Error => ({ isError: false, message: '' });
 
@@ -159,6 +165,8 @@ export const initialRegisterState: RegisterState = {
         email: '',
         password: '',
         confirmPassword: '',
+        idNumber:'',
+        isCapitecClient:true
     },
     errors: Object.fromEntries(
         ['firstname', 'lastname', 'email', 'password', 'confirmPassword', 'response', 'idNumber', 'isCapitecClient']
