@@ -7,8 +7,7 @@ import {type NavigateFunction, useNavigate} from "react-router";
 import {ViewModel} from "~/model/ViewModel";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
 import {useRegisterUser} from "~/api/user/generated/endpoints/registration/registration";
-import type {RegisterState} from "~/domain/user/Register";
-import {registerUserBody} from "~/domain/user/generated/zod";
+import {type RegisterState, registerUserSchema} from "~/domain/user/Register";
 import type {ErrorResponse, NewUserRequest} from "~/domain/user/generated/model";
 
 
@@ -23,7 +22,7 @@ export const useRegisterModel = () => {
   const navigateFunction = useNavigate();
 
   const resolver = useMemo(
-      () => createZodResolver<NewUserRequest,TypeError<NewUserRequest>>(registerUserBody),
+      () => createZodResolver<NewUserRequest,TypeError<NewUserRequest>>(registerUserSchema),
       []
   );
   useEffect(()=>{
@@ -44,7 +43,7 @@ export const useRegisterModel = () => {
 
 export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterState>{
 
-  constructor(
+    constructor(
       protected state: RegisterState,
       protected dispatch: Dispatch<ActionDispatch<NewUserRequest>>,
       protected resolver: (data: NewUserRequest) => Promise<{ errors?:TypeError<NewUserRequest>; values?: NewUserRequest }>,
@@ -57,13 +56,16 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
 
   onChange = async (event: ChangeEvent<HTMLInputElement>) => {
 
-    event.preventDefault();
-    const key = event.target.id as keyof NewUserRequest;
+      event.preventDefault();
+      const key = event.target.id as keyof NewUserRequest;
 
-    const value = event.target.value;
-    setTimeout(() => this.validateForm(key, value), VALIDATION_DELAY_TIME_SECOND);
+      const value = event.target.value;
 
-    this.dispatch({type: ActionEvent.SET_FIELD, field: key, value});
+      this.clearTimeout();
+      // 2. Schedule new validation with the latest value
+      this.validationTimeout = setTimeout(() => this.validateForm(key, value), VALIDATION_DELAY_TIME_SECOND);
+
+      this.dispatch({type: ActionEvent.SET_FIELD, field: key, value});
 
   };
 
@@ -95,11 +97,10 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
 
   }
 
-  protected validateForm = async (key: string, value:String  ):Promise<Boolean> => {
+  protected validateForm = async (key: string, value:string  ):Promise<Boolean> => {
 
     const data = {...this.state.userData,[key]:value };
     const result = await this.resolver(data);
-   console.log(result);
     const errorKey = key as keyof TypeError<NewUserRequest>;
 
     if (isNotBlank<TypeError<NewUserRequest>>(result.errors) && result.errors !== undefined) {
@@ -129,7 +130,7 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
   private registerMutationOptions =()=>{
 
     return {
-      onSuccess: (data:string, variables:{data:NewUserRequest} ) => {
+      onSuccess: (data:string) => {
         this.dispatch({ type: ActionEvent.SET_API_RESPONSE_SUCCESS, isSuccess: true, message:data });
 
       },
@@ -149,48 +150,21 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
     }
   }
 }
+const createDefaultError = (): Error => ({ isError: false, message: '' });
 
 export const initialRegisterState: RegisterState = {
-  userData:{
-    firstname: "",
-    lastname: "",
-    email: "",
-    password: "",
-    confirmPassword: ""
-  },
-  errors: {
-      firstname: {
-          isError: false,
-          message: ""
-      },
-      lastname: {
-          isError: false,
-          message: ""
-      },
-      email: {
-          isError: false,
-          message: ""
-      },
-      password: {
-          isError: false,
-          message: ""
-      },
-      confirmPassword: {
-          isError: false,
-          message: ""
-      },
-      response: {
-          isError: false,
-          message: ""
-      },
-      idNumber: {
-          isError: false,
-      },
-      isCapitecClient: {
-          isError: false
-      }
-  },
-  isLoading: false,
+    userData: {
+        firstname: '',
+        lastname: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+    },
+    errors: Object.fromEntries(
+        ['firstname', 'lastname', 'email', 'password', 'confirmPassword', 'response', 'idNumber', 'isCapitecClient']
+        .map(key => [key, createDefaultError()])
+    ) as TypeError<NewUserRequest>,
+    isLoading: false,
 };
 
 
