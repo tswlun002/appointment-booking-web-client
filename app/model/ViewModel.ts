@@ -3,6 +3,7 @@ import type {Error, TypeError} from "~/domain/error/Error";
 import {isNotBlank} from "~/utils/CompanionObjects";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
 import type {State} from "~/domain/State";
+import type {RegisterState} from "~/domain/user/Register";
 
 /**
  * @T   model type
@@ -10,6 +11,8 @@ import type {State} from "~/domain/State";
  * @R  Expected response model type
  */
 export abstract  class ViewModel<T,R, S extends State<T,R>>{
+    // track timeout refs to clean up memory
+    protected validationTimeout: NodeJS.Timeout | null = null;
 
     constructor(
         protected state: S,
@@ -25,10 +28,21 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
         event.preventDefault();
         const field = event.target.id as keyof T;
         const value = event.target.value;
-        setTimeout(() => this.validateForm(field , value), this.VALIDATION_DELAY_TIME_SECOND)
+        this.clearTimeout()
+        // 2. Schedule new validation with the latest value
+        this.validationTimeout = setTimeout(() => this.validateForm(field , value), this.VALIDATION_DELAY_TIME_SECOND)
         this.dispatch({type: ActionEvent.SET_FIELD, field:field, value:value});
     };
-    protected  validateForm = async (key: keyof T, value: String): Promise<Boolean> => {
+    /** track timeout refs
+        1. Cancel any pending validation from the previous keystroke
+    */
+    protected  clearTimeout = () => {
+        if (this.validationTimeout) {
+            clearTimeout(this.validationTimeout);
+        }
+    }
+
+    protected  validateForm = async (key: keyof T, value: string): Promise<Boolean> => {
 
         const data = {...this.state.userData, [key]: value};
         const result = await this.resolver({...data});
