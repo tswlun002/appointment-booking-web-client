@@ -91,6 +91,9 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
 
                         return {...state, userData: {...state.userData, [action.field]: action.value}};
                     }
+                    case ActionEvent.TOGGLE_MODAL: {
+                        return {...state, userData: {...state.userData,[action.field]:action.value}}
+                    }
                     case ActionEvent.SUBMIT: {
 
                         return {...initialState, ...action, isLoading: false, errors: initialState.errors}

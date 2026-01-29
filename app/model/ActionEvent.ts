@@ -10,6 +10,7 @@ export enum Action {
     SET_ERROR = 'SET_ERROR',
     CLEAR_ERRORS = 'CLEAR_ERRORS',
     RESET_FORM = 'RESET_FORM',
+    TOGGLE_MODAL = 'TOGGLE_MODAL'
 }
 
 export class ActionEvent {
@@ -21,6 +22,7 @@ export class ActionEvent {
     static SET_ERROR: typeof Action.SET_ERROR = Action.SET_ERROR;
     static CLEAR_ERRORS: typeof Action.CLEAR_ERRORS = Action.CLEAR_ERRORS;
     static RESET_FORM: typeof Action.RESET_FORM = Action.RESET_FORM;
+    static TOGGLE_MODAL: typeof Action.TOGGLE_MODAL = Action.TOGGLE_MODAL;
 
 }
 
@@ -35,4 +37,5 @@ export  type ActionDispatch<T> =
     | { type: typeof ActionEvent.SUBMIT; state?: T }
     | { type: typeof ActionEvent.SET_ERROR; errors: TypeError<T> }
     | { type: typeof ActionEvent.CLEAR_ERRORS }
-    | { type: typeof ActionEvent.RESET_FORM };
+    | { type: typeof ActionEvent.RESET_FORM }
+    | { type: typeof ActionEvent.TOGGLE_MODAL; field: string, value: boolean }
