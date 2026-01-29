@@ -12,7 +12,7 @@ export const createZodResolver = <V,E  >(schema: ZodObject) => {
         }
 
         const errors: RecordType<E> = {} as RecordType<E>;
-
+         console.log(result)
         result?.error?.issues?.forEach((error) => {
               error?.path?.forEach(path => {
 
