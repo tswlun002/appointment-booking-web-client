@@ -5,7 +5,7 @@ import NBIcon from "~/components/ui/NBIcon";
 import {useRegisterModel} from "~/model/auth/RegisterViewModel";
 import {registerScreenResources} from "~/resources/auth/labels";
 import Error from "~/components/ui/error";
-import type {UserRegister} from "~/domain/user/Register";
+import type {NewUserRequest} from "~/domain/user/generated/model";
 
 export default function register() {
 
@@ -61,7 +61,7 @@ export default function register() {
                     responseElement
                 }
                 <div className="flex flex-col gap-2.5">
-                    <CustomerInput<UserRegister>
+                    <CustomerInput<NewUserRequest>
                         id={registerScreenResources?.firstname?.id}
                         label={registerScreenResources?.firstname?.label}
                         value={state.userData?.firstname}
@@ -69,7 +69,7 @@ export default function register() {
                         type="text"
                         onChange={model.onChange}
                     />
-                    <CustomerInput<UserRegister>
+                    <CustomerInput<NewUserRequest>
                         id={registerScreenResources?.lastname?.id}
                         label={registerScreenResources?.lastname?.label}
                         value={state?.userData?.lastname}
@@ -78,7 +78,7 @@ export default function register() {
                         onChange={model.onChange}
 
                     />
-                    <CustomerInput<UserRegister>
+                    <CustomerInput<NewUserRequest>
                         id={registerScreenResources?.email?.id}
                         type="email"
                         label={registerScreenResources?.email?.label}
@@ -87,7 +87,7 @@ export default function register() {
                         onChange={model.onChange}
 
                     />
-                    <PasswordInput<UserRegister>
+                    <PasswordInput<NewUserRequest>
                         label={registerScreenResources?.password?.label}
                         id={registerScreenResources?.password?.id}
                         passwordVisibilityStatus={registerScreenResources?.password?.passwordVisibility}
@@ -96,7 +96,7 @@ export default function register() {
                         style={style}
                         onChange={model.onChange}
                     />
-                    <PasswordInput<UserRegister>
+                    <PasswordInput<NewUserRequest>
                         id={registerScreenResources?.confirmPassword?.id}
                         label={registerScreenResources?.confirmPassword?.label}
                         passwordVisibilityStatus={registerScreenResources?.confirmPassword?.passwordVisibility}
