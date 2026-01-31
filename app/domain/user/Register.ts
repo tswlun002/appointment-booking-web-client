@@ -1,5 +1,4 @@
 import type {State} from "~/domain/State";
-import type {NewUserRequest} from "~/domain/user/generated/model";
 import {z} from "zod";
 import {
     registerUserBodyPasswordRegExp,
@@ -10,8 +9,9 @@ import {
     registerUserBodyLastnameRegExp,
     registerUserBodyIdNumberRegExp,
 } from "~/domain/user/generated/zod";
+import type {RegisterUserMutationBody} from "~/api/user/generated/endpoints/registration/registration";
 
-export interface RegisterState extends State<NewUserRequest,string> {}
+export interface RegisterState extends State<RegisterUserMutationBody,string> {}
 
 /**
  * Wrapper for registerUserBody with custom validation messages
