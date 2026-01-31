@@ -82,3 +82,27 @@ export const registerScreenResources = {
 
     },
 }
+//====================================== EMAIL VERIFICATION PAGE DEFAULT DATA ========================================================
+export const EmailVerificationScreenResources = {
+    instructionMessage: `Registration Verification`,
+    otp: {
+        label: "OTP",
+        id: "otp",
+    },
+    email: {
+        label: "Email",
+        id: "email",
+        value:"",
+        disabled:true,
+    },
+    emailVerificationButton:{
+        label:"Verify code",
+        disabled:false,
+    },
+    loginLink: {
+        label: "Already have an account?",
+        linkLabel: "Log in",
+        path: "/login"
+    }
+
+}
