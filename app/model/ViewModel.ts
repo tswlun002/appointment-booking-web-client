@@ -1,0 +1,138 @@
+import type {ChangeEvent, Dispatch, FormEvent} from "react";
+import type {Error, TypeError} from "~/domain/error/Error";
+import {isNotBlank} from "~/utils/CompanionObjects";
+import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
+import type {State} from "~/domain/State";
+import type {RegisterState} from "~/domain/user/Register";
+
+/**
+ * @T   model type
+ * @S   state type
+ * @R  Expected response model type
+ */
+export abstract  class ViewModel<T,R, S extends State<T,R>>{
+    // track timeout refs to clean up memory
+    protected validationTimeout: NodeJS.Timeout | null = null;
+
+    constructor(
+        protected state: S,
+        protected dispatch: Dispatch<ActionDispatch<T>>,
+        protected resolver: (data: T) => Promise<{ errors?: TypeError<T>; values?: T }>,
+        private initialState: S,
+        public  VALIDATION_DELAY_TIME_SECOND:number = 1500
+    ) {
+
+    }
+    onChange = async (event: ChangeEvent<HTMLInputElement>) => {
+
+        event.preventDefault();
+        const field = event.target.id as keyof T;
+        const value = event.target.value;
+        this.clearTimeout()
+        // 2. Schedule new validation with the latest value
+        this.validationTimeout = setTimeout(() => this.validateForm(field , value), this.VALIDATION_DELAY_TIME_SECOND)
+        this.dispatch({type: ActionEvent.SET_FIELD, field:field, value:value});
+    };
+    /** track timeout refs
+        1. Cancel any pending validation from the previous keystroke
+    */
+    protected  clearTimeout = () => {
+        if (this.validationTimeout) {
+            clearTimeout(this.validationTimeout);
+        }
+    }
+
+    protected  validateForm = async (key: keyof T, value: string): Promise<Boolean> => {
+
+        const data = {...this.state.userData, [key]: value};
+        const result = await this.resolver({...data});
+
+        const errorKey = key as keyof TypeError<T>;
+
+        if (isNotBlank<TypeError<T>>(result.errors) && result.errors !== undefined) {
+
+            let error = result.errors[errorKey];
+
+            error = isNotBlank<Error>(error) ? error : this.initialState.errors[errorKey];
+
+            this.dispatch({type: ActionEvent.SET_ERROR, errors: {...this.state.errors, [errorKey]: error}});
+
+            return false;
+        }
+
+        this.dispatch({type: ActionEvent.CLEAR_ERRORS});
+        return true;
+    };
+
+    submit = async (event: FormEvent<HTMLFormElement>) => {
+
+        event.preventDefault();
+        const result = await this.resolver(this.state.userData);
+
+        const errors = result.errors;
+        if (isNotBlank<TypeError<T>>(errors)) {
+
+            this.dispatch({type: ActionEvent.SET_ERROR, errors: {...this.state.errors, ...errors}});
+            return;
+        }
+
+        this.dispatch({type: ActionEvent.SET_LOADING, isLoading: true});
+        this.submitToAPI(this.state.userData);
+
+    };
+    abstract submitToAPI(data:T):void;
+
+    abstract catchStateChange(state: S): void;
+
+    static reducer = <T,R, S extends State<T,R>>(initialState:S) => {
+        return (state: S, action: ActionDispatch<T>): S =>{
+            switch (action.type) {
+                    case ActionEvent.SET_FIELD: {
+
+                        return {...state, userData: {...state.userData, [action.field]: action.value}};
+                    }
+                    case ActionEvent.TOGGLE_MODAL: {
+                        return {...state, userData: {...state.userData,[action.field]:action.value}}
+                    }
+                    case ActionEvent.SUBMIT: {
+
+                        return {...initialState, ...action, isLoading: false, errors: initialState.errors}
+                    }
+                    case ActionEvent.SET_API_RESPONSE_SUCCESS: {
+
+                        return {
+                            ...state,
+                            response: {isSuccess: true, data: action.message},
+                            isLoading: false,
+                            errors: {...initialState.errors,}
+                        };
+                    }
+                    case ActionEvent.SET_API_ERROR: {
+
+                        return {...state, isLoading: false, errors: {...initialState.errors, response: action.error}};
+
+                    }
+                    case ActionEvent.SET_LOADING: {
+
+                        return {...state, isLoading: action.isLoading}
+                    }
+                    case ActionEvent.SET_ERROR: {
+
+                        return {...state, isLoading: false, errors: action.errors}
+                    }
+
+                    case ActionEvent.CLEAR_ERRORS: {
+
+                        return {...state, isLoading: false, errors: {...initialState.errors, response:state.errors.response}}
+                    }
+                    case ActionEvent.RESET_FORM: {
+                        return initialState
+                    }
+                    default: {
+                        return state;
+                    }
+                }
+            };
+    }
+
+}

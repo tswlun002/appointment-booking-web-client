@@ -27,30 +27,30 @@ export default defineConfig({
             prettier: true
         }
     },
-    // userApi: {
-    //     input: './app/resources/contract/user-api.yaml',
-    //     output: {
-    //         mode: 'tags-split',
-    //         target: './app/api/user/generated/endpoints',
-    //         schemas: './app/domain/user/generated/model',
-    //         client: 'react-query',
-    //         clean: true,
-    //         prettier: true,
-    //         override: {
-    //             mutator: {
-    //                 path: './app/lib/axios/default-axios.ts',
-    //                 name: 'axiosJSONContentDefaultInstanceWrapper'
-    //             }
-    //         }
-    //     }
-    // },
-    // userApiZod: {
-    //     input: './app/resources/contract/user-api.yaml',
-    //     output: {
-    //         target: './app/domain/user/generated/zod/index.ts',
-    //         client: 'zod',
-    //         clean: true,
-    //         prettier: true
-    //     }
-    // }
+    userApi: {
+        input: './app/resources/contract/user-api.yaml',
+        output: {
+            mode: 'tags-split',
+            target: './app/api/user/generated/endpoints',
+            schemas: './app/domain/user/generated/model',
+            client: 'react-query',
+            clean: true,
+            prettier: true,
+            override: {
+                mutator: {
+                    path: './app/lib/axios/default-axios.ts',
+                    name: 'axiosJSONContentDefaultInstanceWrapper'
+                }
+            }
+        }
+    },
+    userApiZod: {
+        input: './app/resources/contract/user-api.yaml',
+        output: {
+            target: './app/domain/user/generated/zod/index.ts',
+            client: 'zod',
+            clean: true,
+            prettier: true
+        }
+    }
 });

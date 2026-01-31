@@ -1,12 +1,14 @@
-import type {AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
-import {axiosJSONContentDefaultInstance} from "~/lib/axios/default-axios";
+import {AxiosError, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse} from "axios";
+import {axiosJSONContentDefaultInstance, type BackendError} from "~/lib/axios/default-axios";
 import useAuthStore from "~/model/auth/zustand/auth-store";
 import type {TokenResponse} from "~/domain/auth/TokenResponse";
 import {isNotBlank, TOKEN_EXPIRED_MESSAGE} from "~/utils/CompanionObjects";
-enum ErrorType {
+enum AxiosErrorType {
     RequestError,
     ResponseError
 }
+
+export type ErrorType<Error> = AxiosError<BackendError>;
 
 class ApiClient {
     private isRefreshing = false;
@@ -33,34 +35,36 @@ class ApiClient {
 
                 return config;
             },
-             (error)=> this.mapError(error,ErrorType.RequestError)
+             (error:ErrorType<BackendError>)=> this.mapError(error,AxiosErrorType.RequestError)
         );
     }
 
     private setupResponseInterceptors() {
        return  axiosJSONContentDefaultInstance.interceptors.response.use(
             (response: AxiosResponse) => response,
-            (error) => this.mapError(error, ErrorType.ResponseError)
+            (error:ErrorType<BackendError>) => this.mapError(error, AxiosErrorType.ResponseError)
         );
     }
 
-    private async mapError(error: any, errorType: ErrorType): Promise<Error>{
+    private async mapError(error: ErrorType<BackendError>, errorType: AxiosErrorType): Promise<AxiosErrorType>{
 
+        console.info(error);
         const reason = {
-            message: error.response?.data?.message || 'System Error',
+            message: error.response?.data?.message ||error.response?.data.statusCodeMessage|| 'System Error',
             status: error.response?.status || 500,
-            field: error.response?.data?.field,
         };
+        error.message =reason.message;
+        error.status = reason.status;
 
         switch(errorType) {
 
-            case ErrorType.RequestError:{
+            case AxiosErrorType.RequestError:{
 
                 return Promise.reject(reason);
             }
-            case ErrorType.ResponseError:{
+            case AxiosErrorType.ResponseError:{
 
-                 const originalRequest:AxiosRequestConfig = error?.config;
+                 const originalRequest = error?.config;
                 if(error.response?.status===403 && error.response?.data?.message===TOKEN_EXPIRED_MESSAGE){
 
                     try {
@@ -68,14 +72,14 @@ class ApiClient {
                         const newToken = await this.refreshAccessToken();
 
                         // Update store
-                         useAuthStore.getState().refreshToken(newToken);
+                         await useAuthStore.getState().refreshToken(newToken);
 
                         // Retry original request with new token
-                        if (originalRequest.headers) {
+                        if (originalRequest?.headers) {
                             originalRequest.headers['Authorization'] = `Bearer ${newToken.access_token}`;
                         }
 
-                        return axiosJSONContentDefaultInstance(originalRequest);
+                        return axiosJSONContentDefaultInstance(originalRequest!);
                     } catch (refreshError) {
                         // Refresh failed, logout user
                         await useAuthStore.getState().logout();
@@ -112,7 +116,7 @@ class ApiClient {
 
         return this.refreshPromise;
     }
-    private async mapRefreshApiError(error: any, errorType: ErrorType): Promise<Error> {
+    private async mapRefreshApiError(error: any, errorType: AxiosErrorType): Promise<Error> {
         const reason = {
             message: error.response?.data?.message || 'System Error',
             status: error.response?.status || 500,
@@ -128,6 +132,7 @@ class ApiClient {
 
 
 }
+
 
 const apiClient = new ApiClient();
 const axiosForPrivateApi = apiClient.getInstance();
