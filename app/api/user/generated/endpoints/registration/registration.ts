@@ -128,7 +128,7 @@ export const verifyUser = (
   verificationRequest: VerificationRequest,
   options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<TokenResponse>(
+  return axiosJSONContentDefaultInstanceWrapper<TokenResponse | string | void>(
     {
       url: `/auth/verify`,
       method: "PUT",
