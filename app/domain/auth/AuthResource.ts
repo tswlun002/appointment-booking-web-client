@@ -1,5 +1,5 @@
-import type {TokenResponse} from "~/domain/auth/TokenResponse";
 import type {User} from "~/domain/user/User";
+import type {TokenResponse} from "~/domain/user/generated/model";
 
 export type EnvRoles=Record<string,string[]>
 export type ClientRoles=Record<string, EnvRoles>
@@ -14,6 +14,7 @@ export type Auth ={
     realmAccess?: EnvRoles,
     resourceAccess?: ClientRoles,
     isAuthenticated: boolean,
+    isCapitecClient?:boolean,
     logout: () => Promise<void>,
     login: (tokenResponse:TokenResponse) => Promise<void>
     refreshToken: (tokenResponse:TokenResponse)  => Promise<void>,

@@ -3,8 +3,8 @@ import {jwtDecode} from "jwt-decode";
 import type {JWTPayload} from "~/domain/auth/JWTPayLoad";
 import type {Auth, ClientRoles, EnvRoles} from "~/domain/auth/AuthResource";
 import type {User} from "~/domain/user/User";
-import type {TokenResponse} from "~/domain/auth/TokenResponse";
 import {isNotBlank} from "~/utils/CompanionObjects";
+import type {TokenResponse} from "~/domain/user/generated/model";
 
 
 const useAuthStore = create<Auth>((set, get) => ({
@@ -22,7 +22,7 @@ const useAuthStore = create<Auth>((set, get) => ({
 
     login: async (tokenResponse) => {
 
-      const accessToken = tokenResponse.access_token;
+      const accessToken = tokenResponse.access_token!;
       const payload = jwtDecode<JWTPayload>(accessToken);
       const envRole = payload.realm_access;
       const clientRoles = payload.resource_access;
