@@ -102,7 +102,7 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
 
                         return {
                             ...state,
-                            response: {isSuccess: true, message: action.message},
+                            response: {isSuccess: true, data: action.message},
                             isLoading: false,
                             errors: {...initialState.errors,}
                         };
