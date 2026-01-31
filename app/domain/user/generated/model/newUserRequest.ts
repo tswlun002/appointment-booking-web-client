@@ -43,5 +43,5 @@ export interface NewUserRequest {
    */
   idNumber?: string;
   /** Whether user is an existing Capitec client */
-  isCapitecClient?: boolean;
+  isCapitecClient: boolean;
 }
