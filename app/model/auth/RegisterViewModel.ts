@@ -6,9 +6,12 @@ import type {UseMutationResult} from "@tanstack/react-query";
 import {type NavigateFunction, useNavigate} from "react-router";
 import {ViewModel} from "~/model/ViewModel";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
-import {useRegisterUser} from "~/api/user/generated/endpoints/registration/registration";
+import {
+    type RegisterUserMutationBody,
+    type RegisterUserMutationError, type RegisterUserMutationResult,
+    useRegisterUser
+} from "~/api/user/generated/endpoints/registration/registration";
 import {type RegisterState, registerUserSchema} from "~/domain/user/Register";
-import type {ErrorResponse, NewUserRequest} from "~/domain/user/generated/model";
 
 
 const VALIDATION_DELAY_TIME_SECOND =1500
@@ -16,15 +19,16 @@ const NAVIGATION_DELAY_TIME_SECOND=1500
 
 export const useRegisterModel = () => {
 
-  const reducer = ViewModel.reducer<NewUserRequest,string,RegisterState>(initialRegisterState);
+  const reducer = ViewModel.reducer<RegisterUserMutationBody,RegisterUserMutationResult,RegisterState>(initialRegisterState);
   const [state, dispatch] = useReducer(reducer, initialRegisterState);
   const registerMutation = useRegisterUser();
   const navigateFunction = useNavigate();
 
   const resolver = useMemo(
-      () => createZodResolver<NewUserRequest,TypeError<NewUserRequest>>(registerUserSchema),
+      () => createZodResolver<RegisterUserMutationBody,TypeError<RegisterUserMutationBody>>(registerUserSchema),
       []
   );
+
   useEffect(()=>{
     model.catchStateChange(state);
   },[state?.response?.isSuccess])
@@ -41,13 +45,13 @@ export const useRegisterModel = () => {
 };
 
 
-export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterState>{
+export class RegisterModel extends ViewModel<RegisterUserMutationBody,RegisterUserMutationResult, RegisterState>{
 
     constructor(
       protected state: RegisterState,
-      protected dispatch: Dispatch<ActionDispatch<NewUserRequest>>,
-      protected resolver: (data: NewUserRequest) => Promise<{ errors?:TypeError<NewUserRequest>; values?: NewUserRequest }>,
-      private  registerMutation:  UseMutationResult<string, ErrorResponse, { data: NewUserRequest }, unknown>,
+      protected dispatch: Dispatch<ActionDispatch<RegisterUserMutationBody>>,
+      protected resolver: (data: RegisterUserMutationBody) => Promise<{ errors?:TypeError<RegisterUserMutationBody>; values?: RegisterUserMutationBody }>,
+      private  registerMutation:  UseMutationResult<RegisterUserMutationResult, RegisterUserMutationError, { data: RegisterUserMutationBody }, unknown>,
       private  navigateFunction: NavigateFunction
 
   ) {
@@ -57,7 +61,7 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
   onChange = async (event: ChangeEvent<HTMLInputElement>) => {
 
       event.preventDefault();
-      const key = event.target.id as keyof NewUserRequest;
+      const key = event.target.id as keyof RegisterUserMutationBody;
 
       const value = event.target.value;
 
@@ -70,10 +74,10 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
   };
 
 
-  private getError = (errorKey:string,error:Error):TypeError<NewUserRequest>=>{
+  private getError = (errorKey:string,error:Error):TypeError<RegisterUserMutationBody>=>{
 
 
-    const passwordErrors :Record<keyof TypeError<NewUserRequest>, Error> ={} as TypeError<NewUserRequest>;
+    const passwordErrors :Record<keyof TypeError<RegisterUserMutationBody>, Error> ={} as TypeError<RegisterUserMutationBody>;
 
     const confirmPassword = "confirmPassword";
     const password = "password";
@@ -90,7 +94,7 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
 
     }
     else {
-      passwordErrors[errorKey as keyof TypeError<NewUserRequest>]=error
+      passwordErrors[errorKey as keyof TypeError<RegisterUserMutationBody>]=error
     }
 
     return passwordErrors;
@@ -101,9 +105,9 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
 
     const data = {...this.state.userData,[key]:value };
     const result = await this.resolver(data);
-    const errorKey = key as keyof TypeError<NewUserRequest>;
+    const errorKey = key as keyof TypeError<RegisterUserMutationBody>;
 
-    if (isNotBlank<TypeError<NewUserRequest>>(result.errors) && result.errors !== undefined) {
+    if (isNotBlank<TypeError<RegisterUserMutationBody>>(result.errors) && result.errors !== undefined) {
 
       const error = result.errors[errorKey];
 
@@ -124,18 +128,20 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
     }
   };
 
-  public submitToAPI =   (userRegister: NewUserRequest) :Promise<String>=>  {
+  public submitToAPI =   (userRegister: RegisterUserMutationBody) :Promise<String>=>  {
       return  this.registerMutation?.mutateAsync({data:userRegister},this.registerMutationOptions())
   };
   private registerMutationOptions =()=>{
 
     return {
-      onSuccess: (data:string) => {
+      onSuccess: (data:RegisterUserMutationResult) => {
         this.dispatch({ type: ActionEvent.SET_API_RESPONSE_SUCCESS, isSuccess: true, message:data });
 
       },
-      onError: (error:ErrorResponse) => {
-        const message = error.message||error.error;
+      onError: (error:RegisterUserMutationError) => {
+
+          console.info(error.message, error.error, "\n", error);
+        const message = error.message || error.error;
         this.dispatch({type: ActionEvent.SET_API_ERROR,error: {isError: true, message: message }});
       },
     }
@@ -144,14 +150,24 @@ export class RegisterModel extends ViewModel<NewUserRequest,string, RegisterStat
   catchStateChange(state: RegisterState) {
     if(state.response?.isSuccess){
       setTimeout(()=>{
-        const emailVerification = "email-verification";
-        this.navigateFunction(emailVerification, {replace:true})
+        const emailVerification = "register/email-verification";
+        this.navigateFunction(
+            emailVerification,
+            {
+                replace:true,
+                state:{
+                    registryEmail:this.state.userData.email,
+                    responseMessage:this.state.response?.data || "Check verification code your email",
+                    isCapitecClient:this.state.userData?.isCapitecClient,
+                }
+            }
+        )
       },NAVIGATION_DELAY_TIME_SECOND)
     }
   }
 
     onToggle(key:string ) {
-        const field = key as keyof NewUserRequest;
+        const field = key as keyof RegisterUserMutationBody;
         const value = !this.state.userData.isCapitecClient;
         this.dispatch({type: ActionEvent.TOGGLE_MODAL, field: field, value: value});
     }
@@ -171,7 +187,7 @@ export const initialRegisterState: RegisterState = {
     errors: Object.fromEntries(
         ['firstname', 'lastname', 'email', 'password', 'confirmPassword', 'response', 'idNumber', 'isCapitecClient']
         .map(key => [key, createDefaultError()])
-    ) as TypeError<NewUserRequest>,
+    ) as TypeError<RegisterUserMutationBody>,
     isLoading: false,
 };
 
