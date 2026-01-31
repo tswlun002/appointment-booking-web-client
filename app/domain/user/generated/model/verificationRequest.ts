@@ -13,8 +13,16 @@ user management (profile, password change, account deletion).
  * Request body for email verification
  */
 export interface VerificationRequest {
-  /** User's email address */
+  /**
+   * User's email address
+   * @minLength email
+   */
   email: string;
-  /** One-time password sent to email */
+  /**
+   * One-time password sent to email
+   * @minLength 6
+   */
   otp: string;
+  /** Whether user is an existing Capitec client */
+  isCapitecClient: boolean;
 }
