@@ -21,4 +21,6 @@ export interface TokenResponse {
   expires_in?: number;
   /** Token scope */
   scope?: string;
+  /** JWT identity token */
+  id_token?: string;
 }
