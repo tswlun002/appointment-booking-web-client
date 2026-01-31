@@ -13,10 +13,7 @@ user management (profile, password change, account deletion).
  * Request body for email verification
  */
 export interface VerificationRequest {
-  /**
-   * User's email address
-   * @minLength email
-   */
+  /** User's email address */
   email: string;
   /**
    * One-time password sent to email
