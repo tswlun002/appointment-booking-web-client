@@ -117,7 +117,8 @@ interface UnderlinedInputProps<T> {
     isMultiLine?: boolean,
     lines?: number,
     inputRef?: RefObject<HTMLInputElement | null>,
-    onChange: ChangeEventHandler<HTMLInputElement|HTMLTextAreaElement>
+    onChange: ChangeEventHandler<HTMLInputElement|HTMLTextAreaElement>,
+    disabled?: boolean,
 
 }
 
@@ -133,6 +134,7 @@ export const CustomerInput = <T, >({
                                        onChange,
                                        isMultiLine,
                                        lines,
+    disabled
                                    }: UnderlinedInputProps<T>) => {
 
 
@@ -144,6 +146,7 @@ export const CustomerInput = <T, >({
     isMultiLine = isMultiLine !== undefined;
     lines = (isMultiLine && lines===undefined)?3:lines;
 
+    const  isDisabled = disabled === undefined?false:disabled;
     const handleChange = (e: ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => {
         const cursorPosition = e.target.selectionStart;
         onChange(e)
@@ -157,7 +160,7 @@ export const CustomerInput = <T, >({
 
     type = isNotBlank<String>(type) ? type : "text"
     divStyle = isNotBlank<String>(divStyle) ? divStyle : "flex justify-between relative p-3 bg-transparent border-b-1  border-zinc-400  hover:border-red-200 focus:border-red-200"
-    inputStyle = isNotBlank(inputStyle) ? inputStyle : "bg-transparent outline-none  focus:placeholder::text-blues-500 focus:text-[#1E313E] w-full "
+    inputStyle = isNotBlank(inputStyle) ? inputStyle : "bg-transparent outline-none  focus:placeholder::text-bl-500 focus:text-[#1E313E] w-full "
 
 
     return (
@@ -171,9 +174,10 @@ export const CustomerInput = <T, >({
                     value={value}
                     rows={lines}
                     className={inputStyle}
+                    disabled={isDisabled}
                 />
-                :<input  key={id} ref={inputRef} onChange={handleChange} id={id} type={type} placeholder={label} value={value}
-                   className={inputStyle}/>
+                :<input   key={id} ref={inputRef} onChange={handleChange} id={id} type={type} placeholder={label} value={value}
+                   className={inputStyle} disabled={isDisabled} />
             }
             {
                 isError &&
