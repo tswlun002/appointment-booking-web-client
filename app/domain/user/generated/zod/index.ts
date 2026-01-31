@@ -35,7 +35,6 @@ export const registerUserBodyLastnameMin = 2;
 
 export const registerUserBodyLastnameRegExp = new RegExp("^[a-zA-Z]{2,}$");
 export const registerUserBodyIdNumberRegExp = new RegExp("^\\d{13}$");
-export const registerUserBodyIsCapitecClientDefault = false;
 
 export const registerUserBody = zod
   .object({
@@ -69,7 +68,6 @@ export const registerUserBody = zod
       .describe("South African ID number (optional)"),
     isCapitecClient: zod
       .boolean()
-      .optional()
       .describe("Whether user is an existing Capitec client"),
   })
   .describe("Request body for user registration");
@@ -86,10 +84,18 @@ export const verifyUserHeader = zod.object({
     .describe("Unique trace identifier for request tracking"),
 });
 
+export const verifyUserBodyOtpMin = 6;
+
 export const verifyUserBody = zod
   .object({
     email: zod.email().describe("User's email address"),
-    otp: zod.string().describe("One-time password sent to email"),
+    otp: zod
+      .string()
+      .min(verifyUserBodyOtpMin)
+      .describe("One-time password sent to email"),
+    isCapitecClient: zod
+      .boolean()
+      .describe("Whether user is an existing Capitec client"),
   })
   .describe("Request body for email verification");
 
@@ -99,6 +105,7 @@ export const verifyUserResponse = zod
     token_type: zod.string().optional().describe("Token type"),
     expires_in: zod.number().optional().describe("Token expiry in seconds"),
     scope: zod.string().optional().describe("Token scope"),
+    id_token: zod.string().optional().describe("JWT identity token"),
   })
   .describe("Authentication token response");
 
