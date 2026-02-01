@@ -38,7 +38,7 @@ export const requestPasswordChange = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
     {
-      url: `/credentials/password/update-request`,
+      url: `/api/v1/locations/branches/credentials/password/update-request`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: changePasswordRequest,
@@ -130,7 +130,7 @@ export const updatePassword = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
     {
-      url: `/credentials/password/update`,
+      url: `/api/v1/locations/branches/credentials/password/update`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: changePasswordConfirm,

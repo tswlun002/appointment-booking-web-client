@@ -47,7 +47,7 @@ export const requestPasswordReset = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
     {
-      url: `/auth/credentials/password/request-reset`,
+      url: `/api/v1/locations/branches/auth/credentials/password/request-reset`,
       method: "GET",
       params,
       signal,
@@ -60,7 +60,7 @@ export const getRequestPasswordResetQueryKey = (
   params?: RequestPasswordResetParams,
 ) => {
   return [
-    `/auth/credentials/password/request-reset`,
+    `/api/v1/locations/branches/auth/credentials/password/request-reset`,
     ...(params ? [params] : []),
   ] as const;
 };
@@ -222,7 +222,7 @@ export const resetPassword = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
     {
-      url: `/auth/credentials/password/reset`,
+      url: `/api/v1/locations/branches/auth/credentials/password/reset`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: passwordResetRequest,

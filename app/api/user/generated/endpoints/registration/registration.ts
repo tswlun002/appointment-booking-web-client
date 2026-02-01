@@ -40,7 +40,7 @@ export const registerUser = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
     {
-      url: `/auth/register`,
+      url: `/api/v1/locations/branches/auth/register`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       data: newUserRequest,
@@ -130,7 +130,7 @@ export const verifyUser = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<TokenResponse | string | void>(
     {
-      url: `/auth/verify`,
+      url: `/api/v1/locations/branches/auth/verify`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: verificationRequest,

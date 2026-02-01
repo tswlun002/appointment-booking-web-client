@@ -37,13 +37,17 @@ export const generateUsername = (
   signal?: AbortSignal,
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
-    { url: `/auth/generate/username`, method: "GET", signal },
+    {
+      url: `/api/v1/locations/branches/auth/generate/username`,
+      method: "GET",
+      signal,
+    },
     options,
   );
 };
 
 export const getGenerateUsernameQueryKey = () => {
-  return [`/auth/generate/username`] as const;
+  return [`/api/v1/locations/branches/auth/generate/username`] as const;
 };
 
 export const getGenerateUsernameQueryOptions = <

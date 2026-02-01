@@ -43,13 +43,13 @@ export const getUser = (
   signal?: AbortSignal,
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<UserResponse>(
-    { url: `/${username}`, method: "GET", signal },
+    { url: `/api/v1/locations/branches/${username}`, method: "GET", signal },
     options,
   );
 };
 
 export const getGetUserQueryKey = (username?: string) => {
-  return [`/${username}`] as const;
+  return [`/api/v1/locations/branches/${username}`] as const;
 };
 
 export const getGetUserQueryOptions = <
@@ -191,13 +191,13 @@ export const getUserByEmail = (
   signal?: AbortSignal,
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<UserResponse>(
-    { url: `/`, method: "GET", params, signal },
+    { url: `/api/v1/locations/branches/`, method: "GET", params, signal },
     options,
   );
 };
 
 export const getGetUserByEmailQueryKey = (params?: GetUserByEmailParams) => {
-  return [`/`, ...(params ? [params] : [])] as const;
+  return [`/api/v1/locations/branches/`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetUserByEmailQueryOptions = <

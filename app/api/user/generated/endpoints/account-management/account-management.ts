@@ -39,7 +39,7 @@ export const requestDeleteUser = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
     {
-      url: `/delete/request`,
+      url: `/api/v1/locations/branches/delete/request`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       data: deleteUserRequest,
@@ -132,7 +132,7 @@ export const deleteUser = (
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<string>(
     {
-      url: `/delete`,
+      url: `/api/v1/locations/branches/delete`,
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       data: deleteUserConfirm,
