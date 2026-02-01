@@ -1,0 +1,1 @@
+export const SECURED_PAGE_ROLES = ["app_user"]
