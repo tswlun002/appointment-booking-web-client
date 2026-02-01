@@ -1,19 +1,25 @@
 import {create} from "zustand/react";
 import {jwtDecode} from "jwt-decode";
 import type {JWTPayload} from "~/domain/auth/JWTPayLoad";
-import type {Auth, ClientRoles, EnvRoles} from "~/domain/auth/AuthResource";
+import type {Auth, ClientRoles, EnvRoles, Role} from "~/domain/auth/AuthResource";
 import type {User} from "~/domain/user/User";
 import {isNotBlank} from "~/utils/CompanionObjects";
 import type {TokenResponse} from "~/domain/user/generated/model";
-
 
 const useAuthStore = create<Auth>((set, get) => ({
     token: {
         accessToken:  ""
     },
+    roles:{} as Role,
     realmAccess:{} as EnvRoles,
     resourceAccess:{} as ClientRoles,
     isAuthenticated: false,
+    registeringUser: async (email:string, isCapitecClient:boolean)=>{
+        set(()=>({
+             isCapitecClient:isCapitecClient,
+             user:{  firstname: "", lastname: "", email: email, username: ""}
+        }))
+    },
     refreshToken: async (tokenResponse:TokenResponse)  => {
         set(()=>({
             token:{accessToken:tokenResponse.access_token, idToken:tokenResponse.id_token},
@@ -22,11 +28,12 @@ const useAuthStore = create<Auth>((set, get) => ({
 
     login: async (tokenResponse) => {
 
+        console.log(tokenResponse);
       const accessToken = tokenResponse.access_token!;
       const payload = jwtDecode<JWTPayload>(accessToken);
       const envRole = payload.realm_access;
       const clientRoles = payload.resource_access;
-
+      const  roles = payload.roles??[];
       const user:User ={
           username: payload.username,
           email:payload.email,
@@ -44,6 +51,7 @@ const useAuthStore = create<Auth>((set, get) => ({
           resourceAccess:clientRoles,
           realmAccess:envRole,
           user:user,
+          roles: roles,
       }));
 
 

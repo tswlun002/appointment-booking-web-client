@@ -1,6 +1,6 @@
 import {AxiosError, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse} from "axios";
 import {axiosJSONContentDefaultInstance, type BackendError} from "~/lib/axios/default-axios";
-import useAuthStore from "~/model/auth/zustand/auth-store";
+import useAuthStore from "~/model/auth/zustand/AuthStore";
 import type {TokenResponse} from "~/domain/auth/TokenResponse";
 import {isNotBlank, TOKEN_EXPIRED_MESSAGE} from "~/utils/CompanionObjects";
 enum AxiosErrorType {
