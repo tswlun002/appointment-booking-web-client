@@ -14,4 +14,9 @@ export const EmailVerificationSchema = verifyUserBody.extend(
     }
 );
 
-export  interface EmailVerificationState extends State<VerifyUserMutationBody,string  | TokenResponse> {}
+export  interface EmailVerificationState extends State<VerifyUserMutationBody,string  | TokenResponse> {
+    additionalData:{
+        registrationResponseMessage:string,
+        isSuccess:boolean,
+    }
+}

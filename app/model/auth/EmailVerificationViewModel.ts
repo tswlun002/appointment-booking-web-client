@@ -5,7 +5,7 @@ import {type NavigateFunction, useLocation, useNavigate} from "react-router";
 import type {UseMutationResult} from "@tanstack/react-query";
 import {ViewModel} from "~/model/ViewModel";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
-import useAuthStore from "~/model/auth/zustand/auth-store";
+import useAuthStore from "~/model/auth/zustand/AuthStore";
 import {useShallow} from "zustand/react/shallow";
 import {EmailVerificationSchema, type EmailVerificationState} from "~/domain/user/EmailVerification";
 import {
@@ -92,21 +92,15 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
                 let message;
                 let status;
                 if (typeof response === "string" || typeof response === "undefined") {
-                    message = "Successfully verified, please login to book.";
+                    message =  response==undefined?"Successfully verified, please login to book.":response;
                     status = 202
                 } else {
                     status = 200;
                     await this.login(response);
-                    console.log("Successfully verified, and auto logged in.");
                     message = "Successfully verified, and auto logged in.";
                 }
 
-                this.dispatch({
-                    type: ActionEvent.SET_API_RESPONSE_SUCCESS,
-                    isSuccess: true,
-                    status: status,
-                    message: message
-                });
+                this.dispatch({ type: ActionEvent.SET_API_RESPONSE_SUCCESS, isSuccess: true, message:message, status:status });
 
             },
             onError: (error: VerifyUserMutationError) => {
@@ -119,26 +113,25 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
     }
 
     catchStateChange(state: EmailVerificationState) {
-
+          console.log(state);
         if (state.response?.isSuccess) {
 
-            switch (state.response.status) {
-                case 200: {
+            //switch (state.response.status) {
+                if(state.response.status=== 200) {
                     setTimeout(() => {
-                        const navigateTo = "/block-posts"
+                        const navigateTo = "/branches";
                         console.log("navigate to:", navigateTo)
                         this.navigateFunction(navigateTo, {replace: true});
                     }, NAVIGATION_DELAY_TIME_SECOND);
-                    break;
+
                 }
-                case  2002: {
+            else if(state.response.status=== 2002 || state.response.status===   204) {
                     setTimeout(() => {
-                        const navigateTo = "login"
+                        const navigateTo = "/login"
                         console.log("navigate to:", navigateTo)
                         this.navigateFunction(navigateTo, {replace: true});
                     }, 16000);
-                    break;
-                }
+
             }
 
         }
@@ -153,30 +146,30 @@ type RegistrationResponse = {
 
 export const initialEmailVerificationState =( {registryEmail, registerResponse,isCapitecClient}:RegistrationResponse)=> {
     return {
-    userData: {
-        email: registryEmail||"",
-        otp: "",
-        isCapitecClient:isCapitecClient,
-    },
-    errors: {
-        email: {
-            isError: false,
-            message: ""
+        userData: {
+            email: registryEmail||"",
+            otp: "",
+            isCapitecClient:isCapitecClient,
         },
-        otp: {
-            isError: false,
-            message: ""
+        errors: {
+            email: {
+                isError: false,
+                message: ""
+            },
+            otp: {
+                isError: false,
+                message: ""
+            },
+            response: {
+                isError: false,
+                message: ""
+            }
         },
-        response: {
-            isError: false,
-            message: ""
+        isLoading: false,
+        additionalData:{
+            isSuccess:true,
+            registrationResponseMessage:registerResponse
         }
-    },
-    isLoading: false,
-    response: {
-        isSuccess: true,
-        data: registerResponse
-    }
 } as EmailVerificationState
 
 };
