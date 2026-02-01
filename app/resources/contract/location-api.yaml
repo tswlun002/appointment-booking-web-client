@@ -10,7 +10,7 @@ info:
     email: support@capitecbank.co.za
 
 servers:
-  - url: /api/v1/location-service
+  - url: /api/v1/locations/branches
     description: Location Service Base Path (v1)
 
 tags:
