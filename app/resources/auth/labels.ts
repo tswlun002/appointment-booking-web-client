@@ -78,7 +78,7 @@ export const registerScreenResources = {
     loginLinkButton: {
         label: "Already have an account?",
         linkLabel: " Log in",
-        path: "/login",
+        path: "/",
 
     },
 }
@@ -102,7 +102,35 @@ export const EmailVerificationScreenResources = {
     loginLink: {
         label: "Already have an account?",
         linkLabel: "Log in",
-        path: "/login"
+        path: "/"
+    }
+
+}
+//====================================== LOGIN PAGE DEFAULT DATA ========================================================
+export const loginScreenResources = {
+    instructionMessage: `Hi, welcome back to `,
+    password: {
+        label: "Password",
+        id: "password",
+        passwordVisibility: PasswordVisibility.TOGGLE_VISIBILITY
+    },
+    email: {
+        label: "Email",
+        id: "email",
+        value:"",
+    },
+    forgotPasswordLink: {
+        label: "Forgot your password?",
+        path: "/password/forgot"
+    },
+    loginButton:{
+        label:"Login",
+        disabled:false,
+    },
+    registerLink: {
+        label: "Don’t have an account?",
+        linkLabel: "Register",
+        path: "/register"
     }
 
 }
