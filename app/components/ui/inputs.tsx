@@ -14,7 +14,6 @@ import type {TypeError} from "~/domain/error/Error";
 interface PasswordInputProps<T> {
     passwordVisibilityStatus?: PasswordVisibility,
     label: string,
-    style?: string,
     id: string,
     value?: string,
     error: TypeError<T>,
@@ -30,7 +29,6 @@ interface Visibility {
 export function PasswordInput<T>({
                                      label,
                                      passwordVisibilityStatus,
-                                     style,
                                      id,
                                      value,
                                      error,
@@ -62,10 +60,15 @@ export function PasswordInput<T>({
             dispatchVisibility({visible: visible, inputType: inputType})
         }
     };
+    const style = (isError) ?
+        "flex relative justify-between p-3 bg-transparent border-b-1  border-red-600"
+        : "flex  relative justify-between p-3 bg-transparent border-b-1  border-zinc-400  hover:border-red-200 focus:border-red-200";
+
 
     const customerStyle = isNotBlank<string>(style);
 
     const classStyle = customerStyle ? style : "flex flex-row border-0 w-full";
+
 
     const VisibilityButton = () => {
         return (

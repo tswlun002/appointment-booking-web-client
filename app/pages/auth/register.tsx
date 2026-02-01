@@ -12,9 +12,6 @@ export default function register() {
 
     const { state, model } = useRegisterModel();
 
-    const style = (state.errors.confirmPassword?.isError) ?
-        "flex relative justify-between p-3 bg-transparent border-b-1  border-red-600"
-        : "flex  relative justify-between p-3 bg-transparent border-b-1  border-zinc-400  hover:border-red-200 focus:border-red-200";
     const formButtonLabel = (state?.isLoading)?"Loading ...":registerScreenResources?.registerButton?.label;
     const isFormButtonDisabled = registerScreenResources?.registerButton?.disabled || state?.isLoading;
     const isResponse = state.errors?.response?.isError || state?.response?.isSuccess;
@@ -107,7 +104,6 @@ export default function register() {
                         passwordVisibilityStatus={registerScreenResources?.password?.passwordVisibility}
                         value={state?.userData?.password}
                         error={state?.errors}
-                        style={style}
                         onChange={model.onChange}
                     />
                     <PasswordInput<NewUserRequest>
@@ -116,7 +112,6 @@ export default function register() {
                         passwordVisibilityStatus={registerScreenResources?.confirmPassword?.passwordVisibility}
                         value={state?.userData?.confirmPassword}
                         error={state?.errors}
-                        style={style}
                         onChange={model.onChange}
                     />
 
