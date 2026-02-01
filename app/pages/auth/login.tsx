@@ -1,7 +1,7 @@
 import {FormButton} from "~/components/ui/buttons";
 import {Link} from "react-router";
 import {PasswordInput, CustomerInput} from "~/components/ui/inputs";
-import {COMPANY_DATA, loginScreenResources} from "~/resources/auth/labels";
+import {COMPANY_DATA, loginScreenResources} from "~/resources/label/auth-labels";
 import {useLoginModel} from "~/model/auth/LoginViewModel";
 import Error from "~/components/ui/error";
 import type {LoginRequest} from "~/domain/auth/generated/model";

@@ -3,7 +3,7 @@ import {FormButton} from "~/components/ui/buttons";
 import {PasswordInput, CustomerInput} from "~/components/ui/inputs";
 import NBIcon from "~/components/ui/NBIcon";
 import {useRegisterModel} from "~/model/auth/RegisterViewModel";
-import {registerScreenResources} from "~/resources/auth/labels";
+import {registerScreenResources} from "~/resources/label/auth-labels";
 import Error from "~/components/ui/error";
 import type {NewUserRequest} from "~/domain/user/generated/model";
 import CustomerCheckBox from "~/components/ui/check-box";

@@ -2,7 +2,7 @@ import {FormButton} from "~/components/ui/buttons";
 import {Link} from "react-router";
 import { CustomerInput} from "~/components/ui/inputs";
 import {useEmailVerificationModel} from "~/model/auth/EmailVerificationViewModel";
-import {COMPANY_DATA, EmailVerificationScreenResources} from "~/resources/auth/labels";
+import {COMPANY_DATA, EmailVerificationScreenResources} from "~/resources/label/auth-labels";
 import Error from "~/components/ui/error";
 import type {VerifyUserMutationBody} from "~/api/user/generated/endpoints/registration/registration";
 

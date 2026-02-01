@@ -1,4 +1,4 @@
-import {CONTACT_SUPPORT_TEAM_MESSAGE, PAGE_NOT_FOUND_MESSAGE} from "~/resources/auth/labels";
+import {CONTACT_SUPPORT_TEAM_MESSAGE, PAGE_NOT_FOUND_MESSAGE} from "~/resources/label/auth-labels";
 
 const PageNotFound = () => {
     return (
