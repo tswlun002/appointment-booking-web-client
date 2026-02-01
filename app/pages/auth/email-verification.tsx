@@ -12,9 +12,9 @@ export default   function EmailVerification(){
 
     const formButtonLabel = state?.isLoading?"Loading ...":EmailVerificationScreenResources?.emailVerificationButton.label;
     const isFormButtonDisabled = EmailVerificationScreenResources?.emailVerificationButton?.disabled || state?.isLoading;
-    const isResponse = state.errors?.response?.isError || state?.response?.isSuccess;
+    const isResponse = state.errors?.response?.isError || state?.response?.isSuccess || state.additionalData.isSuccess;
     const responseStyle = {color:state.errors?.response?.isError?"var(--color-red-600)":"var(--color-green-600)"};
-    const responseMessage= state.errors?.response?.message|| state.response?.data as string || "";
+    const responseMessage= state.errors?.response?.message|| state.response?.data as string ||state.additionalData.registrationResponseMessage ||"";
     const errorElement  =  isResponse&&<Error style={responseStyle} message={responseMessage}></Error>
 
 
