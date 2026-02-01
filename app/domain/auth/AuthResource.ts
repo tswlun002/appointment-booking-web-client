@@ -1,9 +1,9 @@
 import type {User} from "~/domain/user/User";
 import type {TokenResponse} from "~/domain/user/generated/model";
 
-export type EnvRoles=Record<string,string[]>
+export type Role = string[]
+export type EnvRoles=Record<string,Role>
 export type ClientRoles=Record<string, EnvRoles>
-
 export interface JWT {
     accessToken?: string;
     idToken?: string;
@@ -11,6 +11,7 @@ export interface JWT {
 
 export type Auth ={
     token?: JWT,
+    roles?: Role,
     realmAccess?: EnvRoles,
     resourceAccess?: ClientRoles,
     isAuthenticated: boolean,
@@ -20,5 +21,7 @@ export type Auth ={
     refreshToken: (tokenResponse:TokenResponse)  => Promise<void>,
     user?:User
     emailVerificationResponseMessage?: string
-    setEmailVerificationResponseMessage: (data:{email: string, message: string}) => void
+    setEmailVerificationResponseMessage: (data:{email: string, message: string}) => void,
+    registeringUser: (email:string, isCapitecClient:boolean)=>Promise<void>,
+
 }

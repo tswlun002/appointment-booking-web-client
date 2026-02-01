@@ -1,4 +1,4 @@
-import type {ClientRoles, EnvRoles} from "~/domain/auth/AuthResource";
+import type {ClientRoles, EnvRoles, Role} from "~/domain/auth/AuthResource";
 
 
 export type JWTPayload ={
@@ -12,6 +12,7 @@ export type JWTPayload ={
     azp: string,
     sid: string,
     acr: string,
+    "roles":Role,
     "allowed-origins": string[],
     realm_access: EnvRoles,
     resource_access: ClientRoles,
