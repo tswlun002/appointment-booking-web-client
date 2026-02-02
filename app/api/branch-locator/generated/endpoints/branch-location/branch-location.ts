@@ -45,7 +45,7 @@ export const searchBranchesByArea = (
   signal?: AbortSignal,
 ) => {
   return axiosJSONContentDefaultInstanceWrapper<BranchSearchResponse>(
-    { url: `/api/v1/users/branches/search`, method: "GET", params, signal },
+    { url: `/api/v1/locations/branches/search`, method: "GET", params, signal },
     options,
   );
 };
@@ -54,7 +54,7 @@ export const getSearchBranchesByAreaQueryKey = (
   params?: SearchBranchesByAreaParams,
 ) => {
   return [
-    `/api/v1/users/branches/search`,
+    `/api/v1/locations/branches/search`,
     ...(params ? [params] : []),
   ] as const;
 };
@@ -220,8 +220,10 @@ export const findNearestBranches = (
   options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
+
+    console.log("Params :", params)
   return axiosJSONContentDefaultInstanceWrapper<NearbyBranchesResponse>(
-    { url: `/api/v1/users/branches/nearby`, method: "GET", params, signal },
+    { url: `/api/v1/locations/branches/nearby`, method: "GET", params, signal },
     options,
   );
 };
@@ -230,7 +232,7 @@ export const getFindNearestBranchesQueryKey = (
   params?: FindNearestBranchesParams,
 ) => {
   return [
-    `/api/v1/users/branches/nearby`,
+    `/api/v1/locations/branches/nearby`,
     ...(params ? [params] : []),
   ] as const;
 };

@@ -49,7 +49,7 @@ export class RegisterModel extends ViewModel<RegisterUserMutationBody,RegisterUs
 
     constructor(
       protected state: RegisterState,
-      protected dispatch: Dispatch<ActionDispatch<RegisterUserMutationBody>>,
+      protected dispatch: Dispatch<ActionDispatch<RegisterUserMutationBody,RegisterUserMutationResult>>,
       protected resolver: (data: RegisterUserMutationBody) => Promise<{ errors?:TypeError<RegisterUserMutationBody>; values?: RegisterUserMutationBody }>,
       private  registerMutation:  UseMutationResult<RegisterUserMutationResult, RegisterUserMutationError, { data: RegisterUserMutationBody }, unknown>,
       private  navigateFunction: NavigateFunction

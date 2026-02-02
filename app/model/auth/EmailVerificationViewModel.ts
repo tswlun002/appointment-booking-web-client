@@ -65,7 +65,7 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
 
     constructor(
         protected state: EmailVerificationState,
-        protected dispatch: Dispatch<ActionDispatch<VerifyUserMutationBody>>,
+        protected dispatch: Dispatch<ActionDispatch<VerifyUserMutationBody,VerifyUserMutationResult>>,
         protected resolver: (data: VerifyUserMutationBody) => Promise<{
             errors?: TypeError<VerifyUserMutationBody>;
             values?: VerifyUserMutationBody
@@ -119,7 +119,7 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
             //switch (state.response.status) {
                 if(state.response.status=== 200) {
                     setTimeout(() => {
-                        const navigateTo = "/branches";
+                        const navigateTo = "/appointments";
                         console.log("navigate to:", navigateTo)
                         this.navigateFunction(navigateTo, {replace: true});
                     }, NAVIGATION_DELAY_TIME_SECOND);

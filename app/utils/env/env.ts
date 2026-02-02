@@ -19,7 +19,7 @@ const parseCustomHeaders = (headerString: string | undefined): Record<string, st
 
 
 const env: EnvironmentConfig = {
-    API_BASE_URL: import.meta.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:59674/api/v1/users',
+    API_BASE_URL: import.meta.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:59674',
    // API_TIMEOUT: parseInt(import.meta.env.REACT_APP_API_TIMEOUT || '10000', 10),
     API_RETRIES:parseInt(import.meta.env.REACT_APP_API_RETRIES || '2', 10),
     CUSTOM_HEADERS: parseCustomHeaders(import.meta.env.REACT_APP_CUSTOM_HEADERS)||{},

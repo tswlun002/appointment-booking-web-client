@@ -11,6 +11,7 @@ export interface State<T,R>{
     response?:{
         isSuccess: boolean;
         data?:R;
+        message?:string,
         status?:number
     }
 }

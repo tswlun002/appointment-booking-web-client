@@ -1,4 +1,4 @@
-import {AxiosError, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse} from "axios";
+import {AxiosError, type AxiosInstance, type AxiosResponse} from "axios";
 import {axiosJSONContentDefaultInstance, type BackendError} from "~/lib/axios/default-axios";
 import useAuthStore from "~/model/auth/zustand/AuthStore";
 import type {TokenResponse} from "~/domain/auth/TokenResponse";
@@ -10,7 +10,7 @@ enum AxiosErrorType {
 
 export type ErrorType<Error> = AxiosError<BackendError>;
 
-class ApiClient {
+export class ApiClient {
     private isRefreshing = false;
     private refreshPromise: Promise<any> | null = null;
     constructor() {
@@ -22,9 +22,9 @@ class ApiClient {
     private setupRequestInterceptors() {
 
 
-         return axiosJSONContentDefaultInstance.interceptors.request.use(
+         return this.getInstance().interceptors.request.use(
             (config) => {
-
+                console.log("REQUEST :", config)
                 const accessToken = useAuthStore.getState().token;
                 const headers = config.headers;
                 if(headers && isNotBlank<string>(accessToken?.accessToken)) {
@@ -35,22 +35,33 @@ class ApiClient {
 
                 return config;
             },
-             (error:ErrorType<BackendError>)=> this.mapError(error,AxiosErrorType.RequestError)
+             (error)=> this.mapError(error,AxiosErrorType.RequestError)
         );
     }
 
     private setupResponseInterceptors() {
-       return  axiosJSONContentDefaultInstance.interceptors.response.use(
+       return  this.getInstance().interceptors.response.use(
             (response: AxiosResponse) => response,
-            (error:ErrorType<BackendError>) => this.mapError(error, AxiosErrorType.ResponseError)
+            (error) =>{
+                console.info(error);
+
+
+                const data = error.response?.data as BackendError;
+                console.log(data.message);
+
+            if (data) {
+                    error.message = data.message || data.statusCodeMessage || error.message;
+             }
+            return     this.mapError(error, AxiosErrorType.ResponseError)
+            }
         );
     }
 
     private async mapError(error: ErrorType<BackendError>, errorType: AxiosErrorType): Promise<AxiosErrorType>{
 
-        console.info(error);
+        const message = error.response?.data;
         const reason = {
-            message: error.response?.data?.message ||error.response?.data.statusCodeMessage|| 'System Error',
+            message: message?.message|| error.message||message?.statusCodeMessage || 'System Error',
             status: error.response?.status || 500,
         };
         error.message =reason.message;
@@ -60,7 +71,7 @@ class ApiClient {
 
             case AxiosErrorType.RequestError:{
 
-                return Promise.reject(reason);
+                return Promise.reject(error);
             }
             case AxiosErrorType.ResponseError:{
 
@@ -79,7 +90,7 @@ class ApiClient {
                             originalRequest.headers['Authorization'] = `Bearer ${newToken.access_token}`;
                         }
 
-                        return axiosJSONContentDefaultInstance(originalRequest!);
+                        return this.getInstance()(originalRequest!);
                     } catch (refreshError) {
                         // Refresh failed, logout user
                         await useAuthStore.getState().logout();
@@ -104,8 +115,8 @@ class ApiClient {
         this.refreshPromise = (async () => {
             try {
                 // Call refresh API directly (no React Query)
-                const response = await axiosJSONContentDefaultInstance
-                    .post<TokenResponse>("/auth-service/auth/refresh/token");
+                const response = await this.getInstance()
+                    .post<TokenResponse>("/api/v1/auth/refresh");
 
                 return response.data;
             } finally {
@@ -117,6 +128,7 @@ class ApiClient {
         return this.refreshPromise;
     }
     private async mapRefreshApiError(error: any, errorType: AxiosErrorType): Promise<Error> {
+        console.log(error);
         const reason = {
             message: error.response?.data?.message || 'System Error',
             status: error.response?.status || 500,
@@ -132,9 +144,3 @@ class ApiClient {
 
 
 }
-
-
-const apiClient = new ApiClient();
-const axiosForPrivateApi = apiClient.getInstance();
-
-export default axiosForPrivateApi;

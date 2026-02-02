@@ -13,7 +13,10 @@ export const useSecuredLayoutModel =()=>{
     const {isAuthenticated, roles} = useAuthStore( useShallow((state) => ({
         isAuthenticated: state.isAuthenticated,
         roles: state.roles,
+
     })));
+
+
 
     // Force rehydration
     useEffect(() => {

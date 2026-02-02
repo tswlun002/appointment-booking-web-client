@@ -2,6 +2,7 @@ import env from "~/utils/env/env";
 import type {AxiosHeaders} from "~/utils/env/env-types";
 import { v4 as UUID } from 'uuid';
 import axios, {type AxiosInstance, type AxiosRequestConfig} from "axios";
+import {ApiClient} from "~/lib/axios/axios-api";
 const createJSONHeaders = (): AxiosHeaders => {
     const traceId = UUID();
     const baseHeaders: AxiosHeaders = {
@@ -41,28 +42,29 @@ const axiosConfig: AxiosRequestConfig = {
 };
 
 export const axiosJSONContentDefaultInstance: AxiosInstance = axios.create(axiosJSONConfig);
-axiosJSONContentDefaultInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-
-        const data = error.response?.data as BackendError;
-
-        if (data) {
-            error.message = data.message || data.statusCodeMessage || error.message;
-        }
-
-        console.debug("Interceptor mapped error message:", error.message);
-        return Promise.reject(error);
-    }
-);
-export const axiosDefaultInstance: AxiosInstance = axios.create(axiosConfig);
+const apiClient = new ApiClient();
+const axiosForPrivateApi = apiClient.getInstance();
+// axiosJSONContentDefaultInstance.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
+//
+//         const data = error.response?.data as BackendError;
+//
+//         if (data) {
+//             error.message = data.message || data.statusCodeMessage || error.message;
+//         }
+//
+//         console.debug("Interceptor mapped error message:", error);
+//         return Promise.reject(error);
+//     }
+// );
 
 export const axiosJSONContentDefaultInstanceWrapper = <T>(
     config: AxiosRequestConfig,
     options?: AxiosRequestConfig,
 ): Promise<T> => {
     // We pass the config from Orval into our instance
-    return axiosJSONContentDefaultInstance({
+    return axiosForPrivateApi({
         ...config,
         ...options,
     }).then(({ data }) => data) // Orval expects the raw data returned

@@ -5,7 +5,7 @@ export default defineConfig({
         input: './app/resources/contract/location-api.yaml',
         output: {
             mode: 'tags-split',
-            baseUrl: '/api/v1/users',
+            baseUrl: '/api/v1/locations/branches',
             target: './app/api/branch-locator/generated/endpoints',
             schemas: './app/domain/branch-locator/generated/model',
             client: 'react-query',

@@ -3,7 +3,6 @@ import type {Error, TypeError} from "~/domain/error/Error";
 import {isNotBlank} from "~/utils/CompanionObjects";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
 import type {State} from "~/domain/State";
-import type {RegisterState} from "~/domain/user/Register";
 
 /**
  * @T   model type
@@ -16,7 +15,7 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
 
     constructor(
         protected state: S,
-        protected dispatch: Dispatch<ActionDispatch<T>>,
+        protected dispatch: Dispatch<ActionDispatch<T,R>>,
         protected resolver: (data: T) => Promise<{ errors?: TypeError<T>; values?: T }>,
         private initialState: S,
         public  VALIDATION_DELAY_TIME_SECOND:number = 1500
@@ -85,11 +84,17 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
     abstract catchStateChange(state: S): void;
 
     static reducer = <T,R, S extends State<T,R>>(initialState:S) => {
-        return (state: S, action: ActionDispatch<T>): S =>{
+        return (state: S, action: ActionDispatch<T,R>): S =>{
             switch (action.type) {
                     case ActionEvent.SET_FIELD: {
+                         if(action.data !== undefined) {
 
-                        return {...state, userData: {...state.userData, [action.field]: action.value}};
+                             return {...state, userData: {...state.userData,...action.data, [action.field!]: action.value}};
+                         }
+                         else{
+                             return {...state, userData: {...state.userData, [action.field!]: action.value}};
+
+                         }
                     }
                     case ActionEvent.TOGGLE_MODAL: {
                         return {...state, userData: {...state.userData,[action.field]:action.value}}
@@ -100,12 +105,24 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
                     }
                     case ActionEvent.SET_API_RESPONSE_SUCCESS: {
 
-                        return {
-                            ...state,
-                            response: {isSuccess: true, data: action.message,status: action.status},
-                            isLoading: false,
-                            errors: {...initialState.errors,}
-                        };
+                       if(action.field !== undefined) {
+                           return {
+                               ...state,
+                               response: {isSuccess: true,message:action.message, data: action.data,status: action.status},
+                               isLoading: false,
+                               errors: {...initialState.errors,}
+                           };
+                       }
+                       else {
+                           return {
+                               ...state,
+                               response: {isSuccess: true,message:action.message, data: action.data,status: action.status},
+                               isLoading: false,
+                               userData:{...state.userData,[action.field!]:action.value},
+                               errors: {...initialState.errors,}
+                           };
+                       }
+
                     }
                     case ActionEvent.SET_API_ERROR: {
 

@@ -47,7 +47,7 @@ export class UserLoginModel extends ViewModel<LoginRequest,TokenResponse,LoginSt
 
     constructor(
         protected state: LoginState,
-        protected dispatch: Dispatch<ActionDispatch<LoginRequest>>,
+        protected dispatch: Dispatch<ActionDispatch<LoginRequest,TokenResponse>>,
         protected resolver: (data: LoginRequest) => Promise<{ errors?: TypeError<LoginRequest>; values?: LoginRequest }>,
         private loginMutation:  UseMutationResult<TokenResponse, LoginMutationError, {data:LoginRequest}, unknown>,
         private navigateFunction: NavigateFunction,
@@ -80,7 +80,7 @@ export class UserLoginModel extends ViewModel<LoginRequest,TokenResponse,LoginSt
     catchStateChange(state: LoginState) {
 
         if (state.response?.isSuccess) {
-            const path = "branches";
+            const path = "appointments";
             console.log("Navigate to :", path)
             this.navigateFunction(path, { replace: true});
         }
