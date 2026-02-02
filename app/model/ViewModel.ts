@@ -1,4 +1,4 @@
-import type {ChangeEvent, Dispatch, FormEvent} from "react";
+import type {ChangeEvent, Dispatch, SubmitEvent} from "react";
 import type {Error, TypeError} from "~/domain/error/Error";
 import {isNotBlank} from "~/utils/CompanionObjects";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
@@ -63,7 +63,7 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
         return true;
     };
 
-    submit = async (event: FormEvent<HTMLFormElement>) => {
+    submit = async (event: SubmitEvent<HTMLFormElement>) => {
 
         event.preventDefault();
         const result = await this.resolver(this.state.userData);
