@@ -79,9 +79,47 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
         this.submitToAPI(this.state.userData);
 
     };
-    abstract submitToAPI(data:T):void;
+     submitToAPI(data?:T):void{
+         //TODO need implementation to make server calls
+     }
 
-    abstract catchStateChange(state: S): void;
+     catchStateChange(state: S): void{
+         //TODO need implementation  if navigate after api response
+
+     }
+
+    protected async executeQuery<E>(
+        query: () => Promise<{
+            isError: boolean,
+            error: E |null,
+            status:string,
+            isLoading: boolean,
+            isSuccess: boolean,
+            isFetching: boolean,
+            data: R | undefined
+        }>): Promise<R|undefined> {
+
+         this.dispatch({type: ActionEvent.SET_LOADING, isLoading: true});
+
+         try{
+
+             const result = await query();
+             this.handleQueryResults(result);
+             return  result.data;
+
+         }catch(error){
+             const typeError = error as TypeError<R>;
+             this.dispatch({
+                 type: ActionEvent.SET_API_ERROR,
+                 error: {
+                     isError: true,
+                     message: typeError.response?.message || "Request failed, please try again.",
+                     status: typeError.response?.status||500,
+                 },
+             });
+             return undefined;
+         }
+    }
 
     static reducer = <T,R, S extends State<T,R>>(initialState:S) => {
         return (state: S, action: ActionDispatch<T,R>): S =>{
@@ -152,4 +190,33 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
             };
     }
 
+    protected handleQueryResults<E>(result: {
+        isError: boolean;
+        error: E  | null;
+        status: string;
+        isLoading: boolean;
+        isSuccess: boolean;
+        isFetching: boolean;
+        data: R | undefined
+    }) {
+        const {isSuccess, isLoading, isFetching, isError,error, data}=result;
+        if(isFetching || isLoading){
+            this.dispatch({type: ActionEvent.SET_LOADING, isLoading: true});
+            return;
+        }
+        if(isSuccess && data){
+            this.dispatch({type:ActionEvent.SET_API_RESPONSE_SUCCESS, isSuccess:true, message:"fetched successfully",data:data})
+        }
+
+        if(isError){
+            const err = error as Error | undefined;
+            this.dispatch({type:ActionEvent.SET_API_ERROR,
+            error:{
+                isError:isError,
+                message: err?.message || "Request failed, please try again.",
+                status: err?.status||500,
+            }
+            })
+        }
+    }
 }
