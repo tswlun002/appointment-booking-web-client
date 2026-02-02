@@ -36,6 +36,37 @@ export const useBranchLocatorModelView = () => {
     const coordinates  = useRef<FindNearestBranchesParams|null>(null)
     const abortControllerRef  = useRef<AbortController|null>(null)
 
+
+
+
+
+    useEffect(() => {
+
+        let permissionStatus:PermissionStatus|null = null
+        fetchCoordinates()
+
+        //const location = state.userData as FindNearestBranchesParams;
+        navigator.permissions.query({name:"geolocation"})
+            .then(status=>{
+                permissionStatus = status;
+                status.onchange=()=>{
+                    if(status.state==="granted"){
+                        fetchCoordinates();
+                    }
+                }
+            })
+        return () => {
+
+            if(permissionStatus){
+                permissionStatus.onchange=null;
+            }
+            abortControllerRef.current?.abort();
+        }
+
+
+    }, []);
+
+
     const areaQuery = useSearchBranchesByArea(
         state.userData as SearchBranchesByAreaParams, {query: { enabled: false }}
     )
@@ -45,9 +76,7 @@ export const useBranchLocatorModelView = () => {
     );
 
 
-    const resolver = useMemo(
-        () => createZodResolver<BranchParams, TypeError<BranchResponse>>(BranchLocatorSchema), []
-    );
+
     const  fetchCoordinates = useCallback(async ():Promise<FindNearestBranchesParams|null> => {
 
         abortControllerRef.current?.abort();
@@ -84,38 +113,14 @@ export const useBranchLocatorModelView = () => {
         return coordinates.current;
 
     },[state.userData])
-
+    const resolver = useMemo(
+        () => createZodResolver<BranchParams, TypeError<BranchResponse>>(BranchLocatorSchema), []
+    );
     const model = useMemo(
         () => new BranchLocatorModelView(state, dispatch, resolver,nearbyQuery,areaQuery, coordinates, fetchCoordinates),
         [state, resolver, coordinates]
     );
 
-
-    useEffect(() => {
-
-        let permissionStatus:PermissionStatus|null = null
-         fetchCoordinates()
-
-        //const location = state.userData as FindNearestBranchesParams;
-        navigator.permissions.query({name:"geolocation"})
-            .then(status=>{
-                permissionStatus = status;
-                status.onchange=()=>{
-                    if(status.state==="granted"){
-                        fetchCoordinates();
-                    }
-                }
-            })
-        return () => {
-
-            if(permissionStatus){
-               permissionStatus.onchange=null;
-            }
-            abortControllerRef.current?.abort();
-        }
-
-
-    }, [coordinates.current]);
 
 
     return {
