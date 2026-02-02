@@ -2,7 +2,16 @@ import {
     useSearchBranchesByArea,
     getFindNearestBranchesQueryOptions
 } from "~/api/branch-locator/generated/endpoints/branch-location/branch-location";
-import { type Dispatch, type RefObject, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import  {
+    type Dispatch,
+    type SubmitEvent,
+    type RefObject,
+    useCallback,
+    useEffect,
+    useMemo,
+    useReducer,
+    useRef
+} from "react";
 import { useQueryClient, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { createZodResolver } from "~/model/auth/zod/ZodResolver";
 import type { TypeError } from "~/domain/error/Error";
@@ -169,7 +178,8 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
         });
     };
 
-    public async searchByCurrentLocation(): Promise<void> {
+    public async searchByCurrentLocation(event:  SubmitEvent<HTMLFormElement>): Promise<void> {
+        event.preventDefault();
         let coords = this.coordinates.current;
 
         if (!coords) {
