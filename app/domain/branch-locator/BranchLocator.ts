@@ -47,7 +47,6 @@ const findNearestBranchesQueryParamsSchema = findNearestBranchesQueryParams.exte
 export  const BranchLocatorSchema= searchBranchesByAreaQueryParamSchema || findNearestBranchesQueryParamsSchema;
 export  interface  BranchLocatorState extends State<SearchBranchesByAreaParams|FindNearestBranchesParams, NearbyBranchesResponse|BranchSearchResponse>{
     searchType: "area"|"latLong",
-    onSubmit?:string,
     errors: TypeError<SearchBranchesByAreaParams|FindNearestBranchesParams>
 
 

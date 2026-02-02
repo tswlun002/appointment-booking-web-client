@@ -7,8 +7,6 @@ import type {
 } from "~/domain/branch-locator/generated/model";
 import BranchItem from "~/pages/branch/branchItem";
 import {CustomerInput} from "~/components/ui/inputs";
-import type {NewUserRequest} from "~/domain/user/generated/model";
-import {loginScreenResources, registerScreenResources} from "~/resources/label/auth-labels";
 import Error from "~/components/ui/error";
 
 const BranchLocator = () => {
@@ -18,14 +16,13 @@ const BranchLocator = () => {
      let  branches = [] as BranchLocation[];
     if(state.searchType=="area"){
         const data = state.response?.data as BranchSearchResponse || [] ;
-         branches = data.branches;
-
+         branches = data.branches || [] as BranchLocation[];
     }
     else if(state.searchType=="latLong"){
-        const data = state.response?.data as NearbyBranchesResponse;
-        branches = data.branches;
+        const data = state.response?.data as NearbyBranchesResponse || [] as BranchLocation[] ;
+        branches = data.branches ;
     }
-    console.log(branches);
+    console.log(state);
 
 
     const branchesElements =  branches?.map((branch) => (
@@ -53,7 +50,7 @@ const BranchLocator = () => {
                     <h3 className="text-3xl font-semibold py-4 text-[#3a3a3a]">Find a branch</h3>
                     <form className="space-y-4" onSubmit={e=>model.submit(e)}>
                         <button
-                            onClick={()=>model.getNearestBranchesByLatLong()}
+                            onClick={()=>model.searchByCurrentLocation()}
                             type="button"
                             className="flex items-center justify-center text-center border-[0.8px] border-[#2f70ef] text-[#2f70ef] bg-white rounded-full cursor-pointer min-h-[48px] w-full md:w-auto py-2 px-6 hover:bg-blue-50 transition-all font-medium"
                         >

@@ -1,8 +1,8 @@
 import {useFindNearestBranches, useSearchBranchesByArea
 } from "~/api/branch-locator/generated/endpoints/branch-location/branch-location";
-import {type Dispatch, useMemo, useReducer, useRef} from "react";
+import {type Dispatch, type RefObject, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
 import {createZodResolver} from "~/model/auth/zod/ZodResolver";
-import type {Error, TypeError} from "~/domain/error/Error";
+import type {TypeError} from "~/domain/error/Error";
 import type {
     BranchSearchResponse, ErrorResponse, FindNearestBranchesParams,
     NearbyBranchesResponse, SearchBranchesByAreaParams
@@ -11,90 +11,112 @@ import {BranchLocatorSchema, type BranchLocatorState} from "~/domain/branch-loca
 import {ViewModel} from "~/model/ViewModel";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
 import type {UseQueryResult} from "@tanstack/react-query";
-type Resolver =  (data: (SearchBranchesByAreaParams | FindNearestBranchesParams)) => Promise<{
-    values: SearchBranchesByAreaParams | FindNearestBranchesParams
+import type {QueryObserverResult} from "@tanstack/query-core";
+
+type  BranchParams  = SearchBranchesByAreaParams|FindNearestBranchesParams
+type  BranchResponse = NearbyBranchesResponse | BranchSearchResponse
+
+
+type Resolver =  (data: (BranchParams)) => Promise<{
+    values: BranchParams
     errors?: undefined
 } | {
-    errors: TypeError<NearbyBranchesResponse | BranchSearchResponse>
+    errors: TypeError<BranchResponse>
     values?: undefined
 }>
 
 export const useBranchLocatorModelView = () => {
 
 
-    const reducer = ViewModel.reducer<SearchBranchesByAreaParams|FindNearestBranchesParams,
-        NearbyBranchesResponse|BranchSearchResponse,
-        BranchLocatorState
-    >(SearchInitialState)
+    const reducer = ViewModel.reducer<BranchParams, BranchResponse, BranchLocatorState>
+                                                        (SearchInitialState)
 
     const [state, dispatch] = useReducer(reducer, SearchInitialState);
 
+    const coordinates  = useRef<FindNearestBranchesParams|null>(null)
+    const abortControllerRef  = useRef<AbortController|null>(null)
 
     const areaQuery = useSearchBranchesByArea(
         state.userData as SearchBranchesByAreaParams, {query: { enabled: false }}
     )
 
-    const reference  = useRef<FindNearestBranchesParams>(null)
-    const referenceError  = useRef<Error>(null)
-
-
-    const getLatLong =()=>{
-        try{
-            const  location =state.userData as FindNearestBranchesParams;
-
-             BranchLocatorModelView.getLatLong()
-                    .then(data => {
-                        reference.current =  {
-                            latitude: data.lng ,
-                            longitude: data.lng,
-                            limit:location.limit ,
-                            maxDistanceKm: location.maxDistanceKm,
-                        } as FindNearestBranchesParams
-                    })
-                 .catch(err=>{
-                     referenceError.current =   {
-                             isError: true,
-                             message: "Failed to get location info, please enable location and try again."
-                     };
-                   })
-
-             if(referenceError.current !==null){
-                 dispatch({type:ActionEvent.SET_API_ERROR, error:{
-                          isError: true,
-                          message: referenceError.current.message
-                     }})
-             }
-            return reference.current
-
-        }
-        catch(error){
-
-            dispatch({type: ActionEvent.SET_API_ERROR, error: {
-                    isError: true,
-                    message: error as string ||"Failed to get location info, please enable location and try again."
-                }})
-        }
-
-
-    }
-
-    const latLongMemo = useMemo(
-        () => getLatLong()!,
-        []
-    );
     const nearbyQuery = useFindNearestBranches(
-          latLongMemo, {query: { enabled: false }})
+        coordinates.current??SearchInitialState.userData as FindNearestBranchesParams, {query: { enabled: false }}
+    );
 
 
     const resolver = useMemo(
-        () => createZodResolver<SearchBranchesByAreaParams|FindNearestBranchesParams, TypeError<NearbyBranchesResponse|BranchSearchResponse>>(BranchLocatorSchema),
-        []
+        () => createZodResolver<BranchParams, TypeError<BranchResponse>>(BranchLocatorSchema), []
     );
+    const  fetchCoordinates = useCallback(async ():Promise<FindNearestBranchesParams|null> => {
+
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = new AbortController();
+        try {
+            const data = await BranchLocatorModelView.getLatLong();
+            const userData = state.userData as FindNearestBranchesParams;
+            coordinates.current = {
+                        latitude: data.lng,
+                        longitude: data.lng,
+                        limit: userData.limit,
+                        maxDistanceKm: userData.maxDistanceKm,
+                    } as FindNearestBranchesParams;
+
+
+
+        }catch (err) {
+            console.log(err);
+
+            if ((err as DOMException)?.name === "AbortError") {
+                // we do update ui on aborted error
+                return null
+            }
+            dispatch(
+                {
+                    type: ActionEvent.SET_API_ERROR,
+                    error: {
+                        isError: true,
+                        message: (err as Error)?.message || "Failed to get location. Please enable location and try again.",
+                    }
+                }
+            )
+        }
+        return coordinates.current;
+
+    },[state.userData])
 
     const model = useMemo(
-        () => new BranchLocatorModelView(state, dispatch, resolver,nearbyQuery,areaQuery),
-        [state, resolver]
+        () => new BranchLocatorModelView(state, dispatch, resolver,nearbyQuery,areaQuery, coordinates, fetchCoordinates),
+        [state, resolver, coordinates]
     );
+
+
+    useEffect(() => {
+
+        let permissionStatus:PermissionStatus|null = null
+         fetchCoordinates()
+
+        //const location = state.userData as FindNearestBranchesParams;
+        navigator.permissions.query({name:"geolocation"})
+            .then(status=>{
+                permissionStatus = status;
+                status.onchange=()=>{
+                    if(status.state==="granted"){
+                        fetchCoordinates();
+                    }
+                }
+            })
+        return () => {
+
+            if(permissionStatus){
+               permissionStatus.onchange=null;
+            }
+            abortControllerRef.current?.abort();
+        }
+
+
+    }, [coordinates.current]);
+
 
     return {
         state,
@@ -102,17 +124,19 @@ export const useBranchLocatorModelView = () => {
     }
 }
 
-export class BranchLocatorModelView extends ViewModel<SearchBranchesByAreaParams|FindNearestBranchesParams, NearbyBranchesResponse|BranchSearchResponse, BranchLocatorState> {
+export class BranchLocatorModelView extends ViewModel<BranchParams, BranchResponse, BranchLocatorState> {
 
     private static  GEOLOCATION_TIME_OUT =5000;
     private static GEOLOCATION_AGE = 0;
 
     constructor(
         protected state: BranchLocatorState,
-        protected dispatch: Dispatch<ActionDispatch<SearchBranchesByAreaParams|FindNearestBranchesParams,NearbyBranchesResponse|BranchSearchResponse>>,
+        protected dispatch: Dispatch<ActionDispatch<BranchParams,BranchResponse>>,
         protected resolver: Resolver,
-         private nearbyQuery: UseQueryResult<NearbyBranchesResponse, ErrorResponse> & { queryKey: readonly unknown[] & {} },
+        private nearbyQuery: UseQueryResult<NearbyBranchesResponse, ErrorResponse> & { queryKey: readonly unknown[] & {} },
         private  areaQuery: UseQueryResult<BranchSearchResponse, ErrorResponse> & { queryKey: readonly unknown[] & {}},
+        private coordinates: RefObject<FindNearestBranchesParams|null>,
+        private  fetchCoordinateFn: () =>  Promise<FindNearestBranchesParams | null>
     ) {
         super(state, dispatch, resolver, SearchInitialState);
     }
@@ -128,47 +152,8 @@ export class BranchLocatorModelView extends ViewModel<SearchBranchesByAreaParams
           return coords;
         } catch (error) {
             console.error("Location error:", error);
-            // You could dispatch an error message to the UI here
             throw Error(error as string||"Failed to get location info, please enable location and try again");
         }
-    }
-    public async  getNearestBranchesByLatLong() {
-
-            const{isError, isSuccess,error, isLoading,isFetching ,data}= await this.nearbyQuery.refetch()
-
-            console.log("isError:",isError,"isSuccess:",isSuccess, "isLoading:", isLoading, "isFetching:", isFetching,"data:",data)
-
-
-            if (isSuccess) {
-
-                this.dispatch({
-                    type: ActionEvent.SET_API_RESPONSE_SUCCESS,
-                    message: 'Search completed successfully',
-                    isSuccess: true,
-                    field:"searchType" as keyof (SearchBranchesByAreaParams | FindNearestBranchesParams),
-                    value:"latLong",
-                    data: this.nearbyQuery.data
-                })
-            }
-
-            if (isError) {
-
-                console.log("isError:",isError,error);
-                this.dispatch({
-                    type: ActionEvent.SET_API_ERROR,
-                    error: {
-                        message: error?.message || 'Search failed',
-                        status: error?.status,
-                        isError: true
-                    }
-                })
-            }
-
-            if (isLoading || isFetching) {
-                this.dispatch({type: ActionEvent.SET_LOADING, isLoading: true})
-            }
-
-
     }
 
     /**
@@ -203,15 +188,57 @@ export class BranchLocatorModelView extends ViewModel<SearchBranchesByAreaParams
     catchStateChange(state: BranchLocatorState): void {
     }
 
-    submitToAPI = async (data: SearchBranchesByAreaParams ) => {
-           console.log("Search area", data)
-          await this.areaQuery.refetch()
+    submitToAPI = async ( ) => {
+           await this.executeQuery<ErrorResponse>( async ()=>{
+               const  result  = await this.areaQuery.refetch();
+               return this.handleQueryResponse(result)
+           })
+    }
+    public  async  searchByCurrentLocation():Promise<void>{
+
+        if(!this.coordinates){
+            const newCoordinates = await this.fetchCoordinateFn();
+            console.log(this.coordinates)
+
+            if(!newCoordinates) {
+                this.dispatch({
+                        type: ActionEvent.SET_API_ERROR,
+                        error: {
+                            isError: true,
+                            message: "Location is not available. Please enable location and try again."
+                        }
+                    }
+                )
+                return;
+            }
+        }
+         await this.executeQuery<ErrorResponse>(async ()=>{
+             const  result  = await this.nearbyQuery.refetch()
+             return this.handleQueryResponse(result)
+
+         });
+
+    }
+    public  async retryFetchCoordinates(){
+        await this.fetchCoordinateFn()
+    }
+
+    private  handleQueryResponse =(result: QueryObserverResult<BranchResponse, ErrorResponse>)=>{
+
+            return{
+            status:result.status ,
+            isError: result.isError,
+            isLoading: result.isLoading,
+            isFetching: result.isFetching,
+            isSuccess: result.isSuccess,
+            error:result.error ,
+            data:result.data
+        }
     }
 }
 
 const SearchInitialState: BranchLocatorState = {
-    searchType: "area",
-    onSubmit: "",
+    searchType: "latLong",
     errors: {
         searchText:{
             isError: false,
@@ -221,7 +248,7 @@ const SearchInitialState: BranchLocatorState = {
             isError: false,
             message: ''
         }
-    } as  TypeError<SearchBranchesByAreaParams | FindNearestBranchesParams> ,
+    } as  TypeError<BranchParams> ,
     isLoading: false,
     userData: {
         searchText: "",
