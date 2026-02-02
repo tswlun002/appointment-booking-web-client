@@ -44,9 +44,7 @@ const BranchLocator = () => {
 
     return (
         <div className="flex flex-col w-full items-start justify-start gap-4">
-            <div className="search-section w-full min-h-[450px] rounded-md bg-no-repeat flex flex-col items-center md:items-start p-4 md:p-10">
-
-                {responseElement}
+            <div className="search-section w-full min-h-[450px] rounded-md bg-no-repeat flex flex-col items-center md:items-start p-4 md:p-10 mt-[5%]">
 
                 <div
                     className="backdrop-blur-xs w-full max-w-[544px] text-left rounded-sm p-6 shadow-lg"
@@ -65,6 +63,8 @@ const BranchLocator = () => {
                         Search by location or enable GPS to find branches near you
                     </p>
 
+                    {responseElement}
+
                     <form className="space-y-4" onSubmit={e => model.searchByCurrentLocation(e)}>
                         <button
                             type="submit"
@@ -82,7 +82,7 @@ const BranchLocator = () => {
 
                     <form className="space-y-4 mt-4" onSubmit={e => model.submit(e)}>
                         <div
-                            className="flex items-center h-[48px] w-full px-3 rounded-sm"
+                            className="relative flex items-center h-[48px] w-full px-3 rounded-sm"
                             style={{
                                 color: colors.textSecondary,
                                 backgroundColor: colors.bgWhite,
@@ -95,12 +95,12 @@ const BranchLocator = () => {
                                 label={"Search for a branch name, city or province"}
                                 value={inputValue}
                                 error={state?.errors}
-                                inputStyle={"bg-transparent outline-none flex-1 py-2 text-sm"}
+                                inputStyle={"bg-transparent outline-none w-full pr-8 py-2 text-sm"}
                                 type="text"
                                 onChange={model.onChange}
                             />
                             <Search
-                                className="h-5 w-5 ml-2 flex-shrink-0"
+                                className="absolute right-3 h-5 w-5"
                                 style={{ color: colors.textSecondary }}
                             />
                         </div>
