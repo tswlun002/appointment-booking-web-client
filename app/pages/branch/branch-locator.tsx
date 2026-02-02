@@ -48,15 +48,15 @@ const BranchLocator = () => {
                 }
                 <div className="bg-white/20 backdrop-blur-xs w-full max-w-[544px] text-left rounded-sm p-6 shadow-lg">
                     <h3 className="text-3xl font-semibold py-4 text-[#3a3a3a]">Find a branch</h3>
-                    <form className="space-y-4" onSubmit={e=>model.submit(e)}>
+                    <form className="space-y-4" onSubmit={e => model.searchByCurrentLocation(e)}>
                         <button
-                            onClick={()=>model.searchByCurrentLocation()}
-                            type="button"
+                            type="submit"
                             className="flex items-center justify-center text-center border-[0.8px] border-[#2f70ef] text-[#2f70ef] bg-white rounded-full cursor-pointer min-h-[48px] w-full md:w-auto py-2 px-6 hover:bg-blue-50 transition-all font-medium"
                         >
                             Please enable your location settings
                         </button>
-
+                    </form>
+                    <form className="space-y-4" onSubmit={e=>model.submit(e)}>
                         <div className="text-[#3a3a3a] bg-white flex items-center h-[48px] w-full border border-gray-300 px-3 rounded-sm focus-within:ring-2 focus-within:ring-[#2f70ef] focus-within:border-transparent">
 
                             <CustomerInput<SearchBranchesByAreaParams | FindNearestBranchesParams>
