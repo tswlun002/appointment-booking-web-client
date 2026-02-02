@@ -7,6 +7,8 @@ import {registerScreenResources} from "~/resources/label/auth-labels";
 import Error from "~/components/ui/error";
 import type {NewUserRequest} from "~/domain/user/generated/model";
 import CustomerCheckBox from "~/components/ui/check-box";
+import { colors, typography } from "~/resources/colors/colors";
+import Loader from "~/components/ui/loader";
 
 export default function register() {
 
@@ -15,54 +17,68 @@ export default function register() {
     const formButtonLabel = (state?.isLoading)?"Loading ...":registerScreenResources?.registerButton?.label;
     const isFormButtonDisabled = registerScreenResources?.registerButton?.disabled || state?.isLoading;
     const isResponse = state.errors?.response?.isError || state?.response?.isSuccess;
-    const responseStyle = {color:state.errors?.response?.isError?"var(--color-red-600)":"var(--color-green-600)"};
-    const responseMessage =state.errors?.response?.message|| state?.response?.data ||""
-    const responseElement  =  isResponse&&<Error style={responseStyle} message={responseMessage}></Error>
+    const responseStyle = { color: state.errors?.response?.isError ? colors.red : colors.success };
+    const responseMessage = state.errors?.response?.message || state?.response?.data || "";
+    const responseElement = isResponse && <Error style={responseStyle} message={responseMessage}></Error>;
 
-
+    if (state?.isLoading) {
+        return <Loader fullScreen message="Creating your account..." />;
+    }
 
     return (
-        <div className='flex flex-col items-center justify-center gap-4  w-full max-w-sm  p-4  sm:text-2xl sm:max-w-lg
-        md:text-3xl md:max-w-xl  lg:text-xl lg:max-w-lg lg:gap-2'>
-
-            <div className="flex flex-col gap-10 ">
+        <div
+            className="flex flex-col items-center justify-center gap-4 w-full max-w-sm p-4 sm:max-w-lg md:max-w-xl lg:max-w-lg lg:gap-2"
+            style={{ backgroundColor: colors.bgWhite }}
+        >
+            <div className="flex flex-col gap-10">
                 <div className="flex flex-col items-center py-3">
                     <img
                         src={registerScreenResources?.companyLogo}
-                        alt="Blocky 2 The World"
+                        alt="Capitec"
                         width={100}
                         height={100}
                         className="-mb-12"
                     />
                 </div>
 
-                <div className="flex flex-col py-3 ">
-                    <div className="flex flex-col items-center font text-[#0033a0]">
-                        <h1>{registerScreenResources?.headerInstruction}</h1>
+                <div className="flex flex-col py-3">
+                    <div className="flex flex-col items-center">
+                        <h1
+                            style={{
+                                color: colors.primary,
+                                fontSize: typography.h4.fontSize,
+                                fontWeight: typography.h4.fontWeight
+                            }}
+                        >
+                            {registerScreenResources?.headerInstruction}
+                        </h1>
                     </div>
-                    <div className="flex flex-row items-center gap-1 -mt-5 ">
-                        <div className="flex flex-row  items-center  w-8 sm:w-9">
+                    <div className="flex flex-row items-center gap-1 -mt-5">
+                        <div className="flex flex-row items-center w-8 sm:w-9">
                             <NBIcon size={120}/>
                         </div>
-                        <div
-                            className={"text-[.6rem] sm:text-sm md:text-xl lg:text-sm  font-light text-[#1E313E]"}>
+                        <p
+                            className="text-xs sm:text-sm lg:text-sm"
+                            style={{
+                                color: colors.primaryDark,
+                                fontWeight: typography.body.fontWeight
+                            }}
+                        >
                             {registerScreenResources?.subHeaderInstruction?.message}
-                        </div>
+                        </p>
                     </div>
                 </div>
             </div>
 
             {/* Registration Form */}
+            <form onSubmit={e => model.submit(e)} className="flex w-full flex-col gap-5 px-10 flex-1">
+                {responseElement}
 
-            <form  onSubmit={e=>model.submit(e)} className={'flex w-full flex-col gap-5  px-10 flex-1 sm:text-lg '} >
-                {
-                    responseElement
-                }
                 <div className="flex flex-col gap-2.5">
                     <CustomerCheckBox
-                      isChecked={state.userData?.isCapitecClient!}
-                      onToggle={()=>model.onToggle(`isCapitecClient`)}
-                      label={registerScreenResources?.isCapitecClient?.label}
+                        isChecked={state.userData?.isCapitecClient!}
+                        onToggle={() => model.onToggle(`isCapitecClient`)}
+                        label={registerScreenResources?.isCapitecClient?.label}
                     />
                     <CustomerInput<NewUserRequest>
                         id={registerScreenResources?.idNumber?.id}
@@ -87,7 +103,6 @@ export default function register() {
                         error={state.errors}
                         type="text"
                         onChange={model.onChange}
-
                     />
                     <CustomerInput<NewUserRequest>
                         id={registerScreenResources?.email?.id}
@@ -96,7 +111,6 @@ export default function register() {
                         value={state?.userData.email}
                         error={state?.errors}
                         onChange={model.onChange}
-
                     />
                     <PasswordInput<NewUserRequest>
                         label={registerScreenResources?.password?.label}
@@ -114,27 +128,38 @@ export default function register() {
                         error={state?.errors}
                         onChange={model.onChange}
                     />
-
                 </div>
 
                 <div className="flex flex-col gap-4">
-
                     <FormButton
                         label={formButtonLabel}
                         disabled={isFormButtonDisabled}
                         type={"submit"}
-                        style="w-full text-center text-white p-2 sm:p-4 lg:p-3  xl:p-3 rounded-lg"
+                        style="w-full text-center p-2 sm:p-4 lg:p-3 xl:p-3 rounded-lg"
                     />
 
-                    <p className="text-xs text-center  md:text-xl lg:text-sm font-light ">
+                    <p
+                        className="text-center"
+                        style={{
+                            color: colors.textSecondary,
+                            fontSize: typography.bodySmall.fontSize,
+                            fontWeight: typography.bodySmall.fontWeight
+                        }}
+                    >
                         {registerScreenResources?.loginLinkButton?.label}
-                        <Link to={registerScreenResources?.loginLinkButton?.path} className="px-1 font-medium underline">
+                        <Link
+                            to={registerScreenResources?.loginLinkButton?.path}
+                            className="px-1 underline"
+                            style={{
+                                color: colors.primary,
+                                fontWeight: typography.label.fontWeight
+                            }}
+                        >
                             {registerScreenResources?.loginLinkButton?.linkLabel}
                         </Link>
                     </p>
                 </div>
             </form>
         </div>
-
-    )
+    );
 }

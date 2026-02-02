@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import BranchLocator from "~/pages/branch/branch-locator";
 import { BranchLocatorScreenResources } from "~/resources/label/branch-labels";
 import { CalendarClock, XCircle, RotateCcw, Info, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { colors, getStatusColors } from "~/resources/colors/colors";
 
 const UserAppointments = () => {
     // 1. Added a 'Being Processed' item
@@ -20,40 +21,79 @@ const UserAppointments = () => {
     };
 
     const getStatusStyle = (status: string) => {
-        switch (status) {
-            case 'booked': return 'bg-green-100 text-green-700 border-green-200';
-            case 'cancelled': return 'bg-red-100 text-red-700 border-red-200';
-            case 'rescheduled': return 'bg-blue-100 text-blue-700 border-blue-200';
-            case 'being processed': return 'bg-amber-100 text-amber-700 border-amber-300 animate-pulse';
-            default: return 'bg-gray-100 text-gray-700';
-        }
+        const statusColor = getStatusColors(status);
+        const baseStyle: React.CSSProperties = {
+            backgroundColor: statusColor.bg,
+            color: statusColor.text,
+            borderColor: statusColor.border,
+        };
+        return baseStyle;
     };
+
+    const isBeingProcessed = (status: string) => status === 'being processed';
 
     return (
         <div className="relative min-h-screen w-full flex flex-col md:flex-row items-center justify-between p-[2.5%] overflow-hidden">
-            <div className={`absolute inset-0 z-0 opacity-40 bg-[url('${BranchLocatorScreenResources.backgroundImage}')] bg-cover bg-center bg-no-repeat`} />
+            <div
+                className="absolute inset-0 z-0 opacity-40 bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url('${BranchLocatorScreenResources.backgroundImage}')` }}
+            />
 
             {/* Items Section */}
             {appointments.length > 0 && (
                 <div className="relative z-10 w-full md:w-[35%] h-[90vh] flex flex-col justify-center">
-                    <div className="bg-white/95 backdrop-blur-md border border-white/20 p-6 rounded-xl shadow-2xl flex flex-col h-full max-h-[850px]">
-                        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">Your Appointments</h2>
+                    <div
+                        className="backdrop-blur-md p-6 rounded-xl shadow-2xl flex flex-col h-full max-h-[850px]"
+                        style={{
+                            backgroundColor: `${colors.bgWhite}f2`,
+                            borderColor: `${colors.bgWhite}33`,
+                            borderWidth: 1
+                        }}
+                    >
+                        <h2
+                            className="text-2xl font-bold mb-6 border-b pb-4"
+                            style={{ color: colors.textPrimary, borderColor: colors.borderLight }}
+                        >
+                            Your Appointments
+                        </h2>
 
                         <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
                             {appointments.map((app) => (
-                                <div key={app.id} className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm transition-all">
+                                <div
+                                    key={app.id}
+                                    className="p-4 rounded-xl shadow-sm transition-all"
+                                    style={{
+                                        backgroundColor: colors.bgWhite,
+                                        borderColor: colors.borderLight,
+                                        borderWidth: 1
+                                    }}
+                                >
                                     <div className="flex justify-between items-start mb-1">
-                                        <p className="font-bold text-gray-900 text-lg leading-tight">{app.title}</p>
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-tighter ${getStatusStyle(app.status)}`}>
+                                        <p
+                                            className="font-bold text-lg leading-tight"
+                                            style={{ color: colors.textPrimary }}
+                                        >
+                                            {app.title}
+                                        </p>
+                                        <span
+                                            className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-tighter ${isBeingProcessed(app.status) ? 'animate-pulse' : ''}`}
+                                            style={getStatusStyle(app.status)}
+                                        >
                                             {app.status}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-gray-500 mb-3">{app.date}</p>
+                                    <p
+                                        className="text-sm mb-3"
+                                        style={{ color: colors.textMuted }}
+                                    >
+                                        {app.date}
+                                    </p>
 
                                     {/* View More/Hide Toggle */}
                                     <button
                                         onClick={() => toggleInfo(app.id)}
-                                        className="flex items-center gap-1 text-xs font-bold text-[#2f70ef] mb-3 hover:underline"
+                                        className="flex items-center gap-1 text-xs font-bold mb-3 hover:underline"
+                                        style={{ color: colors.primary }}
                                     >
                                         <Info size={14} />
                                         {expandedId === app.id ? "Hide info" : "View more info"}
@@ -62,34 +102,68 @@ const UserAppointments = () => {
 
                                     {/* Expanded Branch Info */}
                                     {expandedId === app.id && (
-                                        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-1 duration-200">
-                                            <div className="flex gap-2 text-gray-700">
-                                                <MapPin size={16} className="text-red-500 shrink-0 mt-1" />
+                                        <div
+                                            className="mb-4 p-3 rounded-lg animate-in fade-in slide-in-from-top-1 duration-200"
+                                            style={{
+                                                backgroundColor: colors.bgLight,
+                                                borderColor: colors.borderLight,
+                                                borderWidth: 1
+                                            }}
+                                        >
+                                            <div className="flex gap-2">
+                                                <MapPin size={16} className="shrink-0 mt-1" style={{ color: colors.red }} />
                                                 <div className="text-sm">
-                                                    <p className="font-bold">{app.branch}</p>
-                                                    <p className="text-gray-500">{app.address}</p>
+                                                    <p className="font-bold" style={{ color: colors.textSecondary }}>{app.branch}</p>
+                                                    <p style={{ color: colors.textMuted }}>{app.address}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-50">
+                                    <div
+                                        className="flex flex-wrap gap-2 pt-3 border-t"
+                                        style={{ borderColor: colors.bgLight }}
+                                    >
                                         {app.status === 'being processed' ? (
-                                            <div className="w-full text-center py-2 text-xs font-medium text-amber-600 bg-amber-50 rounded-lg">
+                                            <div
+                                                className="w-full text-center py-2 text-xs font-medium rounded-lg"
+                                                style={{
+                                                    color: colors.warning,
+                                                    backgroundColor: colors.warningLight
+                                                }}
+                                            >
                                                 Please wait while we confirm your details...
                                             </div>
                                         ) : app.status !== 'cancelled' ? (
                                             <>
-                                                <button className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border border-red-200 text-red-600 rounded-lg text-xs font-bold hover:bg-red-50">
+                                                <button
+                                                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border rounded-lg text-xs font-bold hover:opacity-80 transition-opacity"
+                                                    style={{
+                                                        borderColor: colors.redBorder,
+                                                        color: colors.red
+                                                    }}
+                                                >
                                                     <XCircle size={14} /> Cancel
                                                 </button>
-                                                <button className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border border-blue-200 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-50">
+                                                <button
+                                                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border rounded-lg text-xs font-bold hover:opacity-80 transition-opacity"
+                                                    style={{
+                                                        borderColor: colors.primary,
+                                                        color: colors.primary
+                                                    }}
+                                                >
                                                     <CalendarClock size={14} /> Reschedule
                                                 </button>
                                             </>
                                         ) : (
-                                            <button className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-[#2f70ef] text-white rounded-lg text-sm font-bold hover:bg-blue-700">
+                                            <button
+                                                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-opacity"
+                                                style={{
+                                                    backgroundColor: colors.primary,
+                                                    color: colors.white
+                                                }}
+                                            >
                                                 <RotateCcw size={16} /> Rebook Appointment
                                             </button>
                                         )}
