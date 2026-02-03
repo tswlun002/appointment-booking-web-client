@@ -7,9 +7,11 @@ import {
     useReducer,
     useRef
 } from "react";
-import {Eye, EyeOff} from "lucide-react";
+import {Eye, EyeOff, Search} from "lucide-react";
 import {isNotBlank,  PasswordVisibility} from "~/utils/CompanionObjects";
 import type {TypeError} from "~/domain/error/Error";
+import {colors} from "~/resources/colors/colors";
+import type {FindNearestBranchesParams, SearchBranchesByAreaParams} from "~/domain/branch-locator/generated/model";
 
 interface PasswordInputProps<T> {
     passwordVisibilityStatus?: PasswordVisibility,
@@ -193,6 +195,70 @@ export const CustomerInput = <T, >({
     );
 };
 
+type  SearchInputProps ={
+    id: string,
+    label: string,
+    inputStyle?: string
+    divStyle?: string
+    value?: string,
+    inputRef?: RefObject<HTMLInputElement | null>,
+    onChange: ChangeEventHandler<HTMLInputElement|HTMLTextAreaElement>,
+}
+export const CustomerSearchInput = ({
+                                       id,
+                                       value,
+                                       label,
+                                       inputStyle,
+                                       divStyle,
+                                       inputRef,
+                                       onChange,
+                                   } :SearchInputProps ) =>{
+
+
+
+
+    inputRef = inputRef===undefined?useRef<HTMLInputElement>(null):inputRef;
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => {
+        const cursorPosition = e.target.selectionStart;
+        onChange(e)
+        setTimeout(() => {
+            if (inputRef.current && cursorPosition !== null) {
+                inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+            }
+        }, 0);
+    };
+
+
+    divStyle = isNotBlank<String>(divStyle) ? divStyle : "relative flex items-center h-[48px] w-full px-3 rounded-sm"
+    inputStyle = isNotBlank(inputStyle) ? inputStyle : "bg-transparent outline-none w-full pr-8 py-2 text-sm  w-full "
+
+
+    return (
+        <div
+            className={divStyle}
+            style={{
+                color: colors.textSecondary,
+                backgroundColor: colors.bgWhite,
+                borderWidth: 1,
+                borderColor: colors.borderMedium
+            }}
+        >
+            <input
+                id={id}
+                placeholder={label}
+                value={value}
+                className={inputStyle}
+                type="text"
+                onChange={handleChange}
+            />
+            <Search
+                className="absolute right-3 h-5 w-5"
+                style={{ color: colors.textSecondary }}
+            />
+        </div>
+    );
+};
 
 
 

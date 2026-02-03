@@ -172,16 +172,16 @@ const UserAppointments = () => {
     );
 
     return (
-        <div className="relative min-h-screen w-full flex flex-col md:flex-row items-center justify-between p-[2.5%] pb-20 md:pb-[2.5%] overflow-hidden">
+        <div className="relative min-h-screen w-full flex flex-col md:flex-row items-start justify-between p-[2.5%] pb-20 md:pb-[2.5%] overflow-hidden">
             <div
-                className="absolute inset-0 z-0 opacity-40 bg-cover bg-center bg-no-repeat"
+                className="absolute inset-0 z-0 opacity-60 bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: `url('${BranchLocatorScreenResources.backgroundImage}')` }}
             />
 
             {/* Desktop Layout */}
             {/* Appointments Section - Hidden on mobile */}
             {appointments.length > 0 && (
-                <div className="relative z-10 w-full md:w-[35%] h-[90vh] hidden md:flex flex-col justify-center">
+                <div className="relative z-10 w-full md:w-[35%] h-[100vh] hidden md:flex flex-col justify-center">
                     <AppointmentsWidget />
                 </div>
             )}
