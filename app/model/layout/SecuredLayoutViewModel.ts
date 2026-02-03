@@ -1,56 +1,75 @@
 import {useLocation, useNavigate} from "react-router";
 import useAuthStore from "~/model/auth/zustand/AuthStore";
 import {useShallow} from "zustand/react/shallow";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {SECURED_PAGE_ROLES} from "~/domain/role/Roles";
 
-export const useSecuredLayoutModel =()=>{
-    const [isReady, setIsReady] = useState(false)
+const HYDRATION_TIMEOUT_MS = 10000;
+
+export const useSecuredLayoutModel = () => {
+    const [isHydrated, setIsHydrated] = useState(false);
+    const [hydrationTimedOut, setHydrationTimedOut] = useState(false);
 
     const location = useLocation();
     const navigate = useNavigate();
 
-    const {isAuthenticated, roles} = useAuthStore( useShallow((state) => ({
+    const {isAuthenticated, roles} = useAuthStore(useShallow((state) => ({
         isAuthenticated: state.isAuthenticated,
         roles: state.roles,
-
     })));
 
+    const normalizedSecuredRoles = useMemo(
+        () => SECURED_PAGE_ROLES.map(s => s.trim().toLowerCase()),
+        []
+    );
 
+    const hasMatchingRole = useCallback((userRoles: string[] | undefined) => {
+        if (!userRoles || userRoles.length === 0) return false;
+        return userRoles.some(role =>
+            normalizedSecuredRoles.includes(role.toLowerCase())
+        );
+    }, [normalizedSecuredRoles]);
 
-    // Force rehydration
     useEffect(() => {
-        // Check if already hydrated
         if (useAuthStore.persist.hasHydrated()) {
-            setIsReady(true)
-            return
+            setIsHydrated(true);
+            return;
         }
 
-        // Wait for hydration if not hydrated yet
+        const timeoutId = setTimeout(() => {
+            if (!useAuthStore.persist.hasHydrated()) {
+                setHydrationTimedOut(true);
+                setIsHydrated(true);
+            }
+        }, HYDRATION_TIMEOUT_MS);
+
         const unsubscribe = useAuthStore.persist.onFinishHydration(() => {
-            setIsReady(true)
-        })
+            clearTimeout(timeoutId);
+            setIsHydrated(true);
+        });
 
-        return () => unsubscribe?.()
-    }, [])
-
-
-    const match = (string : string) => {
-        return SECURED_PAGE_ROLES.map(s=>s.trim().toLowerCase()).includes(string.toLowerCase())
-    }
-
-    const hasAccessToPermission =isReady && isAuthenticated && roles?.some(role =>match(role));
+        return () => {
+            clearTimeout(timeoutId);
+            unsubscribe?.();
+        };
+    }, []);
 
     useEffect(() => {
-        if (useAuthStore.persist.hasHydrated()) {
-            return
+        if (!isHydrated) {
+            return;
         }
 
-        if (!hasAccessToPermission) {
-            navigate("/", { replace: true, state: { from: location } })
+        const hasAccess = isAuthenticated && hasMatchingRole(roles);
+
+        if (!hasAccess || hydrationTimedOut) {
+            navigate("/", { replace: true, state: { from: location } });
         }
+    }, [isHydrated]);
 
-    }, [hasAccessToPermission,isReady]);
+    const hasAccess = isHydrated && isAuthenticated && hasMatchingRole(roles);
 
-    return {isAuthenticated:isAuthenticated && isReady, isLoading: !isReady};
-}
+    return {
+        isAuthenticated: hasAccess,
+        isLoading: !isHydrated
+    };
+};

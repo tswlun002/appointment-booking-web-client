@@ -1,20 +1,16 @@
-
 import {Outlet} from "react-router";
 import {useSecuredLayoutModel} from "~/model/layout/SecuredLayoutViewModel";
-import {Spinner} from "~/components/ui/spinner";
+import Loader from "~/components/ui/loader";
 
 
 export default function SecuredLayout() {
 
-    const {isAuthenticated,isLoading} = useSecuredLayoutModel();
-    if (isLoading) {
-        return <Spinner/>
+    const {isAuthenticated, isLoading} = useSecuredLayoutModel();
+
+    // Show loader while hydrating OR while redirecting (prevents flash of content)
+    if (isLoading || !isAuthenticated) {
+        return <Loader fullScreen message={isLoading ? "Loading..." : "Redirecting..."} />;
     }
 
-    if (!isAuthenticated) {
-        console.log("not authorized");
-        return null
-    }
-
-    return <Outlet />
+    return <Outlet />;
 }
