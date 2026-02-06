@@ -33,13 +33,16 @@ interface BookAppointmentInitProps {
     endTime: string;
     displayDate: string;
     slotTime: string;
+    customerUsername:string
 }
 
 
 export const useBookAppointmentModelView = () => {
     // Get branchId and slotId from route params
     const { branchId: routeBranchId, slotId: routeSlotId } = useParams();
-
+    // Get username from auth store
+    const username = useAuthStore(useShallow((s) => s.user?.username ?? ""));
+    console.log("useBookAppointmentModelView: username ", username);
     // Get additional booking data from navigation state (passed from slots page)
     const locationState = useLocation().state || {};
     const {
@@ -63,6 +66,7 @@ export const useBookAppointmentModelView = () => {
         endTime: endTime ?? "",
         displayDate: displayDate ?? "",
         slotTime: slotTime ?? "",
+        customerUsername:username
     };
 
     const reducer = ViewModel.reducer<BookAppointmentData, AppointmentResponse, BookAppointmentState>(initialBookAppointmentState);
@@ -70,8 +74,7 @@ export const useBookAppointmentModelView = () => {
 
     const navigateFunction = useNavigate();
 
-    // Get username from auth store
-    const username = useAuthStore(useShallow((s) => s.user?.username ?? ""));
+
 
     // Create appointment mutation
     const createAppointmentMutation = useCreateAppointment();
@@ -88,8 +91,7 @@ export const useBookAppointmentModelView = () => {
                 dispatch,
                 resolver,
                 createAppointmentMutation,
-                navigateFunction,
-                username
+                navigateFunction
             ),
         [state]
     );
@@ -118,7 +120,6 @@ export class BookAppointmentModelView extends ViewModel<BookAppointmentData, App
         protected resolver: Resolver,
         private createAppointmentMutation: UseMutationResult<AppointmentResponse, CreateAppointmentMutationError, { data: CreateAppointmentRequest }, unknown>,
         private navigateFunction: NavigateFunction,
-        private customerUsername: string
     ) {
         super(state, dispatch, resolver, initialBookAppointmentState);
     }
@@ -200,10 +201,7 @@ export class BookAppointmentModelView extends ViewModel<BookAppointmentData, App
 
         // Set loading and submit
         this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
-        this.submitToAPI({
-            ...this.state.userData,
-            customerUsername: this.customerUsername,
-        });
+        this.submitToAPI(this.state.userData);
     };
 
     /** Handle state changes - navigate on success */
@@ -285,7 +283,7 @@ const initBookAppointment = (props: BookAppointmentInitProps): BookAppointmentSt
         displayDate: props.displayDate,
         slotTime: props.slotTime,
         // Will be set from auth store
-        customerUsername: "",
+        customerUsername: props.customerUsername,
         // User selects in modal - starts empty
         serviceType: "",
         // Modal state

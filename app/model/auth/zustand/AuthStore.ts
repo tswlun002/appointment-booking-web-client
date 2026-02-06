@@ -38,7 +38,7 @@ const useAuthStore = create<Auth>()(
                 const clientRoles = payload.resource_access
                 const roles = payload.roles ?? []
                 const user: User = {
-                    username: payload.username,
+                    username: payload.preferred_username,
                     email: payload.email,
                     firstname: payload.given_name,
                     lastname: payload.family_name,
