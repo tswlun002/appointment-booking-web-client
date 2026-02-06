@@ -10,7 +10,8 @@ import  {
     useEffect,
     useMemo,
     useReducer,
-    useRef
+    useRef,
+    type MouseEvent
 } from "react";
 import { useQueryClient, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { createZodResolver } from "~/model/auth/zod/ZodResolver";
@@ -168,6 +169,13 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             );
         });
     };
+    onFilterEvent = async (id:string, event: MouseEvent<HTMLButtonElement>, value?:number) => {
+
+        event.preventDefault();
+        const field = id as keyof BranchParams;
+        this.clearTimeout()
+        this.dispatch({type: ActionEvent.SET_FIELD, field:field, value:value});
+    };
 
     catchStateChange(_state: BranchLocatorState): void {}
 
@@ -178,8 +186,11 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
         });
     };
 
-    public async searchByCurrentLocation(event:  SubmitEvent<HTMLFormElement>): Promise<void> {
-        event.preventDefault();
+    public async searchByCurrentLocation(event?:  SubmitEvent<HTMLFormElement>): Promise<void> {
+        if(event){
+            event.preventDefault();
+        }
+
         let coords = this.coordinates.current;
 
         if (!coords) {
@@ -196,6 +207,11 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             }
         }
 
+        const maxDistanceKm = (this.state.userData as FindNearestBranchesParams).maxDistanceKm;
+        if(coords.maxDistanceKm !== maxDistanceKm){
+            coords.maxDistanceKm = maxDistanceKm;
+        }
+
         this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
 
         try {
@@ -203,12 +219,24 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
                 getFindNearestBranchesQueryOptions(coords)
             );
 
-            this.dispatch({
-                type: ActionEvent.SET_API_RESPONSE_SUCCESS,
-                isSuccess: true,
-                message: "Search completed",
-                data
-            });
+
+            if(data == undefined || data.branches.length == 0) {
+                this.dispatch({
+                    type:ActionEvent.SET_API_ERROR,
+                    error:{
+                        message:`No branch found for within ${coords.maxDistanceKm} km radius`,
+                        isError: true
+                    }
+                })
+            }
+            else{
+                this.dispatch({
+                    type: ActionEvent.SET_API_RESPONSE_SUCCESS,
+                    isSuccess: true,
+                    message: "Search completed",
+                    data
+                });
+            }
         } catch (error) {
             this.dispatch({
                 type: ActionEvent.SET_API_ERROR,
@@ -219,11 +247,6 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             });
         }
     }
-
-    public async retryFetchCoordinates(): Promise<void> {
-        await this.fetchCoordinateFn();
-    }
-
     private handleQueryResponse = (result: QueryObserverResult<BranchResponse, ErrorResponse>) => {
         return {
             status: result.status,
@@ -237,6 +260,7 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
     };
 }
 const SearchInitialState: BranchLocatorState = {
+    DISTANCES:[5, 10, 25, 35],
     searchType: "latLong",
     errors: {
         searchText: {
@@ -251,7 +275,7 @@ const SearchInitialState: BranchLocatorState = {
     isLoading: false,
     userData: {
         searchText: "",
-        maxDistanceKm: 5,
+        maxDistanceKm: 10,
         limit: 10,
     }
 };
