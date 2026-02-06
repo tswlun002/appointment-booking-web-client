@@ -40,9 +40,9 @@ const UserAppointments = () => {
     // Appointments Widget Component
     const AppointmentsWidget = () => (
         <div
-            className="backdrop-blur-md p-6 rounded-xl shadow-2xl flex flex-col h-full max-h-[850px]"
+            className="backdrop-blur-xl p-6 rounded-xl shadow-2xl flex flex-col h-full max-h-[850px]"
             style={{
-                backgroundColor: `${colors.bgWhite}f2`,
+                backgroundColor: `${colors.bgWhite}33`,
                 borderColor: `${colors.bgWhite}33`,
                 borderWidth: 1
             }}
