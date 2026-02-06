@@ -71,7 +71,7 @@ export class UserLoginModel extends ViewModel<LoginRequest,TokenResponse,LoginSt
             },
             onError: (error: LoginMutationError) => {
                 console.log("Error: ", error,"Status: ", error.status);
-                const message = (error.status ===401)?"Invalid email or password" : error?.message;
+                const message = (error.status ===401)?"Invalid email or password" : error?.message||"Service currently unavailable, try again later";
                 this.dispatch({type: ActionEvent.SET_API_ERROR, error: {isError: true, message: message}});
             },
         }
