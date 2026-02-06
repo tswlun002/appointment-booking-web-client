@@ -41,25 +41,11 @@ const axiosConfig: AxiosRequestConfig = {
     withCredentials: true,
 };
 
-export const axiosJSONContentDefaultInstance: AxiosInstance = axios.create(axiosJSONConfig);
+export const axiosAuthorizedRequest: AxiosInstance = axios.create(axiosJSONConfig);
 const apiClient = new ApiClient();
 const axiosForPrivateApi = apiClient.getInstance();
-// axiosJSONContentDefaultInstance.interceptors.response.use(
-//     (response) => response,
-//     (error) => {
-//
-//         const data = error.response?.data as BackendError;
-//
-//         if (data) {
-//             error.message = data.message || data.statusCodeMessage || error.message;
-//         }
-//
-//         console.debug("Interceptor mapped error message:", error);
-//         return Promise.reject(error);
-//     }
-// );
 
-export const axiosJSONContentDefaultInstanceWrapper = <T>(
+export const axiosInstanceWrapper = <T>(
     config: AxiosRequestConfig,
     options?: AxiosRequestConfig,
 ): Promise<T> => {

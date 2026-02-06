@@ -1,5 +1,5 @@
 import {AxiosError, type AxiosInstance, type AxiosResponse} from "axios";
-import {axiosJSONContentDefaultInstance, type BackendError} from "~/lib/axios/default-axios";
+import {axiosAuthorizedRequest, type BackendError} from "~/lib/axios/default-axios";
 import useAuthStore from "~/model/auth/zustand/AuthStore";
 import type {TokenResponse} from "~/domain/auth/TokenResponse";
 import {isNotBlank, TOKEN_EXPIRED_MESSAGE} from "~/utils/CompanionObjects";
@@ -24,7 +24,6 @@ export class ApiClient {
 
          return this.getInstance().interceptors.request.use(
             (config) => {
-                console.log("REQUEST :", config)
                 const accessToken = useAuthStore.getState().token;
                 const headers = config.headers;
                 if(headers && isNotBlank<string>(accessToken?.accessToken)) {
@@ -43,11 +42,21 @@ export class ApiClient {
        return  this.getInstance().interceptors.response.use(
             (response: AxiosResponse) => response,
             (error) =>{
-                console.info(error);
 
+                console.debug("error message:",error.message,"\n stack: ",JSON.stringify(error));
 
+                if(error.code === AxiosError.ERR_NETWORK){
+                    error.message = "Our service is down at the moment, please try again later";
+                    error.status = 500;
+                   return  Promise.reject(error);
+                }
+                else if(error.code === AxiosError.ETIMEDOUT){
+                    error.message = "Check network connection and try again later";
+                    error.status = 500;
+                    return Promise.reject(error);
+
+                }
                 const data = error.response?.data as BackendError;
-                console.log(data.message);
 
             if (data) {
                     error.message = data.message || data.statusCodeMessage || error.message;
@@ -74,15 +83,21 @@ export class ApiClient {
                 return Promise.reject(error);
             }
             case AxiosErrorType.ResponseError:{
-
                  const originalRequest = error?.config;
-                if(error.response?.status===403 && error.response?.data?.message===TOKEN_EXPIRED_MESSAGE){
+                // logout on error
+                if(error.status <500 && error.status>=400 && originalRequest?.url?.endsWith("/auth/refresh")){
+                    await useAuthStore.getState().logout();
+                    return Promise.reject(error);
+
+                }
+                if(error.response?.status===401 || error.response?.data?.message===TOKEN_EXPIRED_MESSAGE){
 
                     try {
                         // Call refresh directly
                         const newToken = await this.refreshAccessToken();
 
-                        // Update store
+
+                         // Update store
                          await useAuthStore.getState().refreshToken(newToken);
 
                         // Retry original request with new token
@@ -94,7 +109,7 @@ export class ApiClient {
                     } catch (refreshError) {
                         // Refresh failed, logout user
                         await useAuthStore.getState().logout();
-                        window.location.href = '/login';
+
                         return Promise.reject(refreshError);
                     }
 
@@ -128,7 +143,6 @@ export class ApiClient {
         return this.refreshPromise;
     }
     private async mapRefreshApiError(error: any, errorType: AxiosErrorType): Promise<Error> {
-        console.log(error);
         const reason = {
             message: error.response?.data?.message || 'System Error',
             status: error.response?.status || 500,
@@ -139,7 +153,7 @@ export class ApiClient {
     }
 
     public getInstance(): AxiosInstance {
-        return axiosJSONContentDefaultInstance;
+        return axiosAuthorizedRequest;
     }
 
 
