@@ -1,28 +1,35 @@
 //====================================== LOGIN PAGE DEFAULT DATA ========================================================
 export const BranchLocatorScreenResources = {
-    backgroundImage: '/branches/branch-wrapper.webp',
-    instructionMessage: `Hi, welcome back to `,
-    password: {
-        label: "Password",
-        id: "password",
+    backgroundImage: "/branches/branch-wrapper.webp",
+    heading : "Find a branch",
+    subheading :"Search by location or enable GPS to find branches near you",
+    enableLocation: {
+        label: "Submit use my location",
+        latitude:{id:"latitude"},
+        longitude:{id:"longitude"}
     },
-    email: {
-        label: "Email",
-        id: "email",
-        value:"",
+    distanceFilter: {
+        label: "Filter Radius",
+        id: "maxDistanceKm",
     },
-    forgotPasswordLink: {
-        label: "Forgot your password?",
-        path: "/password/forgot"
+    searchText: {
+        label: "Search for a branch name,area,city,province",
+        id: "searchText",
     },
-    loginButton:{
-        label:"Login",
-        disabled:false,
+    branchesList:{
+        label:"Nearby branches",
     },
-    registerLink: {
-        label: "Don’t have an account?",
-        linkLabel: "Register",
-        path: "/register"
-    }
 
+}
+export const BranchItemResources = {
+    branchItemHeader:{
+        label:"Trading hours",
+    },
+    bookAppointmentButton:{
+        label:"Book Appointment",
+        id:"bookAppointmentButton",
+    },
+    viewMoreButton:{
+      id:"viewedBranch",
+    }
 }
