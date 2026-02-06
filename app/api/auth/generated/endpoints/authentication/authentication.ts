@@ -21,7 +21,7 @@ import type {
   TokenResponse,
 } from "../../../../../domain/auth/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -33,10 +33,10 @@ Returns access token in response body and sets refresh token in HTTP-only cookie
  */
 export const login = (
   loginRequest: LoginRequest,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<TokenResponse>(
+  return axiosInstanceWrapper<TokenResponse>(
     {
       url: `/api/v1/auth/login`,
       method: "POST",
@@ -58,7 +58,7 @@ export const getLoginMutationOptions = <
     { data: LoginRequest },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof login>>,
   TError,
@@ -103,7 +103,7 @@ export const useLogin = <TError = ErrorResponse, TContext = unknown>(
       { data: LoginRequest },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -122,10 +122,10 @@ export const useLogin = <TError = ErrorResponse, TContext = unknown>(
  * @summary User logout
  */
 export const logout = (
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<void>(
+  return axiosInstanceWrapper<void>(
     { url: `/api/v1/auth/logout`, method: "POST", signal },
     options,
   );
@@ -141,7 +141,7 @@ export const getLogoutMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof logout>>,
   TError,
@@ -184,7 +184,7 @@ export const useLogout = <TError = ErrorResponse, TContext = unknown>(
       void,
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

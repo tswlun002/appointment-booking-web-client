@@ -20,7 +20,7 @@ import type {
   TokenResponse,
 } from "../../../../../domain/auth/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -32,10 +32,10 @@ Requires both 'impersonate' and 'admin' roles.
  */
 export const adminImpersonateUser = (
   username: string,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<TokenResponse>(
+  return axiosInstanceWrapper<TokenResponse>(
     {
       url: `/api/v1/auth/admin/impersonate/${username}`,
       method: "POST",
@@ -55,7 +55,7 @@ export const getAdminImpersonateUserMutationOptions = <
     { username: string },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof adminImpersonateUser>>,
   TError,
@@ -103,7 +103,7 @@ export const useAdminImpersonateUser = <
       { username: string },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

@@ -20,7 +20,7 @@ import type {
   TokenResponse,
 } from "../../../../../domain/auth/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -31,10 +31,10 @@ Returns new access token and updates refresh token cookie.
  * @summary Refresh access token
  */
 export const refreshToken = (
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<TokenResponse>(
+  return axiosInstanceWrapper<TokenResponse>(
     { url: `/api/v1/auth/refresh`, method: "POST", signal },
     options,
   );
@@ -50,7 +50,7 @@ export const getRefreshTokenMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof refreshToken>>,
   TError,
@@ -93,7 +93,7 @@ export const useRefreshToken = <TError = ErrorResponse, TContext = unknown>(
       void,
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

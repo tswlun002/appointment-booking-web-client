@@ -20,7 +20,7 @@ import type {
   UserCredentialRequest,
 } from "../../../../../domain/auth/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -32,10 +32,10 @@ Used before sensitive operations like password change or account deletion.
  */
 export const verifyPassword = (
   userCredentialRequest: UserCredentialRequest,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
       url: `/api/v1/auth/credentials/password/verify`,
       method: "POST",
@@ -57,7 +57,7 @@ export const getVerifyPasswordMutationOptions = <
     { data: UserCredentialRequest },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof verifyPassword>>,
   TError,
@@ -105,7 +105,7 @@ export const useVerifyPassword = <
       { data: UserCredentialRequest },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

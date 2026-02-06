@@ -28,7 +28,7 @@ import type {
   SearchBranchesByAreaParams,
 } from "../../../../../domain/branch-locator/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -41,10 +41,10 @@ Only returns branches available for appointment booking (excludes ATMs and close
  */
 export const searchBranchesByArea = (
   params: SearchBranchesByAreaParams,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<BranchSearchResponse>(
+  return axiosInstanceWrapper<BranchSearchResponse>(
     { url: `/api/v1/locations/branches/search`, method: "GET", params, signal },
     options,
   );
@@ -72,7 +72,7 @@ export const getSearchBranchesByAreaQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -117,7 +117,7 @@ export function useSearchBranchesByArea<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -144,7 +144,7 @@ export function useSearchBranchesByArea<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -163,7 +163,7 @@ export function useSearchBranchesByArea<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -186,7 +186,7 @@ export function useSearchBranchesByArea<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -217,12 +217,10 @@ the response is from cached nearby data.
  */
 export const findNearestBranches = (
   params: FindNearestBranchesParams,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-
-    console.log("Params :", params)
-  return axiosJSONContentDefaultInstanceWrapper<NearbyBranchesResponse>(
+  return axiosInstanceWrapper<NearbyBranchesResponse>(
     { url: `/api/v1/locations/branches/nearby`, method: "GET", params, signal },
     options,
   );
@@ -250,7 +248,7 @@ export const getFindNearestBranchesQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -295,7 +293,7 @@ export function useFindNearestBranches<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -322,7 +320,7 @@ export function useFindNearestBranches<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -341,7 +339,7 @@ export function useFindNearestBranches<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -364,7 +362,7 @@ export function useFindNearestBranches<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
