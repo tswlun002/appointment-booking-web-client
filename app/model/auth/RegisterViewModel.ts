@@ -101,7 +101,7 @@ export class RegisterModel extends ViewModel<RegisterUserMutationBody,RegisterUs
 
   }
 
-  protected validateForm = async (key: string, value:string  ):Promise<Boolean> => {
+  protected validateForm = async (key: string, value:string|number  ):Promise<Boolean> => {
 
     const data = {...this.state.userData,[key]:value };
     const result = await this.resolver(data);
@@ -150,7 +150,7 @@ export class RegisterModel extends ViewModel<RegisterUserMutationBody,RegisterUs
   catchStateChange(state: RegisterState) {
     if(state.response?.isSuccess){
       setTimeout(()=>{
-        const emailVerification = "register/email-verification";
+        const emailVerification = "email-verification";
         this.navigateFunction(
             emailVerification,
             {
