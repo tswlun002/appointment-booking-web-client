@@ -23,7 +23,7 @@ import type {
   VerificationRequest,
 } from "../../../../../domain/user/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -35,12 +35,12 @@ A verification code will be sent to the user's email.
  */
 export const registerUser = (
   newUserRequest: NewUserRequest,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
-      url: `/api/v1/locations/branches/auth/register`,
+      url: `/api/v1/users/auth/register`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       data: newUserRequest,
@@ -60,7 +60,7 @@ export const getRegisterUserMutationOptions = <
     { data: NewUserRequest },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof registerUser>>,
   TError,
@@ -105,7 +105,7 @@ export const useRegisterUser = <TError = ErrorResponse, TContext = unknown>(
       { data: NewUserRequest },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -126,11 +126,11 @@ Returns access token on successful verification.
  */
 export const verifyUser = (
   verificationRequest: VerificationRequest,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<TokenResponse | string | void>(
+  return axiosInstanceWrapper<TokenResponse | string | void>(
     {
-      url: `/api/v1/locations/branches/auth/verify`,
+      url: `/api/v1/users/auth/verify`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: verificationRequest,
@@ -149,7 +149,7 @@ export const getVerifyUserMutationOptions = <
     { data: VerificationRequest },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof verifyUser>>,
   TError,
@@ -194,7 +194,7 @@ export const useVerifyUser = <TError = ErrorResponse, TContext = unknown>(
       { data: VerificationRequest },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

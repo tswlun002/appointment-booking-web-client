@@ -23,7 +23,7 @@ import type {
 
 import type { ErrorResponse } from "../../../../../domain/user/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -33,21 +33,17 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
  * @summary Generate a new username
  */
 export const generateUsername = (
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
-    {
-      url: `/api/v1/locations/branches/auth/generate/username`,
-      method: "GET",
-      signal,
-    },
+  return axiosInstanceWrapper<string>(
+    { url: `/api/v1/users/auth/generate/username`, method: "GET", signal },
     options,
   );
 };
 
 export const getGenerateUsernameQueryKey = () => {
-  return [`/api/v1/locations/branches/auth/generate/username`] as const;
+  return [`/api/v1/users/auth/generate/username`] as const;
 };
 
 export const getGenerateUsernameQueryOptions = <
@@ -57,7 +53,7 @@ export const getGenerateUsernameQueryOptions = <
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof generateUsername>>, TError, TData>
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
@@ -99,7 +95,7 @@ export function useGenerateUsername<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -125,7 +121,7 @@ export function useGenerateUsername<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -143,7 +139,7 @@ export function useGenerateUsername<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -165,7 +161,7 @@ export function useGenerateUsername<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {

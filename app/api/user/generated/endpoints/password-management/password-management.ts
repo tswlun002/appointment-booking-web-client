@@ -22,7 +22,7 @@ import type {
   ErrorResponse,
 } from "../../../../../domain/user/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -34,11 +34,11 @@ Verifies current password and sends OTP to email.
  */
 export const requestPasswordChange = (
   changePasswordRequest: ChangePasswordRequest,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
-      url: `/api/v1/locations/branches/credentials/password/update-request`,
+      url: `/api/v1/users/credentials/password/update-request`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: changePasswordRequest,
@@ -57,7 +57,7 @@ export const getRequestPasswordChangeMutationOptions = <
     { data: ChangePasswordRequest },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof requestPasswordChange>>,
   TError,
@@ -105,7 +105,7 @@ export const useRequestPasswordChange = <
       { data: ChangePasswordRequest },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -126,11 +126,11 @@ Requires valid OTP from the password change request.
  */
 export const updatePassword = (
   changePasswordConfirm: ChangePasswordConfirm,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
-      url: `/api/v1/locations/branches/credentials/password/update`,
+      url: `/api/v1/users/credentials/password/update`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: changePasswordConfirm,
@@ -149,7 +149,7 @@ export const getUpdatePasswordMutationOptions = <
     { data: ChangePasswordConfirm },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updatePassword>>,
   TError,
@@ -194,7 +194,7 @@ export const useUpdatePassword = <TError = ErrorResponse, TContext = unknown>(
       { data: ChangePasswordConfirm },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

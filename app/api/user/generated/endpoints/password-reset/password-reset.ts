@@ -30,7 +30,7 @@ import type {
   RequestPasswordResetParams,
 } from "../../../../../domain/user/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -42,12 +42,12 @@ Sends OTP code to the user's email.
  */
 export const requestPasswordReset = (
   params: RequestPasswordResetParams,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
-      url: `/api/v1/locations/branches/auth/credentials/password/request-reset`,
+      url: `/api/v1/users/auth/credentials/password/request-reset`,
       method: "GET",
       params,
       signal,
@@ -60,7 +60,7 @@ export const getRequestPasswordResetQueryKey = (
   params?: RequestPasswordResetParams,
 ) => {
   return [
-    `/api/v1/locations/branches/auth/credentials/password/request-reset`,
+    `/api/v1/users/auth/credentials/password/request-reset`,
     ...(params ? [params] : []),
   ] as const;
 };
@@ -78,7 +78,7 @@ export const getRequestPasswordResetQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -123,7 +123,7 @@ export function useRequestPasswordReset<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -150,7 +150,7 @@ export function useRequestPasswordReset<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -169,7 +169,7 @@ export function useRequestPasswordReset<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -192,7 +192,7 @@ export function useRequestPasswordReset<
         TData
       >
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -218,11 +218,11 @@ Used when user has forgotten their password.
  */
 export const resetPassword = (
   passwordResetRequest: PasswordResetRequest,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
-      url: `/api/v1/locations/branches/auth/credentials/password/reset`,
+      url: `/api/v1/users/auth/credentials/password/reset`,
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       data: passwordResetRequest,
@@ -241,7 +241,7 @@ export const getResetPasswordMutationOptions = <
     { data: PasswordResetRequest },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof resetPassword>>,
   TError,
@@ -286,7 +286,7 @@ export const useResetPassword = <TError = ErrorResponse, TContext = unknown>(
       { data: PasswordResetRequest },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<

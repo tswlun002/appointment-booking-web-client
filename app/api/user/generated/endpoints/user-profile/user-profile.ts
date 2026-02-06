@@ -27,7 +27,7 @@ import type {
   UserResponse,
 } from "../../../../../domain/user/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -39,17 +39,17 @@ User can only access their own profile.
  */
 export const getUser = (
   username: string,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<UserResponse>(
-    { url: `/api/v1/locations/branches/${username}`, method: "GET", signal },
+  return axiosInstanceWrapper<UserResponse>(
+    { url: `/api/v1/users/${username}`, method: "GET", signal },
     options,
   );
 };
 
 export const getGetUserQueryKey = (username?: string) => {
-  return [`/api/v1/locations/branches/${username}`] as const;
+  return [`/api/v1/users/${username}`] as const;
 };
 
 export const getGetUserQueryOptions = <
@@ -61,7 +61,7 @@ export const getGetUserQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -104,7 +104,7 @@ export function useGetUser<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -127,7 +127,7 @@ export function useGetUser<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -142,7 +142,7 @@ export function useGetUser<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -161,7 +161,7 @@ export function useGetUser<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -187,17 +187,17 @@ User can only access their own profile.
  */
 export const getUserByEmail = (
   params: GetUserByEmailParams,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<UserResponse>(
-    { url: `/api/v1/locations/branches/`, method: "GET", params, signal },
+  return axiosInstanceWrapper<UserResponse>(
+    { url: `/api/v1/users/`, method: "GET", params, signal },
     options,
   );
 };
 
 export const getGetUserByEmailQueryKey = (params?: GetUserByEmailParams) => {
-  return [`/api/v1/locations/branches/`, ...(params ? [params] : [])] as const;
+  return [`/api/v1/users/`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetUserByEmailQueryOptions = <
@@ -209,7 +209,7 @@ export const getGetUserByEmailQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUserByEmail>>, TError, TData>
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
@@ -249,7 +249,7 @@ export function useGetUserByEmail<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
@@ -272,7 +272,7 @@ export function useGetUserByEmail<
         >,
         "initialData"
       >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -287,7 +287,7 @@ export function useGetUserByEmail<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUserByEmail>>, TError, TData>
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {
@@ -306,7 +306,7 @@ export function useGetUserByEmail<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getUserByEmail>>, TError, TData>
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & {

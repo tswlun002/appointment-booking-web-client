@@ -22,7 +22,7 @@ import type {
   ErrorResponse,
 } from "../../../../../domain/user/generated/model";
 
-import { axiosJSONContentDefaultInstanceWrapper } from "../../../../../lib/axios/default-axios";
+import { axiosInstanceWrapper } from "../../../../../lib/axios/default-axios";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -34,12 +34,12 @@ Verifies password and sends OTP to email for confirmation.
  */
 export const requestDeleteUser = (
   deleteUserRequest: DeleteUserRequest,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
   signal?: AbortSignal,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
-      url: `/api/v1/locations/branches/delete/request`,
+      url: `/api/v1/users/delete/request`,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       data: deleteUserRequest,
@@ -59,7 +59,7 @@ export const getRequestDeleteUserMutationOptions = <
     { data: DeleteUserRequest },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof requestDeleteUser>>,
   TError,
@@ -107,7 +107,7 @@ export const useRequestDeleteUser = <
       { data: DeleteUserRequest },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
@@ -128,11 +128,11 @@ Requires valid OTP from the delete request.
  */
 export const deleteUser = (
   deleteUserConfirm: DeleteUserConfirm,
-  options?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>,
+  options?: SecondParameter<typeof axiosInstanceWrapper>,
 ) => {
-  return axiosJSONContentDefaultInstanceWrapper<string>(
+  return axiosInstanceWrapper<string>(
     {
-      url: `/api/v1/locations/branches/delete`,
+      url: `/api/v1/users/delete`,
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       data: deleteUserConfirm,
@@ -151,7 +151,7 @@ export const getDeleteUserMutationOptions = <
     { data: DeleteUserConfirm },
     TContext
   >;
-  request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+  request?: SecondParameter<typeof axiosInstanceWrapper>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteUser>>,
   TError,
@@ -199,7 +199,7 @@ export const useDeleteUser = <
       { data: DeleteUserConfirm },
       TContext
     >;
-    request?: SecondParameter<typeof axiosJSONContentDefaultInstanceWrapper>;
+    request?: SecondParameter<typeof axiosInstanceWrapper>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
