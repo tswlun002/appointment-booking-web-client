@@ -1,14 +1,10 @@
 import env from "~/utils/env/env";
 import type {AxiosHeaders} from "~/utils/env/env-types";
-import { v4 as UUID } from 'uuid';
 import axios, {type AxiosInstance, type AxiosRequestConfig} from "axios";
 import {ApiClient} from "~/lib/axios/axios-api";
 const createJSONHeaders = (): AxiosHeaders => {
-    const traceId = UUID();
     const baseHeaders: AxiosHeaders = {
         'Content-Type': 'application/json; charset=UTF-8',
-        "Trace-Id" :traceId ,
-
     };
     return {
         ...baseHeaders,
@@ -31,6 +27,8 @@ export interface BackendError {
     path: string;
     timestamp: string;
     status: number;
+    traceId?: string;
+    retriesExhausted?: boolean;
 }
 
 //For api that consumer other Content-Type

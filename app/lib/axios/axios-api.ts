@@ -3,6 +3,9 @@ import {axiosAuthorizedRequest, type BackendError} from "~/lib/axios/default-axi
 import useAuthStore from "~/model/auth/zustand/AuthStore";
 import type {TokenResponse} from "~/domain/auth/TokenResponse";
 import {isNotBlank, TOKEN_EXPIRED_MESSAGE} from "~/utils/CompanionObjects";
+import {v4 as UUID} from 'uuid';
+import env from "~/utils/env/env";
+
 enum AxiosErrorType {
     RequestError,
     ResponseError
@@ -13,6 +16,9 @@ export type ErrorType<Error> = AxiosError<BackendError>;
 export class ApiClient {
     private isRefreshing = false;
     private refreshPromise: Promise<any> | null = null;
+    private xRetryCount = "X-Retry-Count";
+    private xAuthorization = "Authorization";
+
     constructor() {
 
         this.setupRequestInterceptors()
@@ -26,12 +32,16 @@ export class ApiClient {
             (config) => {
                 const accessToken = useAuthStore.getState().token;
                 const headers = config.headers;
+
                 if(headers && isNotBlank<string>(accessToken?.accessToken)) {
 
-                    headers['Authorization'] = `Bearer ${accessToken?.accessToken}`;
+                    headers[this.xAuthorization] = `Bearer ${accessToken?.accessToken}`;
 
                 }
-
+                if(headers["Trace-Id"]===undefined) headers["Trace-Id"] = UUID();
+                if(headers[this.xRetryCount]===undefined) {
+                    headers[this.xRetryCount] = 0;
+                }
                 return config;
             },
              (error)=> this.mapError(error,AxiosErrorType.RequestError)
@@ -48,73 +58,87 @@ export class ApiClient {
                 if(error.code === AxiosError.ERR_NETWORK){
                     error.message = "Our service is down at the moment, please try again later";
                     error.status = 500;
-                   return  Promise.reject(error);
+                    const normalizedError = this.normalizeError(error);
+                    return Promise.reject(normalizedError);
                 }
                 else if(error.code === AxiosError.ETIMEDOUT){
                     error.message = "Check network connection and try again later";
                     error.status = 500;
-                    return Promise.reject(error);
-
+                    const normalizedError = this.normalizeError(error);
+                    return Promise.reject(normalizedError);
                 }
-                const data = error.response?.data as BackendError;
-
-            if (data) {
-                    error.message = data.message || data.statusCodeMessage || error.message;
-             }
-            return     this.mapError(error, AxiosErrorType.ResponseError)
+                return this.mapError(error, AxiosErrorType.ResponseError)
             }
         );
     }
 
     private async mapError(error: ErrorType<BackendError>, errorType: AxiosErrorType): Promise<AxiosErrorType>{
 
-        const message = error.response?.data;
-        const reason = {
-            message: message?.message|| error.message||message?.statusCodeMessage || 'System Error',
-            status: error.response?.status || 500,
-        };
-        error.message =reason.message;
-        error.status = reason.status;
-
         switch(errorType) {
 
             case AxiosErrorType.RequestError:{
-
-                return Promise.reject(error);
+                const normalizedError = this.normalizeError(error);
+                return Promise.reject(normalizedError);
             }
             case AxiosErrorType.ResponseError:{
                  const originalRequest = error?.config;
-                // logout on error
-                if(error.status <500 && error.status>=400 && originalRequest?.url?.endsWith("/auth/refresh")){
+                // logout when refresh token request error is bad request, forbidden, unauthorized, token expired, refresh token expired
+                const statusCode = error.status ?? error.response?.status ?? 0;
+                if(statusCode <500 && statusCode>=400 && originalRequest?.url?.endsWith("/auth/refresh")){
                     await useAuthStore.getState().logout();
-                    return Promise.reject(error);
+                    const normalizedError = this.normalizeError(error);
+                    return Promise.reject(normalizedError);
 
                 }
-                if(error.response?.status===401 || error.response?.data?.message===TOKEN_EXPIRED_MESSAGE){
+                if(error.response?.status===401 || error.response?.data?.message===TOKEN_EXPIRED_MESSAGE) {
+                    if (originalRequest?.headers[this.xRetryCount] <= env.API_RETRIES) {
+                        try {
+                            // Call refresh directly
+                            const newToken = await this.refreshAccessToken();
 
-                    try {
-                        // Call refresh directly
-                        const newToken = await this.refreshAccessToken();
+                            // Update store
+                            await useAuthStore.getState().refreshToken(newToken);
 
+                            // Retry original request with new token
+                            if (originalRequest?.headers) {
+                                originalRequest.headers[this.xAuthorization] = `Bearer ${newToken.access_token}`;
+                                originalRequest.headers[this.xRetryCount] = parseInt(originalRequest.headers[this.xRetryCount]) + 1;
 
-                         // Update store
-                         await useAuthStore.getState().refreshToken(newToken);
+                            }
 
-                        // Retry original request with new token
-                        if (originalRequest?.headers) {
-                            originalRequest.headers['Authorization'] = `Bearer ${newToken.access_token}`;
+                            return this.getInstance()(originalRequest!);
+                        } catch (refreshError) {
+                            // Refresh failed, logout user
+                            await useAuthStore.getState().logout();
+                            const normalizedError = this.normalizeError(error);
+                            return Promise.reject(normalizedError);
                         }
 
-                        return this.getInstance()(originalRequest!);
-                    } catch (refreshError) {
-                        // Refresh failed, logout user
+                    }
+                    else{
                         await useAuthStore.getState().logout();
+                        const normalizedError = this.normalizeError(error, true);
+                        return Promise.reject(normalizedError);
+                    }
+                }
+                else if(originalRequest !==undefined  &&(error.response?.status===502 || error.response?.status===503 )) {
+                    if( parseInt(originalRequest?.headers[this.xRetryCount])<=env.API_RETRIES) {
 
-                        return Promise.reject(refreshError);
+                        const retryCount = parseInt(originalRequest.headers[this.xRetryCount]);
+                        const backoffDelay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s...
+                        await this.delay(backoffDelay);
+                        originalRequest.headers[this.xRetryCount] = parseInt(originalRequest.headers[this.xRetryCount]) + 1;
+
+                        return this.getInstance()(originalRequest!);
+                    }else {
+                        const normalizedError = this.normalizeError(error, true);
+                        return Promise.reject(normalizedError);
                     }
 
                 }
-                return Promise.reject(reason);
+
+                const normalizedError = this.normalizeError(error);
+                return Promise.reject(normalizedError);
             }
         }
 
@@ -142,14 +166,23 @@ export class ApiClient {
 
         return this.refreshPromise;
     }
-    private async mapRefreshApiError(error: any, errorType: AxiosErrorType): Promise<Error> {
-        const reason = {
-            message: error.response?.data?.message || 'System Error',
-            status: error.response?.status || 500,
-            field: error.response?.data?.field,
-        };
+    private delay(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-        return Promise.reject(reason);
+    private normalizeError(error: ErrorType<BackendError>, retriesExhausted: boolean = false): BackendError {
+        const responseData = error.response?.data;
+        const traceId = error.config?.headers?.["Trace-Id"] as string | undefined;
+
+        return {
+            message: responseData?.message || error.message || 'System Error',
+            statusCodeMessage: responseData?.statusCodeMessage || error.code || 'UNKNOWN_ERROR',
+            status: error.response?.status || error.status || 500,
+            path: responseData?.path || error.config?.url || '',
+            timestamp: responseData?.timestamp || new Date().toISOString(),
+            traceId: traceId,
+            retriesExhausted: retriesExhausted
+        };
     }
 
     public getInstance(): AxiosInstance {
