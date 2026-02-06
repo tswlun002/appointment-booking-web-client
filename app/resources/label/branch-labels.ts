@@ -4,7 +4,7 @@ export const BranchLocatorScreenResources = {
     heading : "Find a branch",
     subheading :"Search by location or enable GPS to find branches near you",
     enableLocation: {
-        label: "Submit use my location",
+        label: "Use my location",
         latitude:{id:"latitude"},
         longitude:{id:"longitude"}
     },
