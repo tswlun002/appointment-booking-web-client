@@ -109,5 +109,32 @@ export default defineConfig({
             prettier: true
         }
     },
+    customerAppointmentApi: {
+        input: './app/resources/contract/customer-appointment-api.yaml',
+        output: {
+            mode: 'tags-split',
+            baseUrl: '/api/v1/appointments',
+            target: './app/api/appointment/generated/endpoints',
+            schemas: './app/domain/appointment/generated/model',
+            client: 'react-query',
+            clean: true,
+            prettier: true,
+            override: {
+                mutator: {
+                    path: './app/lib/axios/default-axios.ts',
+                    name: 'axiosInstanceWrapper'
+                }
+            }
+        }
+    },
+    customerAppointmentApiZod: {
+        input: './app/resources/contract/customer-appointment-api.yaml',
+        output: {
+            target: './app/domain/appointment/generated/zod/index.ts',
+            client: 'zod',
+            clean: true,
+            prettier: true
+        }
+    },
 
 });
