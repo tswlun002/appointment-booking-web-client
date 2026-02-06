@@ -5,13 +5,13 @@ import {
     type MouseEvent,
     type RefObject,
     useReducer,
-    useRef
+    useRef,
+    type SubmitEvent
 } from "react";
 import {Eye, EyeOff, Search} from "lucide-react";
 import {isNotBlank,  PasswordVisibility} from "~/utils/CompanionObjects";
 import type {TypeError} from "~/domain/error/Error";
 import {colors} from "~/resources/colors/colors";
-import type {FindNearestBranchesParams, SearchBranchesByAreaParams} from "~/domain/branch-locator/generated/model";
 
 interface PasswordInputProps<T> {
     passwordVisibilityStatus?: PasswordVisibility,
@@ -195,16 +195,17 @@ export const CustomerInput = <T, >({
     );
 };
 
-type  SearchInputProps ={
+type  SearchInputProps<T> ={
     id: string,
     label: string,
     inputStyle?: string
+    error: TypeError<T>,
     divStyle?: string
     value?: string,
     inputRef?: RefObject<HTMLInputElement | null>,
     onChange: ChangeEventHandler<HTMLInputElement|HTMLTextAreaElement>,
 }
-export const CustomerSearchInput = ({
+export const CustomerSearchInput =<T,> ({
                                        id,
                                        value,
                                        label,
@@ -212,10 +213,13 @@ export const CustomerSearchInput = ({
                                        divStyle,
                                        inputRef,
                                        onChange,
-                                   } :SearchInputProps ) =>{
+                                        error
+                                   } :SearchInputProps<T> ) =>{
 
 
 
+    const errorElement = error[id as keyof TypeError<T>];
+    const {message, isError} = errorElement;
 
     inputRef = inputRef===undefined?useRef<HTMLInputElement>(null):inputRef;
 
@@ -244,6 +248,13 @@ export const CustomerSearchInput = ({
                 borderColor: colors.borderMedium
             }}
         >
+        {
+            isError &&
+            <label htmlFor="outlined-input"
+                   className="absolute left-3 transition-all duration-200 ease-in-out pointer-events-none -top-2.5 text-[0.5rem]  px-1.5 text-red-500">
+                {message}
+            </label>
+        }
             <input
                 id={id}
                 placeholder={label}
@@ -252,10 +263,13 @@ export const CustomerSearchInput = ({
                 type="text"
                 onChange={handleChange}
             />
-            <Search
-                className="absolute right-3 h-5 w-5"
-                style={{ color: colors.textSecondary }}
-            />
+            <button type={"submit"} className=" w-1/9">
+                <Search
+                    type={"submit"}
+                    style={{ color:colors.primary }}
+                />
+            </button>
+
         </div>
     );
 };
