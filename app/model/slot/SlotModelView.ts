@@ -199,6 +199,20 @@ export const useSlotModelView = () => {
         return time?.length >= 5 ? time.slice(0, 5) : "";
     };
 
+    /** Check if slot time has passed (cannot book past slots) */
+    isSlotPast = (slot: SlotResponse): boolean => {
+        const currentState = this.getCurrentState();
+        const slotDate = currentState.userData.fromDate;
+        if (!slotDate || !slot.startTime) return false;
+
+        const now = new Date();
+        const [hours, minutes] = slot.startTime.split(":").map(Number);
+        const slotDateTime = new Date(slotDate);
+        slotDateTime.setHours(hours, minutes, 0, 0);
+
+        return slotDateTime <= now;
+    };
+
     /** Handle slot selection */
     selectSlot = (slotId: string, event: MouseEvent<HTMLButtonElement>): void => {
         event.preventDefault();

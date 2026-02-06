@@ -72,6 +72,7 @@ const AppointmentSlots = () => {
                         <LegendItem color={colors.success} label="Available" />
                         <LegendItem color={colors.red} label="Full" />
                         <LegendItem color={colors.primaryDark} label="Blocked" />
+                        <LegendItem color={colors.textMuted} label="Past" />
                     </div>
                 </div>
 
@@ -83,6 +84,7 @@ const AppointmentSlots = () => {
                                 key={slot.id}
                                 slot={slot}
                                 isSelected={state.userData.selectedSlotId === slot.id}
+                                isPast={model.isSlotPast(slot)}
                                 onSelect={handleSlotSelect}
                                 formatTime={model.sliceTime}
                             />
