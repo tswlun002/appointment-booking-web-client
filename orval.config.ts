@@ -14,7 +14,7 @@ export default defineConfig({
             override: {
                 mutator: {
                     path: './app/lib/axios/default-axios.ts',
-                    name: 'axiosJSONContentDefaultInstanceWrapper'
+                    name: 'axiosInstanceWrapper'
                 }
             }
         }
@@ -32,7 +32,7 @@ export default defineConfig({
         input: './app/resources/contract/user-api.yaml',
         output: {
             mode: 'tags-split',
-            baseUrl: '/api/v1/locations/branches',
+            baseUrl: '/api/v1/users',
             target: './app/api/user/generated/endpoints',
             schemas: './app/domain/user/generated/model',
             client: 'react-query',
@@ -41,7 +41,7 @@ export default defineConfig({
             override: {
                 mutator: {
                     path: './app/lib/axios/default-axios.ts',
-                    name: 'axiosJSONContentDefaultInstanceWrapper'
+                    name: 'axiosInstanceWrapper'
                 }
             }
         }
@@ -68,7 +68,7 @@ export default defineConfig({
             override: {
                 mutator: {
                     path: './app/lib/axios/default-axios.ts',
-                    name: 'axiosJSONContentDefaultInstanceWrapper'
+                    name: 'axiosInstanceWrapper'
                 }
             }
         }
@@ -81,5 +81,33 @@ export default defineConfig({
             clean: true,
             prettier: true
         }
-    }
+    },
+    slotsApi:{
+        input:"./app/resources/contract/slot-api.yaml",
+        output: {
+            mode: 'tags-split',
+            baseUrl: '/api/v1/slots',
+            target: './app/api/slot/generated/endpoints',
+            schemas: './app/domain/slot/generated/model',
+            client: 'react-query',
+            clean: true,
+            prettier: true,
+            override: {
+                mutator: {
+                    path: './app/lib/axios/default-axios.ts',
+                    name: 'axiosInstanceWrapper'
+                }
+            }
+        }
+    },
+    slotsApiZod: {
+        input: './app/resources/contract/slot-api.yaml',
+        output: {
+            target: './app/domain/slot/generated/zod/index.ts',
+            client: 'zod',
+            clean: true,
+            prettier: true
+        }
+    },
+
 });
