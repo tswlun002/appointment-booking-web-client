@@ -21,7 +21,7 @@ const searchBranchesByAreaQueryParamSchema = searchBranchesByAreaQueryParams.ext
     searchText:z
         .string({ error: "search text is required" })
         .min(searchBranchesByAreaQuerySearchTextMin,`search text must be ${searchBranchesByAreaQuerySearchTextMin} chars at least`)
-        .max(searchBranchesByAreaQuerySearchTextMax,`search text must at ${searchBranchesByAreaQuerySearchTextMin} chars at maximum`)
+        .max(searchBranchesByAreaQuerySearchTextMax,`search text must at ${searchBranchesByAreaQuerySearchTextMax} chars at maximum`)
 
 }));
 const findNearestBranchesQueryParamsSchema = findNearestBranchesQueryParams.extend(({
@@ -44,10 +44,23 @@ const findNearestBranchesQueryParamsSchema = findNearestBranchesQueryParams.exte
         .max(findNearestBranchesQueryMaxDistanceKmMax)
         .optional(),
 }));
+
+export const BranchItemSchema = z.strictObject({
+    branchId:z.string({error:"BranchId of the select branch is require"}).min(1,"BranchId of the select branch is require")
+});
 export  const BranchLocatorSchema= searchBranchesByAreaQueryParamSchema || findNearestBranchesQueryParamsSchema;
 export  interface  BranchLocatorState extends State<SearchBranchesByAreaParams|FindNearestBranchesParams, NearbyBranchesResponse|BranchSearchResponse>{
     searchType: "area"|"latLong",
-    errors: TypeError<SearchBranchesByAreaParams|FindNearestBranchesParams>
+    errors: TypeError<SearchBranchesByAreaParams|FindNearestBranchesParams>,
+    DISTANCES: number[];
+}
 
+export type BranchItem ={
+    branchId:string,
+    viewedBranch:string,
+    viewStatus:boolean,
+}
+
+export interface  BranchItemState extends State<BranchItem,string>{
 
 }
