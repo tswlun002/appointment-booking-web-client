@@ -9,6 +9,7 @@ import { CustomerSearchInput} from "~/components/ui/inputs";
 import Error from "~/components/ui/error";
 import { colors } from "~/resources/colors/colors";
 import {BranchLocatorScreenResources} from "~/resources/label/branch-labels";
+import { SendHorizonal} from "lucide-react";
 const BranchLocator = () => {
 
     const {state, model} = useBranchLocatorModelView();
@@ -94,9 +95,9 @@ const BranchLocator = () => {
                                             className="flex items-center justify-center cursor-pointer min-h-[40px] px-3 hover:opacity-90 transition-all font-small text-sm whitespace-nowrap"
                                             style={{
                                                 borderWidth: 1,
-                                                borderColor: colors.primary,
-                                                color: isSelected ? colors.bgWhite : colors.primary,
-                                                backgroundColor: isSelected ? colors.primary : colors.bgWhite
+                                                borderColor: colors.primaryDark,
+                                                color: isSelected ? colors.bgWhite : colors.primaryDark,
+                                                backgroundColor: isSelected ? colors.primaryDark : colors.bgWhite
                                             }}
                                         >
                                             {distance}km
@@ -111,16 +112,17 @@ const BranchLocator = () => {
                                     style={{
                                         borderWidth: 1,
                                         borderColor: colors.primary,
-                                        color: colors.primary,
-                                        backgroundColor: colors.bgWhite
+                                        color: colors.white,
+                                        backgroundColor: colors.primary
                                     }}
                                 >
                                     {BranchLocatorScreenResources.enableLocation.label}
+                                    <SendHorizonal  className="h-4"/>
                                 </button>
                             </div>
                         </div>
                     </form>
-
+                    <div className="flex justify-center items-center pt-2 font-bold" style={{color:colors.primaryDark}}><h2>OR</h2></div>
                     <form className="space-y-4 mt-4" onSubmit={e => model.submit(e)}>
                         <CustomerSearchInput
                             id={BranchLocatorScreenResources.searchText.id}
