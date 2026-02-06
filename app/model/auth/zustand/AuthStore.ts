@@ -58,6 +58,7 @@ const useAuthStore = create<Auth>()(
             },
 
             logout: async () => {
+                useAuthStore.persist.clearStorage();
                 set(() => ({
                     token: undefined,
                     realmAccess: undefined,
@@ -65,6 +66,7 @@ const useAuthStore = create<Auth>()(
                     isAuthenticated: false,
                     user: undefined
                 }))
+                window.location.href = '/';
             },
 
             setEmailVerificationResponseMessage(data: { email: string, message: string }) {
