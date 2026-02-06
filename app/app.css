@@ -23,3 +23,16 @@ h1, .h1 {
     font-size: 16px;
     line-height: 23px;
 }
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    /* This forces the background to stay a solid color (e.g., white) */
+    -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+    box-shadow: 0 0 0px 1000px white inset !important;
+
+    /* This ensures the text stays visible */
+    -webkit-text-fill-color: #333 !important;
+    color: #333 !important;
+}
