@@ -30,7 +30,7 @@ export class ActionEvent {
  * @T is the model type
  */
 export  type ActionDispatch<T,R> =
-    | { type: typeof ActionEvent.SET_FIELD; field?: keyof T; value?: string, data?:T }
+    | { type: typeof ActionEvent.SET_FIELD; field?: keyof T; value?: string|number|boolean, data?:T }
     | { type: typeof ActionEvent.SET_LOADING; isLoading: boolean }
     | { type: typeof ActionEvent.SET_API_RESPONSE_SUCCESS; isSuccess?: boolean;message:string; data?: R; status?: number,
             field?: keyof T , value?:string}

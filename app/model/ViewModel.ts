@@ -41,7 +41,7 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
         }
     }
 
-    protected  validateForm = async (key: keyof T, value: string): Promise<Boolean> => {
+    protected  validateForm = async (key: keyof T, value: string|number): Promise<Boolean> => {
 
         const data = {...this.state.userData, [key]: value};
         const result = await this.resolver({...data});
@@ -148,6 +148,7 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
                                ...state,
                                response: {isSuccess: true,message:action.message, data: action.data,status: action.status},
                                isLoading: false,
+                               userData:{...state.userData,[action.field!]:action.value},
                                errors: {...initialState.errors,}
                            };
                        }
@@ -156,9 +157,9 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
                                ...state,
                                response: {isSuccess: true,message:action.message, data: action.data,status: action.status},
                                isLoading: false,
-                               userData:{...state.userData,[action.field!]:action.value},
                                errors: {...initialState.errors,}
                            };
+
                        }
 
                     }
