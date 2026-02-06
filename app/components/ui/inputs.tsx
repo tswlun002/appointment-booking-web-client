@@ -234,8 +234,8 @@ export const CustomerSearchInput =<T,> ({
     };
 
 
-    divStyle = isNotBlank<String>(divStyle) ? divStyle : "relative flex items-center h-[48px] w-full px-3 rounded-sm"
-    inputStyle = isNotBlank(inputStyle) ? inputStyle : "bg-transparent outline-none w-full pr-8 py-2 text-sm  w-full "
+    divStyle = isNotBlank<String>(divStyle) ? divStyle : "relative flex items-center h-[48px] w-full pl-1 rounded-sm"
+    inputStyle = isNotBlank(inputStyle) ? inputStyle : "bg-transparent outline-none w-full  py-2 text-sm p-0.5"
 
 
     return (
@@ -263,10 +263,14 @@ export const CustomerSearchInput =<T,> ({
                 type="text"
                 onChange={handleChange}
             />
-            <button type={"submit"} className=" w-1/9">
+            <button type={"submit"} className="w-[10%] min-w-[40px] h-full flex
+                            items-center justify-center transition-all duration-200 hover:brightness-110
+                             active:scale-95 cursor-pointer shadow-[2px_0_5px_rgba(0,0,0,0.05)] "
+                    style={{color: colors.white, borderColor: colors.textLight, backgroundColor: colors.primary}}>
                 <Search
+                    size={20} strokeWidth={2.5}
                     type={"submit"}
-                    style={{ color:colors.primary }}
+                    style={{color: colors.white}}
                 />
             </button>
 
