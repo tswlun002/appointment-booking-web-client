@@ -1,11 +1,11 @@
 import { colors, typography } from "~/resources/colors/colors";
 import { useSlotModelView } from "~/model/slot/SlotModelView";
 import { LocalDate } from "~/utils/CompanionObjects";
-import SlotHeader from "../../components/ui/SlotHeader";
-import DateButton from "../../components/ui/DateButton";
-import LegendItem from "../../components/ui/LegendItem";
-import SlotButton from "../../components/ui/SlotButton";
-import EmptySlots from "../../components/ui/EmptySlots";
+import SlotHeader from "~/components/ui/SlotHeader";
+import DateButton from "~/components/ui/DateButton";
+import LegendItem from "~/components/ui/LegendItem";
+import SlotButton from "~/components/ui/SlotButton";
+import EmptySlots from "~/components/ui/EmptySlots";
 import type { MouseEvent } from "react";
 
 const AppointmentSlots = () => {
@@ -68,7 +68,7 @@ const AppointmentSlots = () => {
                     <h4 style={{ ...typography.bodyLarge, fontWeight: "700", color: colors.textSecondary }}>
                         Available Times
                     </h4>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4">
                         <LegendItem color={colors.success} label="Available" />
                         <LegendItem color={colors.red} label="Full" />
                         <LegendItem color={colors.primaryDark} label="Blocked" />
