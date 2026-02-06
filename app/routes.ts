@@ -8,15 +8,12 @@ const authLayoutPages: RouteConfigEntry[] = [
 
 const securedLayoutPages: RouteConfigEntry[] = [
     route("appointments", "pages/appointment/user-appointments.tsx"),
+    route("appointments/:branchId/slots", "pages/slots/appointment-slots.tsx"),
 ];
 
 export default [
     layout("layouts/auth-layout.tsx", [
-
-        //layout("layouts/auth-layout.tsx", [
             ...authLayoutPages,
-        //]),
-
         layout("layouts/secure-layout.tsx", [
             ...securedLayoutPages,
         ]),
