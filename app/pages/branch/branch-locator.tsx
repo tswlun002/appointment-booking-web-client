@@ -1,14 +1,14 @@
 import {useBranchLocatorModelView} from "~/model/branch/BranchLocatorModelView";
 import type {
     BranchLocation,
-    BranchSearchResponse,
+    BranchSearchResponse, FindNearestBranchesParams,
     NearbyBranchesResponse, SearchBranchesByAreaParams,
 } from "~/domain/branch-locator/generated/model";
 import BranchItem from "~/pages/branch/branchItem";
 import { CustomerSearchInput} from "~/components/ui/inputs";
 import Error from "~/components/ui/error";
 import { colors } from "~/resources/colors/colors";
-
+import {BranchLocatorScreenResources} from "~/resources/label/branch-labels";
 const BranchLocator = () => {
 
     const {state, model} = useBranchLocatorModelView();
@@ -26,8 +26,10 @@ const BranchLocator = () => {
     const branchesElements = branches?.map((branch) => (
         <BranchItem
             branchId={branch.branchId}
-            name={branch.name} distanceKm={branch.distanceKm}
+            name={branch.name}
+            distanceKm={branch.distanceKm}
             fullAddress={branch.fullAddress}
+            operationTimes={branch.operationTimes}
         />
     ));
 
@@ -39,7 +41,11 @@ const BranchLocator = () => {
     const responseElement = isResponse && <Error style={responseStyle} message={responseMessage as string}></Error>
     const hasBranches = branches && branches.length > 0;
 
-    return (
+
+    const distanceKm = (state.userData as FindNearestBranchesParams).maxDistanceKm
+
+
+        return (
         <div className="flex flex-col w-full items-start justify-start gap-4">
             <div
                 className="search-section w-full min-h-[450px] rounded-md bg-no-repeat flex flex-col items-center md:items-start p-4 md:p-10 mt-[5%]">
@@ -54,37 +60,74 @@ const BranchLocator = () => {
                         className="text-2xl md:text-3xl font-bold py-4 tracking-tight"
                         style={{color: colors.textPrimary}}
                     >
-                        Find a branch
+                        {BranchLocatorScreenResources.heading}
                     </h3>
                     <p
                         className="text-sm mb-4"
                         style={{color: colors.textMuted}}
                     >
-                        Search by location or enable GPS to find branches near you
+                        {BranchLocatorScreenResources.subheading}
                     </p>
 
 
                     <form className="space-y-4" onSubmit={e => model.searchByCurrentLocation(e)}>
-                        <button
-                            type="submit"
-                            className="flex items-center justify-center text-center rounded-full cursor-pointer min-h-[44px] md:min-h-[48px] w-full sm:w-auto py-2 px-4 md:px-6 hover:opacity-90 transition-all font-medium text-sm md:text-base whitespace-nowrap"
-                            style={{
-                                borderWidth: 1,
-                                borderColor: colors.primary,
-                                color: colors.primary,
-                                backgroundColor: colors.bgWhite
-                            }}
-                        >
-                            Enable location settings
-                        </button>
+                        {/* Distance Filter */}
+                        <div className="flex flex-wrap gap-3 justify-start items-end">
+                            <label
+                                style={{ color: colors.textMuted }}
+                                className="text-sm mb-4"
+                            >
+                                {BranchLocatorScreenResources.distanceFilter.label}
+                            </label>
+
+                            {/* Container for buttons */}
+                            <div className="flex flex-wrap gap-0">
+                                {state.DISTANCES.map((distance) => {
+                                    const isSelected = distanceKm === distance;
+                                    return (
+                                        <button
+                                            id={BranchLocatorScreenResources.distanceFilter.id}
+                                            key={distance}
+                                            type="button"
+                                            onClick={e => model.onFilterEvent(BranchLocatorScreenResources.distanceFilter.id, e, distance)}
+                                            /* Distance buttons use px-3 and min-h-[40px] */
+                                            className="flex items-center justify-center cursor-pointer min-h-[40px] px-3 hover:opacity-90 transition-all font-small text-sm whitespace-nowrap"
+                                            style={{
+                                                borderWidth: 1,
+                                                borderColor: colors.primary,
+                                                color: isSelected ? colors.bgWhite : colors.primary,
+                                                backgroundColor: isSelected ? colors.primary : colors.bgWhite
+                                            }}
+                                        >
+                                            {distance}km
+                                        </button>
+                                    );
+                                })}
+
+                                {/* Submit Button - Updated to match style exactly */}
+                                <button
+                                    type="submit"
+                                    className="flex items-center justify-center text-center cursor-pointer min-h-[40px] px-3 hover:opacity-90 transition-all font-small text-sm whitespace-nowrap"
+                                    style={{
+                                        borderWidth: 1,
+                                        borderColor: colors.primary,
+                                        color: colors.primary,
+                                        backgroundColor: colors.bgWhite
+                                    }}
+                                >
+                                    {BranchLocatorScreenResources.enableLocation.label}
+                                </button>
+                            </div>
+                        </div>
                     </form>
 
                     <form className="space-y-4 mt-4" onSubmit={e => model.submit(e)}>
                         <CustomerSearchInput
-                            id={"searchText"}
-                            label={"Search for a branch name, city or province"}
+                            id={BranchLocatorScreenResources.searchText.id}
+                            label={BranchLocatorScreenResources.searchText.label}
                             value={inputValue}
                             onChange={model.onChange}
+                            error={state.errors}
                             />
                     </form>
                 </div>
@@ -104,7 +147,7 @@ const BranchLocator = () => {
                                 color: colors.textMuted
                             }}
                         >
-                            Nearby Branches
+                            {BranchLocatorScreenResources.branchesList.label}
                         </div>
 
                         {/* Scrollable List Area */}

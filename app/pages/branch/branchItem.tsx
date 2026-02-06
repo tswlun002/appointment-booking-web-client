@@ -1,16 +1,35 @@
-import React, {useState} from 'react';
 import {ChevronDown, ChevronUp, MapPin} from "lucide-react";
 import { colors } from "~/resources/colors/colors";
+import type {BranchLocationOperationTimes} from "~/domain/branch-locator/generated/model";
+import OperationTimes from "~/pages/branch/operation-times";
+import { isNotBlank} from '~/utils/CompanionObjects';
+import {BranchItemResources} from "~/resources/label/branch-labels";
+import {BranchItemModelView, useBranchItemModelView} from "~/model/branch/BranchItemModelView";
 
 type BranchItemProps = {
-    branchId:string, name:string, distanceKm:number, fullAddress:string
+    branchId:string, name:string, distanceKm:number, fullAddress:string,
+    operationTimes:BranchLocationOperationTimes
 }
 
-const BranchItem = ({branchId, name, distanceKm, fullAddress}:BranchItemProps) => {
-    const [openBranchId, setOpenBranchId] = useState<string>("");
-    const toggleHours = (id: string) => {
-        setOpenBranchId(openBranchId === id ? "" : id);
-    };
+const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes}:BranchItemProps) => {
+
+
+    const {state, model} = useBranchItemModelView();
+
+    const OperationElements = (state.userData.viewedBranch === branchId && operationTimes) ?
+        Object.entries(operationTimes)
+            .sort((a, b) => BranchItemModelView.sort(a[0], b[0]))
+            .map(([date, tradingHours]) => (
+                <OperationTimes
+                    key={date}
+                    day={BranchItemModelView.getDayName(date)}
+                    startAt={isNotBlank(tradingHours.openAt) ? BranchItemModelView.getHourMinutesFormat(tradingHours.openAt!) : ""}
+                    closeAT={isNotBlank(tradingHours.closeAt) ? BranchItemModelView.getHourMinutesFormat(tradingHours.closeAt!) : ""}
+                    isClosed={tradingHours.closed}
+                    isHoliday={tradingHours.isHoliday}
+                />
+            )) : []
+
     return (
         <div
             key={branchId}
@@ -18,47 +37,57 @@ const BranchItem = ({branchId, name, distanceKm, fullAddress}:BranchItemProps) =
             style={{ borderBottomWidth: 1, borderColor: colors.borderLight }}
         >
             <div className="px-6 py-4">
+                {/* Header: Name and Toggle */}
                 <div className="flex justify-between items-start">
                     <div className="flex gap-3">
                         <div className="mt-1">
-                        <MapPin className="h-5 w-5" style={{ color: colors.red }} />
+                            <MapPin className="h-5 w-5" style={{ color: colors.red }} />
                         </div>
                         <div>
-                            <p
-                                className="font-bold text-lg"
-                                style={{ color: colors.textSecondary }}
-                            >
+                            <p className="font-bold text-lg" style={{ color: colors.textSecondary }}>
                                 {name}
                             </p>
-                            <p
-                                className="text-xs font-bold mt-1"
-                                style={{ color: colors.primary }}
-                            >
-                                {distanceKm} away
+                            <p className="text-xs font-bold mt-1" style={{ color: colors.primary }}>
+                                {`${distanceKm}km away`}
                             </p>
                         </div>
                     </div>
                     <button
-                        onClick={() => toggleHours(branchId)}
+                        onClick={e => model.onView(BranchItemResources.viewMoreButton.id,branchId,e)}
                         className="p-2 rounded-full transition-colors"
-                        style={{ backgroundColor: 'transparent' }}
                     >
-                        {openBranchId === branchId
+                        {state.userData.viewStatus
                             ? <ChevronUp style={{ color: colors.textLight }} />
                             : <ChevronDown style={{ color: colors.textLight }} />
                         }
                     </button>
                 </div>
 
-                <p
-                    className="text-sm mt-2 ml-8 leading-snug"
-                    style={{ color: colors.textMuted }}
-                >
-                    {fullAddress}
-                </p>
+                {/* Address and Booking Button Container */}
+                <div className="flex flex-wrap items-end justify-between gap-4 mt-2 ml-8">
+                    <p
+                        className="text-sm leading-snug flex-1 min-w-[250px]"
+                        style={{ color: colors.textMuted }}
+                    >
+                        {fullAddress}
+                    </p>
 
-                {/* Operating Hours Dropdown */}
-                {openBranchId === branchId && (
+                    <button
+                        id={BranchItemResources.bookAppointmentButton.id}
+                        type="button"
+                        className="flex items-center justify-center cursor-pointer min-h-[40px] px-6 rounded shadow-sm hover:opacity-95 transition-all font-bold text-sm whitespace-nowrap w-full sm:w-auto"
+                        style={{
+                            backgroundColor: colors.primary,
+                            color: colors.bgWhite
+                        }}
+                        onClick={e=>model.onBook(branchId,name,`${distanceKm}km`,e)}
+                    >
+                        {BranchItemResources.bookAppointmentButton.label}
+                    </button>
+                </div>
+
+                {/* Operating Hours Section */}
+                {(operationTimes && state.userData.viewStatus) && (
                     <div
                         className="mt-4 ml-8 p-4 rounded shadow-inner animate-in slide-in-from-top-2 duration-200"
                         style={{
@@ -67,40 +96,10 @@ const BranchItem = ({branchId, name, distanceKm, fullAddress}:BranchItemProps) =
                             borderColor: colors.borderLight
                         }}
                     >
-                        <p
-                            className="text-xs font-bold uppercase mb-2"
-                            style={{ color: colors.textLight }}
-                        >
-                            Standard Operating Hours
+                        <p className="text-xs font-bold uppercase mb-2" style={{ color: colors.textLight }}>
+                            {BranchItemResources.branchItemHeader.label}
                         </p>
-                        <ul className="text-sm space-y-2">
-                            <li
-                                className="flex justify-between pb-1"
-                                style={{
-                                    color: colors.textSecondary,
-                                    borderBottomWidth: 1,
-                                    borderColor: colors.bgLight
-                                }}
-                            >
-                                <span>Mon - Fri:</span> <span>08:00 - 17:00</span>
-                            </li>
-                            <li
-                                className="flex justify-between pb-1"
-                                style={{
-                                    color: colors.textSecondary,
-                                    borderBottomWidth: 1,
-                                    borderColor: colors.bgLight
-                                }}
-                            >
-                                <span>Saturday:</span> <span>08:00 - 13:00</span>
-                            </li>
-                            <li
-                                className="flex justify-between"
-                                style={{ color: colors.red }}
-                            >
-                                <span>Sunday:</span> <span className="font-medium">Closed</span>
-                            </li>
-                        </ul>
+                        {OperationElements}
                     </div>
                 )}
             </div>
