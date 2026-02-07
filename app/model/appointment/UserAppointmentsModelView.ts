@@ -17,6 +17,7 @@ import useAuthStore from "~/model/auth/zustand/AuthStore";
 import { useShallow } from "zustand/react/shallow";
 import { LocalDate } from "~/utils/CompanionObjects";
 import { getStatusColors } from "~/resources/colors/colors";
+import { APPOINTMENT_CACHE_CONFIG, getCachedAppointmentData } from "~/lib/react-query/Client";
 
 const initialUserAppointmentsState: UserAppointmentsState = {
     isLoading: true,
@@ -56,18 +57,37 @@ export const useUserAppointmentsModelView = () => {
         []
     );
 
-    // Fetch appointments query
+    // Fetch appointments query with cache config
     const appointmentsQuery = useGetCustomerAppointments(
         username,
         undefined,
         {
             query: {
                 enabled: !!username,
-                staleTime: 30000,
+                staleTime: APPOINTMENT_CACHE_CONFIG.staleTime,
+                gcTime: APPOINTMENT_CACHE_CONFIG.gcTime,
                 refetchOnWindowFocus: false,
             }
         }
     );
+
+    // Check for cached data on mount and populate state
+    useEffect(() => {
+        // Don't overwrite if we already have data
+        if (state.response?.data) return;
+        if (!username) return;
+
+        // Get cached appointment data for this user
+        const cachedData = getCachedAppointmentData(username);
+        if (cachedData?.data) {
+            stableDispatch({
+                type: ActionEvent.SET_API_RESPONSE_SUCCESS,
+                message: "Loaded from cache",
+                data: cachedData.data
+            });
+            stableDispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
+        }
+    }, [username]); // Only run on mount or when username changes
 
     // Handle loading state
     useEffect(() => {
