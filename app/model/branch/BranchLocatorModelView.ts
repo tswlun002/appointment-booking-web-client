@@ -24,7 +24,7 @@ import { BranchLocatorSchema, type BranchLocatorState } from "~/domain/branch-lo
 import { ViewModel } from "~/model/ViewModel";
 import { type ActionDispatch, ActionEvent } from "~/model/ActionEvent";
 import type { QueryObserverResult } from "@tanstack/query-core";
-import { BRANCH_CACHE_CONFIG } from "~/lib/react-query/Client";
+import { BRANCH_CACHE_CONFIG, getLastCachedBranchData } from "~/lib/react-query/Client";
 
 type BranchParams = SearchBranchesByAreaParams | FindNearestBranchesParams;
 type BranchResponse = NearbyBranchesResponse | BranchSearchResponse;
@@ -104,6 +104,23 @@ export const useBranchLocatorModelView = () => {
             }
         }
     );
+
+    // Check for cached data on mount and populate state
+    useEffect(() => {
+        // Don't overwrite if we already have data
+        if (state.response?.data) return;
+
+        // Get the most recent cached branch data
+        const cachedData = getLastCachedBranchData();
+        if (cachedData?.data) {
+            dispatch({
+                type: ActionEvent.SET_API_RESPONSE_SUCCESS,
+                isSuccess: true,
+                message: "Loaded from cache",
+                data: cachedData.data
+            });
+        }
+    }, []); // Only run on mount
 
 
     const resolver = useMemo(

@@ -1,4 +1,5 @@
 import { MutationCache, QueryClient } from "@tanstack/react-query";
+import type { BranchSearchResponse, NearbyBranchesResponse } from "~/domain/branch-locator/generated/model";
 
 // Session storage key for branch cache
 const BRANCH_CACHE_KEY = "branch-query-cache";
@@ -14,6 +15,15 @@ const BRANCH_API_PATTERNS = [
     "/api/v1/locations/branches/search",
     "/api/v1/locations/branches/nearby",
 ];
+
+/** Branch response type union */
+export type BranchCacheData = BranchSearchResponse | NearbyBranchesResponse;
+
+/** Cache entry structure */
+interface BranchCacheEntry {
+    data: BranchCacheData;
+    dataUpdatedAt: number;
+}
 
 /**
  * Check if query key is branch-related
@@ -33,22 +43,19 @@ const persistBranchCache = (queryClient: QueryClient) => {
         predicate: (query) => isBranchQuery(query.queryKey),
     });
 
-    const cacheData: Record<string, unknown> = {};
+    const cacheData: Record<string, BranchCacheEntry> = {};
     branchQueries.forEach((query) => {
-
         if (query.state.data) {
             const keyString = JSON.stringify(query.queryKey);
             cacheData[keyString] = {
-                data: query.state.data,
+                data: query.state.data as BranchCacheData,
                 dataUpdatedAt: query.state.dataUpdatedAt,
             };
         }
     });
 
     try {
-
         sessionStorage.setItem(BRANCH_CACHE_KEY, JSON.stringify(cacheData));
-
     } catch (e) {
         console.debug("Failed to persist branch cache:", e);
     }
@@ -62,7 +69,7 @@ const restoreBranchCache = (queryClient: QueryClient) => {
         const cached = sessionStorage.getItem(BRANCH_CACHE_KEY);
         if (!cached) return;
 
-        const cacheData = JSON.parse(cached) as Record<string, { data: unknown; dataUpdatedAt: number }>;
+        const cacheData = JSON.parse(cached) as Record<string, BranchCacheEntry>;
         const now = Date.now();
 
         Object.entries(cacheData).forEach(([keyString, value]) => {
@@ -90,23 +97,58 @@ export const clearBranchCache = () => {
     }
 };
 
+/**
+ * Get the most recent cached branch data from session storage
+ * Returns the data with the most recent dataUpdatedAt timestamp
+ */
+export const getLastCachedBranchData = (): { data: BranchCacheData; queryKey: string[] } | null => {
+    try {
+        const cached = sessionStorage.getItem(BRANCH_CACHE_KEY);
+        if (!cached) return null;
+
+        const cacheData = JSON.parse(cached) as Record<string, BranchCacheEntry>;
+        const now = Date.now();
+
+        let mostRecentData: BranchCacheData | null = null;
+        let mostRecentKey: string[] | null = null;
+        let mostRecentTime = 0;
+
+        Object.entries(cacheData).forEach(([keyString, value]) => {
+            // Check if cache is still valid (within gcTime)
+            if (now - value.dataUpdatedAt < BRANCH_CACHE_CONFIG.gcTime) {
+                if (value.dataUpdatedAt > mostRecentTime) {
+                    mostRecentData = value.data;
+                    mostRecentKey = JSON.parse(keyString) as string[];
+                    mostRecentTime = value.dataUpdatedAt;
+                }
+            }
+        });
+
+        return mostRecentData && mostRecentKey
+            ? { data: mostRecentData, queryKey: mostRecentKey }
+            : null;
+    } catch (e) {
+        console.debug("Failed to get cached branch data:", e);
+        return null;
+    }
+};
+
 export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            // Default cache settings (can be overridden per query)
             staleTime: 5 * 60 * 1000, // 5 minutes default
             gcTime: 10 * 60 * 1000, // 10 minutes default
             refetchOnWindowFocus: false,
         },
     },
     mutationCache: new MutationCache({
-        onError: (error, variables, context, mutation) => {
+        onError: (_error, _variables, _context, mutation) => {
             const invalidateQueries = mutation.meta?.invalidateOnError;
             if (invalidateQueries) {
                 queryClient.invalidateQueries(invalidateQueries);
             }
         },
-        onSettled: (data, error) => {
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["userLogin"] });
         },
     }),
