@@ -58,6 +58,10 @@ const useAuthStore = create<Auth>()(
             },
 
             logout: async () => {
+                // Clear branch cache from session storage
+                const { clearBranchCache } = await import("~/lib/react-query/Client");
+                clearBranchCache();
+
                 useAuthStore.persist.clearStorage();
                 set(() => ({
                     token: undefined,

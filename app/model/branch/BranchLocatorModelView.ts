@@ -1,6 +1,6 @@
 import {
     useSearchBranchesByArea,
-    getFindNearestBranchesQueryOptions
+    getFindNearestBranchesQueryOptions,
 } from "~/api/branch-locator/generated/endpoints/branch-location/branch-location";
 import  {
     type Dispatch,
@@ -24,6 +24,7 @@ import { BranchLocatorSchema, type BranchLocatorState } from "~/domain/branch-lo
 import { ViewModel } from "~/model/ViewModel";
 import { type ActionDispatch, ActionEvent } from "~/model/ActionEvent";
 import type { QueryObserverResult } from "@tanstack/query-core";
+import { BRANCH_CACHE_CONFIG } from "~/lib/react-query/Client";
 
 type BranchParams = SearchBranchesByAreaParams | FindNearestBranchesParams;
 type BranchResponse = NearbyBranchesResponse | BranchSearchResponse;
@@ -95,8 +96,15 @@ export const useBranchLocatorModelView = () => {
 
     const areaQuery = useSearchBranchesByArea(
         state.userData as SearchBranchesByAreaParams,
-        { query: { enabled: false } }
+        {
+            query: {
+                enabled: false,
+                staleTime: BRANCH_CACHE_CONFIG.staleTime,
+                gcTime: BRANCH_CACHE_CONFIG.gcTime,
+            }
+        }
     );
+
 
     const resolver = useMemo(
         () => createZodResolver<BranchParams, TypeError<BranchResponse>>(BranchLocatorSchema), []
@@ -180,13 +188,68 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
     catchStateChange(_state: BranchLocatorState): void {}
 
     submitToAPI = async () => {
-        await this.executeQuery<ErrorResponse>(async () => {
-            const result = await this.areaQuery.refetch();
-            return this.handleQueryResponse(result);
+        const searchParams = this.state.userData as SearchBranchesByAreaParams;
+
+        // Skip if no search text
+        if (!searchParams.searchText?.trim()) {
+            this.dispatch({
+                type: ActionEvent.SET_API_ERROR,
+                error: {
+                    isError: true,
+                    message: "Please enter a search term"
+                }
+            });
+            return;
+        }
+
+        this.areaQuery.refetch().then((result) => {
+            // Check loading states
+            if (result.isLoading || result.isFetching || result.isPaused) {
+                this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
+                return;
+            }
+
+            if (result.isError) {
+                this.dispatch({
+                    type: ActionEvent.SET_API_ERROR,
+                    error: {
+                        isError: true,
+                        message: (result.error as ErrorResponse)?.message || "Search failed"
+                    }
+                });
+                return;
+            }
+
+            const data = result.data;
+            if (!data || data.branches.length === 0) {
+                this.dispatch({
+                    type: ActionEvent.SET_API_ERROR,
+                    error: {
+                        message: `No branches found for "${searchParams.searchText}"`,
+                        isError: true
+                    }
+                });
+            } else {
+                this.dispatch({
+                    type: ActionEvent.SET_API_RESPONSE_SUCCESS,
+                    isSuccess: true,
+                    message: "Search completed",
+                    data
+                });
+            }
+        }).catch((error) => {
+            this.dispatch({
+                type: ActionEvent.SET_API_ERROR,
+                error: {
+                    isError: true,
+                    message: (error as ErrorResponse)?.message || "Search failed"
+                }
+            });
         });
     };
 
     public async searchByCurrentLocation(event?:  SubmitEvent<HTMLFormElement>): Promise<void> {
+
         if(event){
             event.preventDefault();
         }
@@ -212,13 +275,17 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             coords.maxDistanceKm = maxDistanceKm;
         }
 
-        this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
 
         try {
-            const data = await this.queryClient.fetchQuery(
-                getFindNearestBranchesQueryOptions(coords)
-            );
+            // Use fetchQuery with cache config - this will use cached data if available
+            const queryOptions = getFindNearestBranchesQueryOptions(coords, {
+                query: {
+                    staleTime: BRANCH_CACHE_CONFIG.staleTime,
+                    gcTime: BRANCH_CACHE_CONFIG.gcTime,
+                }
+            });
 
+            const data = await this.queryClient.fetchQuery(queryOptions);
 
             if(data == undefined || data.branches.length == 0) {
                 this.dispatch({
