@@ -133,6 +133,7 @@ export const useCreateAppointment = <
 };
 /**
  * Retrieves all appointments for a customer, optionally filtered by status.
+Supports pagination via offset and limit parameters.
 
  * @summary Get appointments for a customer
  */

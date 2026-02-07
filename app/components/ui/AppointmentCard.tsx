@@ -69,8 +69,13 @@ const AppointmentCard = memo(({ appointment, model }: AppointmentCardProps) => {
                         <MapPin size={16} className="shrink-0 mt-1" style={{ color: colors.red }} />
                         <div>
                             <p style={{ ...typography.bodySmall, fontWeight: "600", color: colors.textSecondary }}>
-                                Branch ID: {appointment.branchId}
+                                {appointment.branchName || `Branch ${appointment.branchId}`}
                             </p>
+                            {appointment.branchAddress && (
+                                <p style={{ ...typography.caption, color: colors.textMuted }}>
+                                    {appointment.branchAddress}
+                                </p>
+                            )}
                         </div>
                     </div>
                     {appointment.assignedConsultantId && (

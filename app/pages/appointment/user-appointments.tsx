@@ -10,7 +10,7 @@ const UserAppointments = () => {
     const activeTab = model.activeTab;
 
     return (
-        <div className="relative min-h-screen w-full flex flex-col md:flex-row items-start justify-between p-[2.5%] pb-20 md:pb-[2.5%] overflow-hidden">
+        <div className="relative min-h-screen w-full flex flex-col md:flex-row items-start justify-between p-[2.5%] pt-4 pb-20 md:pb-[2.5%] overflow-hidden">
             <div
                 className="absolute inset-0 z-0 opacity-60 bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: `url('${BranchLocatorScreenResources.backgroundImage}')` }}

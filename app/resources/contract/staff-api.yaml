@@ -1,55 +1,150 @@
 openapi: 3.1.0
 info:
-  title: Staff API
+  title: Staff Appointment API
   description: |
-    API for managing staff members at Capitec branches.
-    Supports adding, updating status, deleting, and querying staff members.
+    API for staff/consultant operations on appointments at Capitec branches.
+    Supports starting service, completing appointments, marking no-shows, and viewing branch appointments.
   version: 1.0.0
   contact:
     name: Capitec Branch Appointment Team
     email: support@capitecbank.co.za
 
 servers:
-  - url: /api/v1/staff
-    description: Staff Service Base Path (v1)
+  - url: /api/v1/staff/appointments
+    description: Staff Appointment Service Base Path (v1)
 
 tags:
-  - name: Staff Management
-    description: Staff management operations
+  - name: Staff Appointments
+    description: Staff/Consultant appointment operations
 
 paths:
-  /:
-    post:
+  /{appointmentId}/start:
+    patch:
       tags:
-        - Staff Management
-      summary: Add a new staff member
+        - Staff Appointments
+      summary: Start serving a customer
       description: |
-        Adds a new staff member to a branch.
-        New staff members start with TRAINING status.
-      operationId: addStaff
+        Staff/Consultant starts serving the customer.
+        Appointment must be in CHECKED_IN status.
+      operationId: startAppointmentService
       parameters:
+        - $ref: '#/components/parameters/AppointmentId'
         - $ref: '#/components/parameters/TraceId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddStaffRequest'
+              $ref: '#/components/schemas/StartServiceRequest'
       responses:
-        '201':
-          description: Staff member added successfully
+        '200':
+          description: Service started successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StaffResponse'
+                $ref: '#/components/schemas/AppointmentResponse'
         '400':
-          description: Invalid request parameters
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Appointment not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Staff already exists in this branch
+          description: Invalid appointment status for starting service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /{appointmentId}/complete:
+    patch:
+      tags:
+        - Staff Appointments
+      summary: Complete an appointment
+      description: |
+        Marks the appointment as completed after service is finished.
+        Appointment must be in IN_PROGRESS status.
+      operationId: completeAppointment
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+        - $ref: '#/components/parameters/TraceId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteAppointmentRequest'
+      responses:
+        '200':
+          description: Appointment completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Invalid appointment status for completion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /{appointmentId}/no-show:
+    patch:
+      tags:
+        - Staff Appointments
+      summary: Mark customer as no-show
+      description: |
+        Staff marks the customer as no-show when they fail to arrive.
+        Appointment must be in BOOKED status and past the grace window.
+      operationId: markNoShow
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+        - $ref: '#/components/parameters/TraceId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoShowRequest'
+      responses:
+        '200':
+          description: Appointment marked as no-show
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Invalid appointment status for no-show
           content:
             application/json:
               schema:
@@ -64,12 +159,12 @@ paths:
   /branches/{branchId}:
     get:
       tags:
-        - Staff Management
-      summary: Get staff members for a branch
+        - Staff Appointments
+      summary: Get appointments for a branch
       description: |
-        Retrieves all staff members for a specific branch, optionally filtered by status.
-        Defaults to WORKING status if no filter is provided.
-      operationId: getStaffByBranch
+        Retrieves all appointments for a specific branch on a given date.
+        Used by staff to view daily appointment schedule.
+      operationId: getBranchAppointments
       parameters:
         - name: branchId
           in: path
@@ -80,105 +175,28 @@ paths:
             minLength: 2
             maxLength: 50
           example: "470010"
+        - name: date
+          in: query
+          required: true
+          description: Date to filter appointments (ISO format)
+          schema:
+            type: string
+            format: date
+          example: "2026-01-28"
         - name: status
           in: query
           required: false
-          description: Filter by staff status
+          description: Filter appointments by status
           schema:
-            $ref: '#/components/schemas/StaffStatus'
+            $ref: '#/components/schemas/AppointmentStatus'
         - $ref: '#/components/parameters/TraceId'
       responses:
         '200':
-          description: Successfully retrieved staff list
+          description: Successfully retrieved branch appointments
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StaffListResponse'
-        '400':
-          description: Invalid request parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /branches/{branchId}/count:
-    get:
-      tags:
-        - Staff Management
-      summary: Get working staff count for a branch
-      description: |
-        Returns the count of staff members with WORKING status for a specific branch.
-      operationId: getStaffCount
-      parameters:
-        - name: branchId
-          in: path
-          required: true
-          description: Branch identifier
-          schema:
-            type: string
-            minLength: 2
-            maxLength: 50
-          example: "470010"
-        - $ref: '#/components/parameters/TraceId'
-      responses:
-        '200':
-          description: Successfully retrieved staff count
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StaffCountResponse'
-        '400':
-          description: Invalid request parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /{username}/status:
-    patch:
-      tags:
-        - Staff Management
-      summary: Update staff work status
-      description: |
-        Updates the work status of a staff member.
-        Valid statuses are: TRAINING, WORKING, LEAVE.
-      operationId: updateStaffStatus
-      parameters:
-        - name: username
-          in: path
-          required: true
-          description: Staff username
-          schema:
-            type: string
-            minLength: 5
-            maxLength: 50
-          example: "john.doe123"
-        - $ref: '#/components/parameters/TraceId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateStaffStatusRequest'
-      responses:
-        '200':
-          description: Staff status updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StaffResponse'
+                $ref: '#/components/schemas/AppointmentsResponse'
         '400':
           description: Invalid request parameters
           content:
@@ -186,42 +204,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Staff not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /{username}:
-    delete:
-      tags:
-        - Staff Management
-      summary: Delete a staff member
-      description: |
-        Removes a staff member from the system.
-      operationId: deleteStaff
-      parameters:
-        - name: username
-          in: path
-          required: true
-          description: Staff username
-          schema:
-            type: string
-            minLength: 5
-            maxLength: 50
-          example: "john.doe123"
-        - $ref: '#/components/parameters/TraceId'
-      responses:
-        '204':
-          description: Staff deleted successfully
-        '404':
-          description: Staff not found
+          description: Branch not found
           content:
             application/json:
               schema:
@@ -235,6 +218,16 @@ paths:
 
 components:
   parameters:
+    AppointmentId:
+      name: appointmentId
+      in: path
+      required: true
+      description: Unique appointment identifier
+      schema:
+        type: string
+        format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
     TraceId:
       name: Trace-Id
       in: header
@@ -246,96 +239,208 @@ components:
       example: "550e8400-e29b-41d4-a716-446655440000"
 
   schemas:
-    AddStaffRequest:
+    StartServiceRequest:
       type: object
-      description: Request body for adding a new staff member
+      description: Request body for starting appointment service
       required:
-        - username
-        - branchId
+        - consultantId
       properties:
-        username:
+        consultantId:
           type: string
           minLength: 5
           maxLength: 50
-          description: Staff username
-          example: "john.doe123"
-        branchId:
-          type: string
-          minLength: 2
-          maxLength: 50
-          description: Branch identifier
-          example: "470010"
+          description: Username of the consultant starting the service
+          example: "consultant.smith"
 
-    UpdateStaffStatusRequest:
+    CompleteAppointmentRequest:
       type: object
-      description: Request body for updating staff status
-      required:
-        - status
+      description: Optional request body for completion details
       properties:
-        status:
-          $ref: '#/components/schemas/StaffStatus'
+        serviceNotes:
+          type: string
+          maxLength: 1000
+          description: Notes about the service provided
+          example: "Customer opened a new savings account"
 
-    StaffResponse:
+    NoShowRequest:
       type: object
-      description: Staff member information
+      description: Optional request body for no-show details
+      properties:
+        notes:
+          type: string
+          maxLength: 500
+          description: Additional notes about the no-show
+          example: "Customer did not arrive after 15 minutes wait"
+
+    AppointmentResponse:
+      type: object
+      description: Detailed appointment information
       required:
-        - username
-        - status
+        - id
+        - slotId
         - branchId
+        - customerUsername
+        - serviceType
+        - status
+        - reference
+        - dateTime
+        - createdAt
+        - updatedAt
       properties:
-        username:
+        id:
           type: string
-          description: Staff username
-          example: "john.doe123"
-        status:
-          $ref: '#/components/schemas/StaffStatus'
+          format: uuid
+          description: Unique appointment identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        slotId:
+          type: string
+          format: uuid
+          description: Associated slot identifier
+          example: "550e8400-e29b-41d4-a716-446655440001"
         branchId:
           type: string
           description: Branch identifier
           example: "470010"
+        branchName:
+          type: string
+          description: Branch name
+          example: "Rondebosch"
+          nullable: true
+        branchAddress:
+          type: string
+          description: Branch full address
+          example: "Shop G21, Cnr Main & Belmont Road, Fountain Centre, Rondebosch, 7700"
+          nullable: true
+        customerUsername:
+          type: string
+          description: Customer username
+          example: "john.doe123"
+        serviceType:
+          type: string
+          description: Type of service requested
+          example: "Account Opening"
+        status:
+          $ref: '#/components/schemas/AppointmentStatus'
+        reference:
+          type: string
+          pattern: "^APT-\\d{4}-\\d{7}$"
+          description: Human-readable appointment reference
+          example: "APT-2026-0000001"
+        dateTime:
+          type: string
+          format: date-time
+          description: Appointment date and time
+          example: "2026-01-28T10:00:00"
+        createdAt:
+          type: string
+          format: date-time
+          description: When the appointment was created
+          example: "2026-01-20T15:30:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the appointment was last updated
+          example: "2026-01-20T15:30:00"
+        checkedInAt:
+          type: string
+          format: date-time
+          description: When the customer checked in
+          example: "2026-01-28T09:55:00"
+          nullable: true
+        inProgressAt:
+          type: string
+          format: date-time
+          description: When the service started
+          example: "2026-01-28T10:02:00"
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          description: When the service was completed
+          example: "2026-01-28T10:45:00"
+          nullable: true
+        terminatedAt:
+          type: string
+          format: date-time
+          description: When the appointment was terminated (cancelled/no-show)
+          example: "2026-01-28T10:15:00"
+          nullable: true
+        terminatedBy:
+          type: string
+          description: Username of who terminated the appointment
+          example: "staff.jones"
+          nullable: true
+        terminationReason:
+          $ref: '#/components/schemas/AppointmentTerminationReason'
+        terminationNotes:
+          type: string
+          description: Notes about the termination
+          maxLength: 500
+          example: "Customer requested cancellation"
+          nullable: true
+        assignedConsultantId:
+          type: string
+          description: Username of the assigned consultant
+          example: "consultant.smith"
+          nullable: true
+        serviceNotes:
+          type: string
+          description: Notes about the service provided
+          maxLength: 1000
+          example: "Opened savings account, issued debit card"
+          nullable: true
+        previousSlotId:
+          type: string
+          format: uuid
+          description: Previous slot ID if rescheduled
+          example: "550e8400-e29b-41d4-a716-446655440002"
+          nullable: true
+        rescheduleCount:
+          type: integer
+          minimum: 0
+          maximum: 3
+          description: Number of times the appointment has been rescheduled
+          example: 1
 
-    StaffListResponse:
+    AppointmentsResponse:
       type: object
-      description: Response containing list of staff usernames
+      description: Response containing list of appointments
       required:
-        - usernames
+        - appointments
         - totalCount
       properties:
-        usernames:
+        appointments:
           type: array
-          description: List of staff usernames
+          description: List of appointments
           items:
-            type: string
-          example: ["john.doe123", "jane.smith456"]
+            $ref: '#/components/schemas/AppointmentResponse'
         totalCount:
           type: integer
-          description: Total number of staff members
-          example: 2
-
-    StaffCountResponse:
-      type: object
-      description: Response containing staff count for a branch
-      required:
-        - branchId
-        - count
-      properties:
-        branchId:
-          type: string
-          description: Branch identifier
-          example: "470010"
-        count:
-          type: integer
-          description: Number of working staff members
+          description: Total number of appointments
           example: 5
 
-    StaffStatus:
+    AppointmentStatus:
       type: string
-      description: Staff work status
+      description: Current status of the appointment
       enum:
-        - TRAINING
-        - WORKING
-        - LEAVE
-      example: WORKING
+        - BOOKED
+        - CHECKED_IN
+        - IN_PROGRESS
+        - COMPLETED
+        - CANCELLED
+        - NO_SHOW
+      example: BOOKED
+
+    AppointmentTerminationReason:
+      type: string
+      description: Reason for appointment termination
+      enum:
+        - CUSTOMER_CANCELLATION
+        - CUSTOMER_NO_SHOW
+        - STAFF_CANCELLATION
+        - CUSTOMER_RESCHEDULED
+      example: CUSTOMER_NO_SHOW
+      nullable: true
 
     ErrorResponse:
       type: object
@@ -363,11 +468,11 @@ components:
         message:
           type: string
           description: Human-readable error message
-          example: "Invalid staff status"
+          example: "Invalid appointment status for this operation"
         path:
           type: string
           description: Request path that caused the error
-          example: "/api/v1/staff"
+          example: "/api/v1/staff/appointments/550e8400-e29b-41d4-a716-446655440000/start"
         traceId:
           type: string
           description: Trace ID for error tracking

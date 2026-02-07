@@ -56,6 +56,7 @@ export const createAppointmentBody = zod
 
 /**
  * Retrieves all appointments for a customer, optionally filtered by status.
+Supports pagination via offset and limit parameters.
 
  * @summary Get appointments for a customer
  */
@@ -70,6 +71,12 @@ export const getCustomerAppointmentsParams = zod.object({
     .describe("Customer username identifier"),
 });
 
+export const getCustomerAppointmentsQueryOffsetDefault = 0;
+export const getCustomerAppointmentsQueryOffsetMin = 0;
+
+export const getCustomerAppointmentsQueryLimitDefault = 50;
+export const getCustomerAppointmentsQueryLimitMax = 100;
+
 export const getCustomerAppointmentsQueryParams = zod.object({
   status: zod
     .enum([
@@ -82,6 +89,17 @@ export const getCustomerAppointmentsQueryParams = zod.object({
     ])
     .optional()
     .describe("Filter appointments by status"),
+  offset: zod
+    .number()
+    .min(getCustomerAppointmentsQueryOffsetMin)
+    .optional()
+    .describe("Number of records to skip for pagination"),
+  limit: zod
+    .number()
+    .min(1)
+    .max(getCustomerAppointmentsQueryLimitMax)
+    .default(getCustomerAppointmentsQueryLimitDefault)
+    .describe("Maximum number of records to return"),
 });
 
 export const getCustomerAppointmentsHeader = zod.object({
@@ -108,6 +126,11 @@ export const getCustomerAppointmentsResponse = zod
             id: zod.uuid().describe("Unique appointment identifier"),
             slotId: zod.uuid().describe("Associated slot identifier"),
             branchId: zod.string().describe("Branch identifier"),
+            branchName: zod.string().nullish().describe("Branch name"),
+            branchAddress: zod
+              .string()
+              .nullish()
+              .describe("Branch full address"),
             customerUsername: zod.string().describe("Customer username"),
             serviceType: zod.string().describe("Type of service requested"),
             status: zod
@@ -235,6 +258,8 @@ export const getAppointmentByIdResponse = zod
     id: zod.uuid().describe("Unique appointment identifier"),
     slotId: zod.uuid().describe("Associated slot identifier"),
     branchId: zod.string().describe("Branch identifier"),
+    branchName: zod.string().nullish().describe("Branch name"),
+    branchAddress: zod.string().nullish().describe("Branch full address"),
     customerUsername: zod.string().describe("Customer username"),
     serviceType: zod.string().describe("Type of service requested"),
     status: zod
@@ -357,6 +382,8 @@ export const cancelAppointmentResponse = zod
     id: zod.uuid().describe("Unique appointment identifier"),
     slotId: zod.uuid().describe("Associated slot identifier"),
     branchId: zod.string().describe("Branch identifier"),
+    branchName: zod.string().nullish().describe("Branch name"),
+    branchAddress: zod.string().nullish().describe("Branch full address"),
     customerUsername: zod.string().describe("Customer username"),
     serviceType: zod.string().describe("Type of service requested"),
     status: zod
@@ -477,6 +504,8 @@ export const rescheduleAppointmentResponse = zod
     id: zod.uuid().describe("Unique appointment identifier"),
     slotId: zod.uuid().describe("Associated slot identifier"),
     branchId: zod.string().describe("Branch identifier"),
+    branchName: zod.string().nullish().describe("Branch name"),
+    branchAddress: zod.string().nullish().describe("Branch full address"),
     customerUsername: zod.string().describe("Customer username"),
     serviceType: zod.string().describe("Type of service requested"),
     status: zod
@@ -587,6 +616,8 @@ export const checkInAppointmentResponse = zod
     id: zod.uuid().describe("Unique appointment identifier"),
     slotId: zod.uuid().describe("Associated slot identifier"),
     branchId: zod.string().describe("Branch identifier"),
+    branchName: zod.string().nullish().describe("Branch name"),
+    branchAddress: zod.string().nullish().describe("Branch full address"),
     customerUsername: zod.string().describe("Customer username"),
     serviceType: zod.string().describe("Type of service requested"),
     status: zod

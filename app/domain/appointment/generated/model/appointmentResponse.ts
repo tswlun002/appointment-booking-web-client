@@ -20,6 +20,16 @@ export interface AppointmentResponse {
   slotId: string;
   /** Branch identifier */
   branchId: string;
+  /**
+   * Branch name
+   * @nullable
+   */
+  branchName?: string | null;
+  /**
+   * Branch full address
+   * @nullable
+   */
+  branchAddress?: string | null;
   /** Customer username */
   customerUsername: string;
   /** Type of service requested */
