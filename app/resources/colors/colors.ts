@@ -111,27 +111,37 @@ export const typography = {
     },
 } as const;
 
-// Status Styles (for badges, alerts)
+// Status Styles (for badges, alerts) - Keys match AppointmentStatus enum
 export const statusStyles = {
-    booked: {
+    BOOKED: {
         bg: colors.successLight,
         text: colors.success,
         border: colors.successBorder,
     },
-    cancelled: {
+    CANCELLED: {
         bg: colors.redLight,
         text: colors.red,
         border: colors.redBorder,
     },
-    rescheduled: {
+    CHECKED_IN: {
+        bg: colors.warningLight,
+        text: colors.warning,
+        border: colors.warningBorder,
+    },
+    IN_PROGRESS: {
+        bg: colors.warningLight,
+        text: colors.warning,
+        border: colors.warningBorder,
+    },
+    COMPLETED: {
         bg: colors.primaryLight,
         text: colors.primary,
         border: colors.primary,
     },
-    'being processed': {
-        bg: colors.warningLight,
-        text: colors.warning,
-        border: colors.warningBorder,
+    NO_SHOW: {
+        bg: colors.bgMuted,
+        text: colors.textSecondary,
+        border: colors.borderMedium,
     },
     default: {
         bg: colors.bgMuted,
