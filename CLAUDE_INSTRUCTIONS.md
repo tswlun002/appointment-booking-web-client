@@ -151,6 +151,8 @@ this.mutation.mutate({ data }, options); // Don't use mutate
 | Use `ReturnType<typeof useMutation>` for mutation type | Explicitly type with `UseMutationResult<Response, Error, Variables, Context>` |
 | Cast error as `unknown` in mutation callbacks | Type mutation properly so error type is known |
 | Select entire objects from zustand when you only need one field | Select only the specific field: `useAuthStore(s => s.user?.username)` |
+| Use hooks (useState, useEffect, useCallback) directly in UI/tsx files | Create a ModelView hook that manages all state and logic, UI only calls `useModelView()` |
+| Put event handlers or logic functions in UI components | All handlers must be in ModelView class (e.g., `model.handleLogout()`) |
 
 ---
 
