@@ -3,6 +3,7 @@ import { AlertTriangle, X } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
 import type { CancelAppointmentState } from "~/domain/appointment/CancelAppointment";
 import type { CancelAppointmentModelView } from "~/model/appointment/CancelAppointmentModelView";
+import ReactDOM from "react-dom";
 
 interface CancelAppointmentModalProps {
     state: CancelAppointmentState;
@@ -18,8 +19,11 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
 
     if (!isOpen || !appointment) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    const modalContent = (
+        <div
+            className="fixed inset-0 flex items-center justify-center p-4"
+            style={{ zIndex: 9999 }}
+        >
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/50 animate-in fade-in duration-200"
@@ -29,7 +33,10 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
             {/* Modal */}
             <div
                 className="relative w-full max-w-md rounded-xl shadow-2xl p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
-                style={{ backgroundColor: colors.white }}
+                style={{
+                    backgroundColor: colors.white,
+                    fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+                }}
             >
                 {/* Close button */}
                 <button
@@ -54,7 +61,12 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                 {/* Title */}
                 <h3
                     className="text-center mb-2"
-                    style={{ ...typography.h4, color: colors.textPrimary }}
+                    style={{
+                        fontSize: typography.h4.fontSize,
+                        fontWeight: typography.h4.fontWeight,
+                        lineHeight: typography.h4.lineHeight,
+                        color: colors.textPrimary,
+                    }}
                 >
                     Cancel Appointment?
                 </h3>
@@ -62,7 +74,12 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                 {/* Appointment info */}
                 <p
                     className="text-center mb-4"
-                    style={{ ...typography.body, color: colors.textSecondary }}
+                    style={{
+                        fontSize: typography.body.fontSize,
+                        fontWeight: typography.body.fontWeight,
+                        lineHeight: typography.body.lineHeight,
+                        color: colors.textSecondary,
+                    }}
                 >
                     Are you sure you want to cancel your appointment for{" "}
                     <strong style={{ color: colors.textPrimary }}>{appointment.serviceType}</strong> on{" "}
@@ -73,7 +90,12 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                 {appointment.branchName && (
                     <p
                         className="text-center mb-4"
-                        style={{ ...typography.bodySmall, color: colors.textMuted }}
+                        style={{
+                            fontSize: typography.bodySmall.fontSize,
+                            fontWeight: typography.bodySmall.fontWeight,
+                            lineHeight: typography.bodySmall.lineHeight,
+                            color: colors.textMuted,
+                        }}
                     >
                         at {appointment.branchName}
                     </p>
@@ -85,7 +107,13 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                         className="p-3 rounded-lg mb-4 animate-in shake duration-300"
                         style={{ backgroundColor: colors.redLight }}
                     >
-                        <p style={{ ...typography.bodySmall, color: colors.red, margin: 0 }}>
+                        <p style={{
+                            fontSize: typography.bodySmall.fontSize,
+                            fontWeight: typography.bodySmall.fontWeight,
+                            lineHeight: typography.bodySmall.lineHeight,
+                            color: colors.red,
+                            margin: 0,
+                        }}>
                             {errorMessage}
                         </p>
                     </div>
@@ -94,7 +122,12 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                 {/* Required reason */}
                 <div className="mb-6">
                     <label
-                        style={{ ...typography.label, color: colors.textSecondary }}
+                        style={{
+                            fontSize: typography.label.fontSize,
+                            fontWeight: typography.label.fontWeight,
+                            lineHeight: typography.label.lineHeight,
+                            color: colors.textSecondary,
+                        }}
                         className="block mb-2"
                     >
                         Reason for cancellation <span style={{ color: colors.red }}>*</span>
@@ -107,14 +140,22 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                         className="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 transition-all"
                         style={{
                             borderColor: colors.borderLight,
-                            ...typography.body,
+                            fontSize: typography.body.fontSize,
+                            fontWeight: typography.body.fontWeight,
+                            lineHeight: typography.body.lineHeight,
+                            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                         }}
                         rows={3}
                         maxLength={500}
                     />
                     <p
                         className="text-right mt-1"
-                        style={{ ...typography.caption, color: colors.textMuted }}
+                        style={{
+                            fontSize: typography.caption.fontSize,
+                            fontWeight: typography.caption.fontWeight,
+                            lineHeight: typography.caption.lineHeight,
+                            color: colors.textMuted,
+                        }}
                     >
                         {reason.length}/500
                     </p>
@@ -125,11 +166,14 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                     <button
                         onClick={model.closeModal}
                         disabled={isLoading}
-                        className="flex-1 py-3 rounded-lg border-2 font-semibold transition-all hover:bg-gray-50 disabled:opacity-50"
+                        className="flex-1 py-3 rounded-lg border-2 transition-all hover:bg-gray-50 disabled:opacity-50"
                         style={{
                             borderColor: colors.borderMedium,
                             color: colors.textSecondary,
-                            ...typography.button,
+                            fontSize: typography.button.fontSize,
+                            fontWeight: typography.button.fontWeight,
+                            lineHeight: typography.button.lineHeight,
+                            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                         }}
                     >
                         Keep Appointment
@@ -137,11 +181,14 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                     <button
                         onClick={model.confirmCancel}
                         disabled={isLoading || !reason.trim()}
-                        className="flex-1 py-3 rounded-lg font-semibold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 py-3 rounded-lg transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
                             backgroundColor: colors.red,
                             color: colors.white,
-                            ...typography.button,
+                            fontSize: typography.button.fontSize,
+                            fontWeight: typography.button.fontWeight,
+                            lineHeight: typography.button.lineHeight,
+                            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                         }}
                     >
                         {isLoading ? "Cancelling..." : "Yes, Cancel"}
@@ -150,6 +197,9 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
             </div>
         </div>
     );
+
+    // Render modal using portal to ensure it's above all other elements
+    return ReactDOM.createPortal(modalContent, document.body);
 });
 
 CancelAppointmentModal.displayName = "CancelAppointmentModal";
