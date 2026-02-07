@@ -9,6 +9,7 @@ import { useCancelAppointmentModelView } from "~/model/appointment/CancelAppoint
 import type { AppointmentResponse } from "~/domain/appointment/generated/model";
 import type { UserAppointmentsState } from "~/domain/appointment/UserAppointments";
 import type { UserAppointmentsModelView } from "~/model/appointment/UserAppointmentsModelView";
+import { useNavigate } from "react-router";
 
 interface AppointmentsWidgetProps {
     state: UserAppointmentsState;
@@ -17,6 +18,8 @@ interface AppointmentsWidgetProps {
 }
 
 const AppointmentsWidget = memo(({ state, model, appointments }: AppointmentsWidgetProps) => {
+    const navigate = useNavigate();
+
     // Callback when cancel succeeds - update appointment in list
     const handleCancelSuccess = useCallback((updatedAppointment: AppointmentResponse) => {
         model.updateAppointment(updatedAppointment);
@@ -24,6 +27,21 @@ const AppointmentsWidget = memo(({ state, model, appointments }: AppointmentsWid
 
     // Cancel appointment ModelView
     const { state: cancelState, model: cancelModel } = useCancelAppointmentModelView(handleCancelSuccess);
+
+    // Handle reschedule - navigate to slots page with reschedule mode
+    const handleRescheduleClick = useCallback((appointment: AppointmentResponse) => {
+        navigate(`/appointments/${appointment.branchId}/slots`, {
+            state: {
+                mode: 'reschedule',
+                appointmentId: appointment.id,
+                serviceType: appointment.serviceType,
+                branchName: appointment.branchName || `Branch ${appointment.branchId}`,
+                currentDateTime: appointment.dateTime,
+                rescheduleCount: appointment.rescheduleCount ?? 0,
+                distance: "",
+            },
+        });
+    }, [navigate]);
 
     return (
         <>
@@ -89,6 +107,7 @@ const AppointmentsWidget = memo(({ state, model, appointments }: AppointmentsWid
                                 appointment={appointment}
                                 model={model}
                                 onCancelClick={(apt) => cancelModel.openModal(apt)}
+                                onRescheduleClick={handleRescheduleClick}
                             />
                         ))}
                     </div>

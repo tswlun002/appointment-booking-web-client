@@ -1,5 +1,5 @@
 import {ViewModel} from "~/model/ViewModel";
-import {type WeeklySlotsQuery, WeeklySlotsRequestDataSchema, type WeeklySlotsState} from "~/domain/slot/generated/Slot";
+import {type WeeklySlotsQuery, WeeklySlotsRequestDataSchema, type WeeklySlotsState, type RescheduleNavigationState} from "~/domain/slot/generated/Slot";
 import {LocalDate} from "~/utils/CompanionObjects";
 import React, {type Dispatch, type MouseEvent, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
 import {useGetWeeklySlots} from "~/api/slot/generated/endpoints/slot-queries/slot-queries";
@@ -21,6 +21,14 @@ type InitProps = {
     status: SlotStatus;
     branchName: string;
     distance: string;
+    // Reschedule mode
+    isRescheduleMode: boolean;
+    rescheduleData?: {
+        appointmentId: string;
+        serviceType: string;
+        currentDateTime: string;
+        rescheduleCount: number;
+    };
 };
 
 type Resolver = (data: GetWeeklySlotsParams & { branchId: string }) => Promise<
@@ -39,14 +47,24 @@ const sortSlotsByDate = (slotsByDay: Record<string, SlotResponse[]> | undefined)
 export const useSlotModelView = () => {
     const { branchId } = useParams();
     const locationState = useLocation().state || {};
-    const { branchName, distance } = locationState;
+    const { branchName, distance, mode, appointmentId, serviceType, currentDateTime, rescheduleCount } = locationState as Partial<RescheduleNavigationState> & { branchName?: string; distance?: string };
+
+    // Detect reschedule mode
+    const isRescheduleMode = mode === 'reschedule';
 
     const initProps: InitProps = {
         branchId: branchId ?? "",
         fromDate: LocalDate.formattedDate(LocalDate.now),
         status: "AVAILABLE",
-        branchName,
-        distance,
+        branchName: branchName ?? "",
+        distance: distance ?? "",
+        isRescheduleMode,
+        rescheduleData: isRescheduleMode ? {
+            appointmentId: appointmentId ?? "",
+            serviceType: serviceType ?? "",
+            currentDateTime: currentDateTime ?? "",
+            rescheduleCount: rescheduleCount ?? 0,
+        } : undefined,
     };
 
     const initialState = initSlots(initProps);
@@ -161,7 +179,7 @@ export const useSlotModelView = () => {
     };
 };
 
-  export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, WeeklySlotsState> {
+export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, WeeklySlotsState> {
     constructor(
         private stateRef: React.MutableRefObject<WeeklySlotsState>,
         protected dispatch: Dispatch<ActionDispatch<WeeklySlotsQuery, SlotsResponse>>,
@@ -177,7 +195,22 @@ export const useSlotModelView = () => {
         return this.stateRef.current;
     }
 
-    /** Navigate back to branch selection */
+    /** Check if in reschedule mode */
+    get isRescheduleMode(): boolean {
+        return this.getCurrentState().isRescheduleMode;
+    }
+
+    /** Get reschedule data */
+    get rescheduleData() {
+        return this.getCurrentState().rescheduleData;
+    }
+
+    /** Check if this is the last reschedule allowed */
+    get isLastReschedule(): boolean {
+        return (this.rescheduleData?.rescheduleCount ?? 0) >= 2;
+    }
+
+    /** Navigate back to branch selection or appointments */
     backToBranch = (event: MouseEvent<HTMLButtonElement>): void => {
         event.preventDefault();
         this.navigateFunction("/appointments");
@@ -225,24 +258,55 @@ export const useSlotModelView = () => {
         const branchId = currentState.userData.branchId;
         const slotId = slot.id;
 
-        this.navigateFunction(`/appointments/${branchId}/slots/${slotId}/book`, {
-            state: {
-                slotId,
-                branchId,
-                branchName: currentState.branchName,
-                day: currentState.userData.fromDate,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                displayDate,
-                slotTime,
-            },
-        });
+        // If in reschedule mode, pass reschedule data
+        if (currentState.isRescheduleMode && currentState.rescheduleData) {
+            this.navigateFunction(`/appointments/${branchId}/slots/${slotId}/book`, {
+                state: {
+                    mode: 'reschedule',
+                    appointmentId: currentState.rescheduleData.appointmentId,
+                    slotId,
+                    branchId,
+                    branchName: currentState.branchName,
+                    day: currentState.userData.fromDate,
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    displayDate,
+                    slotTime,
+                    // Pre-fill service type from original appointment
+                    serviceType: currentState.rescheduleData.serviceType,
+                },
+            });
+        } else {
+            // Normal booking flow
+            this.navigateFunction(`/appointments/${branchId}/slots/${slotId}/book`, {
+                state: {
+                    slotId,
+                    branchId,
+                    branchName: currentState.branchName,
+                    day: currentState.userData.fromDate,
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    displayDate,
+                    slotTime,
+                },
+            });
+        }
+    };
+
+    /** Format current appointment date for display */
+    formatCurrentAppointmentDate = (): string => {
+        const currentDateTime = this.rescheduleData?.currentDateTime;
+        if (!currentDateTime) return "";
+        const date = new Date(currentDateTime);
+        return `${LocalDate.dayName(date)} ${LocalDate.dayOfTheMonth(date)} ${LocalDate.month} at ${LocalDate.formattedTime(date)}`;
     };
 }
 
-const initSlots = ({ branchId, fromDate, status, branchName, distance }: InitProps): WeeklySlotsState => ({
+const initSlots = ({ branchId, fromDate, status, branchName, distance, isRescheduleMode, rescheduleData }: InitProps): WeeklySlotsState => ({
     branchName,
     distance,
+    isRescheduleMode,
+    rescheduleData,
     isLoading: false,
     errors: {
         response: { isError: false },

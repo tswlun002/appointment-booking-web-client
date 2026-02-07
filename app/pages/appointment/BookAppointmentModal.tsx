@@ -19,6 +19,7 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
     const isLoading = state.isLoading;
     const errorMessage = state.errors.response?.message;
     const isConfirmEnabled = model.isConfirmEnabled();
+    const isRescheduleMode = model.isRescheduleMode;
 
     if (!isVisible) return null;
 
@@ -64,7 +65,7 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                         id="modal-title"
                         style={{ ...typography.h4, color: colors.textPrimary, margin: 0 }}
                     >
-                        Book Appointment
+                        {model.modalTitle}
                     </h3>
                     <button
                         onClick={model.closeModal}
@@ -102,7 +103,7 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                                 marginBottom: "4px",
                             }}
                         >
-                            Selected Appointment
+                            {isRescheduleMode ? "New Appointment Time" : "Selected Appointment"}
                         </p>
                         <p
                             style={{
@@ -116,41 +117,69 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                         </p>
                     </div>
 
-                    {/* Service Type Selection */}
-                    <div className="mb-2">
-                        <p
-                            style={{
-                                ...typography.label,
-                                color: colors.textPrimary,
-                                marginBottom: "12px",
-                            }}
-                        >
-                            What do you need help with?{" "}
-                            <span style={{ color: colors.red }}>*</span>
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            {SERVICE_TYPES.map((serviceType) => {
-                                const isSelected = selectedServiceType === serviceType;
-                                return (
-                                    <button
-                                        key={serviceType}
-                                        onClick={(e) => model.selectServiceType(serviceType, e)}
-                                        disabled={isLoading}
-                                        className="px-4 py-2 rounded-full border-2 transition-all duration-200 hover:shadow-sm active:scale-95 disabled:opacity-50"
-                                        style={{
-                                            ...typography.bodySmall,
-                                            fontWeight: "500",
-                                            backgroundColor: isSelected ? colors.primary : colors.white,
-                                            borderColor: isSelected ? colors.primary : colors.borderLight,
-                                            color: isSelected ? colors.white : colors.textSecondary,
-                                        }}
-                                    >
-                                        {serviceType}
-                                    </button>
-                                );
-                            })}
+                    {/* Service Type Selection - Hide in reschedule mode since it's pre-filled */}
+                    {!isRescheduleMode && (
+                        <div className="mb-2">
+                            <p
+                                style={{
+                                    ...typography.label,
+                                    color: colors.textPrimary,
+                                    marginBottom: "12px",
+                                }}
+                            >
+                                What do you need help with?{" "}
+                                <span style={{ color: colors.red }}>*</span>
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {SERVICE_TYPES.map((serviceType) => {
+                                    const isSelected = selectedServiceType === serviceType;
+                                    return (
+                                        <button
+                                            key={serviceType}
+                                            onClick={(e) => model.selectServiceType(serviceType, e)}
+                                            disabled={isLoading}
+                                            className="px-4 py-2 rounded-full border-2 transition-all duration-200 hover:shadow-sm active:scale-95 disabled:opacity-50"
+                                            style={{
+                                                ...typography.bodySmall,
+                                                fontWeight: "500",
+                                                backgroundColor: isSelected ? colors.primary : colors.white,
+                                                borderColor: isSelected ? colors.primary : colors.borderLight,
+                                                color: isSelected ? colors.white : colors.textSecondary,
+                                            }}
+                                        >
+                                            {serviceType}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Service Type Display - Show in reschedule mode */}
+                    {isRescheduleMode && selectedServiceType && (
+                        <div className="mb-2">
+                            <p
+                                style={{
+                                    ...typography.label,
+                                    color: colors.textPrimary,
+                                    marginBottom: "8px",
+                                }}
+                            >
+                                Service Type
+                            </p>
+                            <p
+                                style={{
+                                    ...typography.body,
+                                    color: colors.textSecondary,
+                                    padding: "12px 16px",
+                                    backgroundColor: colors.bgLight,
+                                    borderRadius: "8px",
+                                }}
+                            >
+                                {selectedServiceType}
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}
@@ -190,7 +219,7 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                         }}
                     >
                         {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                        {isLoading ? "Booking..." : "Book Appointment"}
+                        {model.confirmButtonText}
                     </button>
                 </div>
             </div>

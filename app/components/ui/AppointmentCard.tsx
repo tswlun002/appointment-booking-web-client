@@ -8,9 +8,10 @@ interface AppointmentCardProps {
     appointment: AppointmentResponse;
     model: UserAppointmentsModelView;
     onCancelClick: (appointment: AppointmentResponse) => void;
+    onRescheduleClick: (appointment: AppointmentResponse) => void;
 }
 
-const AppointmentCard = memo(({ appointment, model, onCancelClick }: AppointmentCardProps) => {
+const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleClick }: AppointmentCardProps) => {
     const isExpanded = model.isExpanded(appointment.id);
 
     return (
@@ -121,6 +122,7 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick }: Appointment
                             <XCircle size={14} /> Cancel
                         </button>
                         <button
+                            onClick={() => onRescheduleClick(appointment)}
                             className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border rounded-lg text-xs font-bold hover:opacity-80 transition-opacity"
                             style={{
                                 borderColor: colors.primary,

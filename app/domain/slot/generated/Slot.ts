@@ -30,9 +30,27 @@ export type WeeklySlotsQuery = GetWeeklySlotsParams&{
     selectedSlotId?:string,
     serviceType?:string,
 }
-export interface  WeeklySlotsState extends State<WeeklySlotsQuery, SlotsResponse>{
-    branchName:string,
-    distance:string,
 
+/** Reschedule mode navigation state */
+export interface RescheduleNavigationState {
+    mode: 'reschedule';
+    appointmentId: string;
+    serviceType: string;
+    branchName: string;
+    currentDateTime: string;
+    rescheduleCount: number;
+    distance: string;
 }
 
+export interface WeeklySlotsState extends State<WeeklySlotsQuery, SlotsResponse>{
+    branchName: string;
+    distance: string;
+    // Reschedule mode data
+    isRescheduleMode: boolean;
+    rescheduleData?: {
+        appointmentId: string;
+        serviceType: string;
+        currentDateTime: string;
+        rescheduleCount: number;
+    };
+}

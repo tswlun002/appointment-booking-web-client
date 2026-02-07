@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { State } from "~/domain/State";
-import type { AppointmentResponse, CreateAppointmentRequest } from "~/domain/appointment/generated/model";
+import type { AppointmentResponse, CreateAppointmentRequest, RescheduleAppointmentRequest } from "~/domain/appointment/generated/model";
 import { createAppointmentBody } from "~/domain/appointment/generated/zod";
 
 // Static service types list
@@ -30,7 +30,19 @@ export interface BookAppointmentData extends CreateAppointmentRequest {
     slotTime: string;
     displayDate: string;
     isModalOpen: boolean;
+    // Reschedule mode fields
+    isRescheduleMode?: boolean;
+    appointmentId?: string;
 }
 
-export interface BookAppointmentState extends State<BookAppointmentData, AppointmentResponse> {}
+export interface BookAppointmentState extends State<BookAppointmentData, AppointmentResponse> {
+    isRescheduleMode: boolean;
+}
 
+/** Convert BookAppointmentData to RescheduleAppointmentRequest */
+export const toRescheduleRequest = (data: BookAppointmentData): RescheduleAppointmentRequest => ({
+    newSlotId: data.slotId,
+    newDay: data.day,
+    newStartTime: data.startTime,
+    newEndTime: data.endTime,
+});
