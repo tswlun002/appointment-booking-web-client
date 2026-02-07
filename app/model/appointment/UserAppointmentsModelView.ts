@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer } from "react";
+import {type RefObject, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
 import type { CSSProperties, Dispatch } from "react";
 import {
     useGetCustomerAppointments,
@@ -11,7 +11,7 @@ import {
     type UserAppointmentsQuery,
     type UserAppointmentsState,
 } from "~/domain/appointment/UserAppointments";
-import type { AppointmentsResponse } from "~/domain/appointment/generated/model";
+import type { AppointmentResponse, AppointmentsResponse } from "~/domain/appointment/generated/model";
 import { AppointmentStatus } from "~/domain/appointment/generated/model";
 import useAuthStore from "~/model/auth/zustand/AuthStore";
 import { useShallow } from "zustand/react/shallow";
@@ -48,6 +48,9 @@ export const useUserAppointmentsModelView = () => {
     const reducer = ViewModel.reducer<UserAppointmentsQuery, AppointmentsResponse, UserAppointmentsState>(initialUserAppointmentsState);
     const [state, dispatch] = useReducer(reducer, initUserAppointments(username));
 
+    const stateRef = useRef(state);
+    stateRef.current = state;
+
     const stableDispatch = useCallback(
         (action: ActionDispatch<UserAppointmentsQuery, AppointmentsResponse>) => dispatch(action),
         []
@@ -60,7 +63,7 @@ export const useUserAppointmentsModelView = () => {
         {
             query: {
                 enabled: !!username,
-                staleTime: 30000, // 30 seconds - data considered fresh
+                staleTime: 30000,
                 refetchOnWindowFocus: false,
             }
         }
@@ -98,8 +101,12 @@ export const useUserAppointmentsModelView = () => {
     }, [appointmentsQuery.isError, appointmentsQuery.error, stableDispatch]);
 
     const model = useMemo(
-        () => new UserAppointmentsModelView(state, stableDispatch, appointmentsQuery.refetch),
-        [state, stableDispatch, appointmentsQuery.refetch]
+        () => new UserAppointmentsModelView(
+            stateRef,
+            stableDispatch,
+            appointmentsQuery.refetch
+        ),
+        [stableDispatch, appointmentsQuery.refetch]
     );
 
     // Get sorted appointments from response
@@ -119,10 +126,14 @@ export const useUserAppointmentsModelView = () => {
 
 export class UserAppointmentsModelView {
     constructor(
-        protected state: UserAppointmentsState,
+        private stateRef: RefObject<UserAppointmentsState>,
         protected dispatch: Dispatch<ActionDispatch<UserAppointmentsQuery, AppointmentsResponse>>,
         private refetchFn: () => void
     ) {}
+
+    private get state(): UserAppointmentsState {
+        return this.stateRef.current!;
+    }
 
     /** Refetch appointments */
     refetch = (): void => {
@@ -130,7 +141,7 @@ export class UserAppointmentsModelView {
         this.refetchFn();
     };
 
-/** Toggle expanded appointment info */
+    /** Toggle expanded appointment info */
     toggleAppointmentInfo = (appointmentId: string): void => {
         const currentExpanded = this.state.userData.expandedAppointmentId;
         const newExpanded = currentExpanded === appointmentId ? "" : appointmentId;
@@ -160,6 +171,32 @@ export class UserAppointmentsModelView {
         return this.state.userData.activeTab;
     }
 
+    /** Update single appointment in list (called after cancel/reschedule) */
+    updateAppointment = (updatedAppointment: AppointmentResponse): void => {
+        const currentResponse = this.state.response?.data;
+        if (!currentResponse) return;
+
+        const updatedAppointments = currentResponse.appointments.map(apt =>
+            apt.id === updatedAppointment.id ? updatedAppointment : apt
+        );
+
+        this.dispatch({
+            type: ActionEvent.SET_API_RESPONSE_SUCCESS,
+            message: "Appointment updated",
+            data: {
+                ...currentResponse,
+                appointments: updatedAppointments,
+            },
+        });
+    };
+
+    /** Get appointment by ID */
+    getAppointmentById = (id: string): AppointmentResponse | undefined => {
+        return this.state.response?.data?.appointments.find(apt => apt.id === id);
+    };
+
+    // ========== STATUS HELPERS ==========
+
     /** Get status style for appointment badge */
     getStatusStyle = (status: string): CSSProperties => {
         const statusColor = getStatusColors(status);
@@ -186,7 +223,6 @@ export class UserAppointmentsModelView {
         const date = new Date(dateTime);
         return `${LocalDate.shortDayName(date)} ${LocalDate.dayOfTheMonth(date)} ${new Intl.DateTimeFormat("en-ZA", { month: "short" }).format(date)} ${date.getFullYear()}`;
     };
-
 
     /** Check if appointment is being processed */
     isBeingProcessed = (status: string): boolean => {

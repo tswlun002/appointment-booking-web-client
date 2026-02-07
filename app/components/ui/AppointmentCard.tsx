@@ -7,9 +7,10 @@ import type { UserAppointmentsModelView } from "~/model/appointment/UserAppointm
 interface AppointmentCardProps {
     appointment: AppointmentResponse;
     model: UserAppointmentsModelView;
+    onCancelClick: (appointment: AppointmentResponse) => void;
 }
 
-const AppointmentCard = memo(({ appointment, model }: AppointmentCardProps) => {
+const AppointmentCard = memo(({ appointment, model, onCancelClick }: AppointmentCardProps) => {
     const isExpanded = model.isExpanded(appointment.id);
 
     return (
@@ -109,6 +110,7 @@ const AppointmentCard = memo(({ appointment, model }: AppointmentCardProps) => {
                 ) : model.canModify(appointment.status) ? (
                     <>
                         <button
+                            onClick={() => onCancelClick(appointment)}
                             className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border rounded-lg text-xs font-bold hover:opacity-80 transition-opacity"
                             style={{
                                 borderColor: colors.redBorder,
