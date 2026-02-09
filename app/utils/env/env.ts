@@ -1,6 +1,7 @@
-// src/config/env-types.ts
+// src/config/env.ts
+// Supports both build-time (Vite) and runtime (Node.js server) environment variables
 
-import type {EnvironmentConfig, ProcessEnvVars} from "~/utils/env/env-types";
+import type { EnvironmentConfig } from "~/utils/env/env-types";
 
 const parseCustomHeaders = (headerString: string | undefined): Record<string, string> => {
     if (!headerString) return {};
@@ -12,32 +13,42 @@ const parseCustomHeaders = (headerString: string | undefined): Record<string, st
         }
         return {};
     } catch (error) {
-        console.warn('Failed to parse REACT_APP_CUSTOM_HEADERS:', error);
+        console.warn('Failed to parse CUSTOM_HEADERS:', error);
         return {};
     }
 };
 
-
-const env: EnvironmentConfig = {
-    API_BASE_URL: import.meta.env.REACT_APP_API_BASE_URL || 'http://localhost:57943',
-   // API_TIMEOUT: parseInt(import.meta.env.REACT_APP_API_TIMEOUT || '10000', 10),
-    API_RETRIES:parseInt(import.meta.env.REACT_APP_API_RETRIES || '2', 10),
-    CUSTOM_HEADERS: parseCustomHeaders(import.meta.env.REACT_APP_CUSTOM_HEADERS)||{},
-    API_KEY: import.meta.env.REACT_APP_API_KEY || 'CAPITEC_APPOINTMENT_WEB_CLIENT_APP',
-    REALM: import.meta.env.REACT_APP_REALM || "capitec_appointment-DEV"
+/**
+ * Get environment variable from either:
+ * 1. Runtime (process.env) - for SSR/server
+ * 2. Build-time (import.meta.env) - for client
+ */
+const getEnvVar = (key: string, defaultValue: string = ''): string => {
+    // Server-side: use process.env (runtime)
+    if (typeof process !== 'undefined' && process.env?.[key]) {
+        return process.env[key] as string;
+    }
+    // Client-side: use import.meta.env (build-time)
+    const viteKey = `VITE_${key}`;
+    if (import.meta.env?.[viteKey]) {
+        return import.meta.env[viteKey] as string;
+    }
+    return defaultValue;
 };
 
-console.log(env);
+const env: EnvironmentConfig = {
+    API_BASE_URL: getEnvVar('API_BASE_URL', 'http://localhost:57943'),
+    API_RETRIES: parseInt(getEnvVar('API_RETRIES', '2'), 10),
+    CUSTOM_HEADERS: parseCustomHeaders(getEnvVar('CUSTOM_HEADERS')),
+    API_KEY: getEnvVar('API_KEY', 'CAPITEC_APPOINTMENT_WEB_CLIENT_APP'),
+    REALM: getEnvVar('REALM', 'capitec_appointment-DEV')
+};
 
 // Validation with type safety
 const validateEnvironment = (config: EnvironmentConfig): void => {
     if (!config.API_BASE_URL) {
-        throw new Error('REACT_APP_API_BASE_URL is required');
+        throw new Error('API_BASE_URL is required');
     }
-
-    // if (isNaN(config.API_TIMEOUT) || config.API_TIMEOUT <= 0) {
-    //     throw new Error('REACT_APP_API_TIMEOUT must be a valid positive number');
-    // }
 };
 
 validateEnvironment(env);
