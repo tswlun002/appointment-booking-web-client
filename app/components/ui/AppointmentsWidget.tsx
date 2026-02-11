@@ -1,47 +1,25 @@
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import { Calendar, AlertCircle, RefreshCw } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
 import { Spinner } from "~/components/ui/spinner";
 import AppointmentCard from "~/components/ui/AppointmentCard";
 import CancelAppointmentModal from "~/components/ui/CancelAppointmentModal";
 import Toast from "~/components/ui/Toast";
-import { useCancelAppointmentModelView } from "~/model/appointment/CancelAppointmentModelView";
+import type { CancelAppointmentModelView } from "~/model/appointment/CancelAppointmentModelView";
+import type { CancelAppointmentState } from "~/domain/appointment/CancelAppointment";
 import type { AppointmentResponse } from "~/domain/appointment/generated/model";
 import type { UserAppointmentsState } from "~/domain/appointment/UserAppointments";
 import type { UserAppointmentsModelView } from "~/model/appointment/UserAppointmentsModelView";
-import { useNavigate } from "react-router";
 
 interface AppointmentsWidgetProps {
     state: UserAppointmentsState;
     model: UserAppointmentsModelView;
     appointments: AppointmentResponse[];
+    cancelState: CancelAppointmentState;
+    cancelModel: CancelAppointmentModelView;
 }
 
-const AppointmentsWidget = memo(({ state, model, appointments }: AppointmentsWidgetProps) => {
-    const navigate = useNavigate();
-
-    // Callback when cancel succeeds - update appointment in list
-    const handleCancelSuccess = useCallback((updatedAppointment: AppointmentResponse) => {
-        model.updateAppointment(updatedAppointment);
-    }, [model]);
-
-    // Cancel appointment ModelView
-    const { state: cancelState, model: cancelModel } = useCancelAppointmentModelView(handleCancelSuccess);
-
-    // Handle reschedule - navigate to slots page with reschedule mode
-    const handleRescheduleClick = useCallback((appointment: AppointmentResponse) => {
-        navigate(`/appointments/${appointment.branchId}/slots`, {
-            state: {
-                mode: 'reschedule',
-                appointmentId: appointment.id,
-                serviceType: appointment.serviceType,
-                branchName: appointment.branchName || `Branch ${appointment.branchId}`,
-                currentDateTime: appointment.dateTime,
-                rescheduleCount: appointment.rescheduleCount ?? 0,
-                distance: "",
-            },
-        });
-    }, [navigate]);
+const AppointmentsWidget = memo(({ state, model, appointments, cancelState, cancelModel }: AppointmentsWidgetProps) => {
 
     return (
         <>
@@ -107,7 +85,7 @@ const AppointmentsWidget = memo(({ state, model, appointments }: AppointmentsWid
                                 appointment={appointment}
                                 model={model}
                                 onCancelClick={(apt) => cancelModel.openModal(apt)}
-                                onRescheduleClick={handleRescheduleClick}
+                                onRescheduleClick={(apt) => model.handleRescheduleClick(apt)}
                             />
                         ))}
                     </div>

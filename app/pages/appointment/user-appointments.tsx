@@ -6,7 +6,7 @@ import { useUserAppointmentsModelView } from "~/model/appointment/UserAppointmen
 import AppointmentsWidget from "~/components/ui/AppointmentsWidget";
 
 const UserAppointments = () => {
-    const { appointments, model, state } = useUserAppointmentsModelView();
+    const { appointments, model, state, cancelState, cancelModel } = useUserAppointmentsModelView();
     const activeTab = model.activeTab;
 
     return (
@@ -20,7 +20,7 @@ const UserAppointments = () => {
             {/* Appointments Section - Hidden on mobile */}
             {appointments.length > 0 && (
                 <div className="relative z-10 w-full md:w-[35%] h-[100vh] hidden md:flex flex-col justify-center">
-                    <AppointmentsWidget state={state} model={model} appointments={appointments} />
+                    <AppointmentsWidget state={state} model={model} appointments={appointments} cancelState={cancelState} cancelModel={cancelModel} />
                 </div>
             )}
 
@@ -35,7 +35,7 @@ const UserAppointments = () => {
                     <BranchLocator />
                 ) : (
                     <div className="w-full h-full flex flex-col justify-start pt-4">
-                        <AppointmentsWidget state={state} model={model} appointments={appointments} />
+                        <AppointmentsWidget state={state} model={model} appointments={appointments} cancelState={cancelState} cancelModel={cancelModel} />
                     </div>
                 )}
             </div>

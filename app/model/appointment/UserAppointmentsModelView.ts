@@ -2,6 +2,7 @@ import {type RefObject, useCallback, useEffect, useMemo, useReducer, useRef} fro
 import type { CSSProperties, Dispatch } from "react";
 import {
     useGetCustomerAppointments,
+    getGetCustomerAppointmentsQueryKey,
     type GetCustomerAppointmentsQueryError,
 } from "~/api/appointment/generated/endpoints/customer-appointments/customer-appointments";
 import { ViewModel } from "~/model/ViewModel";
@@ -17,7 +18,9 @@ import useAuthStore from "~/model/auth/zustand/AuthStore";
 import { useShallow } from "zustand/react/shallow";
 import { LocalDate } from "~/utils/CompanionObjects";
 import { getStatusColors } from "~/resources/colors/colors";
-import { APPOINTMENT_CACHE_CONFIG, getCachedAppointmentData } from "~/lib/react-query/Client";
+import { APPOINTMENT_CACHE_CONFIG, getCachedAppointmentData, queryClient } from "~/lib/react-query/Client";
+import { useCancelAppointmentModelView } from "~/model/appointment/CancelAppointmentModelView";
+import { type NavigateFunction, useNavigate } from "react-router";
 
 const initialUserAppointmentsState: UserAppointmentsState = {
     isLoading: true,
@@ -45,6 +48,7 @@ const initUserAppointments = (username: string): UserAppointmentsState => ({
 
 export const useUserAppointmentsModelView = () => {
     const username = useAuthStore(useShallow((s) => s.user?.username ?? ""));
+    const navigateFunction = useNavigate();
 
     const reducer = ViewModel.reducer<UserAppointmentsQuery, AppointmentsResponse, UserAppointmentsState>(initialUserAppointmentsState);
     const [state, dispatch] = useReducer(reducer, initUserAppointments(username));
@@ -56,6 +60,17 @@ export const useUserAppointmentsModelView = () => {
         (action: ActionDispatch<UserAppointmentsQuery, AppointmentsResponse>) => dispatch(action),
         []
     );
+
+    // Model reference for cancel success callback
+    const modelRef = useRef<UserAppointmentsModelView | null>(null);
+
+    // Callback when cancel succeeds - update appointment in list
+    const handleCancelSuccess = useCallback((updatedAppointment: AppointmentResponse) => {
+        modelRef.current?.updateAppointment(updatedAppointment);
+    }, []);
+
+    // Cancel appointment ModelView
+    const { state: cancelState, model: cancelModel } = useCancelAppointmentModelView(handleCancelSuccess);
 
     // Fetch appointments query with cache config
     const appointmentsQuery = useGetCustomerAppointments(
@@ -124,10 +139,15 @@ export const useUserAppointmentsModelView = () => {
         () => new UserAppointmentsModelView(
             stateRef,
             stableDispatch,
-            appointmentsQuery.refetch
+            appointmentsQuery.refetch,
+            navigateFunction,
+            username
         ),
-        [stableDispatch, appointmentsQuery.refetch]
+        [stableDispatch, appointmentsQuery.refetch, navigateFunction, username]
     );
+
+    // Update modelRef for cancel callback
+    modelRef.current = model;
 
     // Get sorted appointments from response
     const appointments = useMemo(() => {
@@ -141,6 +161,8 @@ export const useUserAppointmentsModelView = () => {
         state,
         model,
         appointments,
+        cancelState,
+        cancelModel,
     };
 };
 
@@ -148,7 +170,9 @@ export class UserAppointmentsModelView {
     constructor(
         private stateRef: RefObject<UserAppointmentsState>,
         protected dispatch: Dispatch<ActionDispatch<UserAppointmentsQuery, AppointmentsResponse>>,
-        private refetchFn: () => void
+        private refetchFn: () => void,
+        private navigateFunction: NavigateFunction,
+        private username: string
     ) {}
 
     private get state(): UserAppointmentsState {
@@ -172,6 +196,21 @@ export class UserAppointmentsModelView {
         });
     };
 
+    /** Handle reschedule - navigate to slots page with reschedule mode */
+    handleRescheduleClick = (appointment: AppointmentResponse): void => {
+        this.navigateFunction(`/appointments/${appointment.branchId}/slots`, {
+            state: {
+                mode: 'reschedule',
+                appointmentId: appointment.id,
+                serviceType: appointment.serviceType,
+                branchName: appointment.branchName || `Branch ${appointment.branchId}`,
+                currentDateTime: appointment.dateTime,
+                rescheduleCount: appointment.rescheduleCount ?? 0,
+                distance: "",
+            },
+        });
+    };
+
     /** Check if appointment is expanded */
     isExpanded = (appointmentId: string): boolean => {
         return this.state.userData.expandedAppointmentId === appointmentId;
@@ -191,23 +230,11 @@ export class UserAppointmentsModelView {
         return this.state.userData.activeTab;
     }
 
-    /** Update single appointment in list (called after cancel/reschedule) */
-    updateAppointment = (updatedAppointment: AppointmentResponse): void => {
-        const currentResponse = this.state.response?.data;
-        if (!currentResponse) return;
-
-        const updatedAppointments = currentResponse.appointments.map(apt =>
-            apt.id === updatedAppointment.id ? updatedAppointment : apt
-        );
-
-        this.dispatch({
-            type: ActionEvent.SET_API_RESPONSE_SUCCESS,
-            message: "Appointment updated",
-            data: {
-                ...currentResponse,
-                appointments: updatedAppointments,
-            },
-        });
+    /** Update appointment list after cancel/reschedule - invalidates cache and refetches */
+    updateAppointment = (_updatedAppointment: AppointmentResponse): void => {
+        // Invalidate react-query cache to trigger refetch with fresh data from server
+        const queryKey = getGetCustomerAppointmentsQueryKey(this.username);
+        queryClient.invalidateQueries({ queryKey });
     };
 
     /** Get appointment by ID */

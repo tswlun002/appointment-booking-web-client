@@ -104,7 +104,7 @@ export class CancelAppointmentModelView {
     }
 
     /** Confirm cancellation */
-    confirmCancel = async (): Promise<void> => {
+    confirmCancel = (): void => {
         const appointmentId = this.state.userData.appointmentId;
         const reason = this.state.userData.reason.trim();
 
@@ -120,26 +120,30 @@ export class CancelAppointmentModelView {
 
         this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
 
-        try {
-            const response = await this.cancelMutation.mutateAsync({
-                appointmentId,
-                data: { reason },
-            });
+        this.cancelMutation.mutateAsync(
+            { appointmentId, data: { reason } },
+            this.cancelMutationOptions()
+        );
+    };
 
-            // Notify parent to update appointment list
-            this.onCancelSuccess(response);
-
-            this.closeModal();
-            this.showToast("Appointment cancelled successfully");
-        } catch (error) {
-            const err = error as CancelAppointmentMutationError;
-            this.dispatch({
-                type: ActionEvent.SET_API_ERROR,
-                error: { isError: true, message: err?.message || "Failed to cancel appointment" },
-            });
-        } finally {
-            this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
-        }
+    private cancelMutationOptions = () => {
+        return {
+            onSuccess: (response: AppointmentResponse) => {
+                this.onCancelSuccess(response);
+                this.closeModal();
+                this.showToast("Appointment cancelled successfully");
+            },
+            onError: (error: CancelAppointmentMutationError) => {
+                const message = error?.message || "Failed to cancel appointment";
+                this.dispatch({
+                    type: ActionEvent.SET_API_ERROR,
+                    error: { isError: true, message },
+                });
+            },
+            onSettled: () => {
+                this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
+            },
+        };
     };
 
     /** Show toast */

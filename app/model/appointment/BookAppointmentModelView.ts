@@ -17,10 +17,12 @@ import {
     type RescheduleAppointmentMutationError,
     useCreateAppointment,
     useRescheduleAppointment,
+    getGetCustomerAppointmentsQueryKey,
 } from "~/api/appointment/generated/endpoints/customer-appointments/customer-appointments";
 import type { UseMutationResult } from "@tanstack/react-query";
 import useAuthStore from "~/model/auth/zustand/AuthStore";
 import { useShallow } from "zustand/react/shallow";
+import { queryClient } from "~/lib/react-query/Client";
 
 type Resolver = (data: BookAppointmentData) => Promise<
     | { values: BookAppointmentData; errors?: undefined }
@@ -204,6 +206,10 @@ export class BookAppointmentModelView extends ViewModel<BookAppointmentData, App
     private mutationOptions = () => {
         return {
             onSuccess: (response: AppointmentResponse) => {
+                // Invalidate appointments cache to refetch fresh data
+                const queryKey = getGetCustomerAppointmentsQueryKey(this.state.userData.customerUsername);
+                queryClient.invalidateQueries({ queryKey });
+
                 this.dispatch({
                     type: ActionEvent.SET_API_RESPONSE_SUCCESS,
                     message: "Appointment booked successfully",
@@ -217,12 +223,19 @@ export class BookAppointmentModelView extends ViewModel<BookAppointmentData, App
                     error: { isError: true, message, status: error?.status },
                 });
             },
+            onSettled: ()=>{
+                this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
+            }
         };
     };
 
     private rescheduleMutationOptions = () => {
         return {
             onSuccess: (response: AppointmentResponse) => {
+                // Invalidate appointments cache to refetch fresh data
+                const queryKey = getGetCustomerAppointmentsQueryKey(this.state.userData.customerUsername);
+                queryClient.invalidateQueries({ queryKey });
+
                 this.dispatch({
                     type: ActionEvent.SET_API_RESPONSE_SUCCESS,
                     message: "Appointment rescheduled successfully",
@@ -236,6 +249,9 @@ export class BookAppointmentModelView extends ViewModel<BookAppointmentData, App
                     error: { isError: true, message, status: error?.status },
                 });
             },
+            onSettled: ()=>{
+                this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
+            }
         };
     };
 
