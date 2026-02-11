@@ -1,7 +1,7 @@
 import type {TypeError} from "~/domain/error/Error"
-import {type Dispatch, useEffect, useMemo, useReducer} from "react";
+import {type Dispatch, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
 import {createZodResolver} from "~/model/auth/zod/ZodResolver";
-import {type NavigateFunction, useNavigate} from "react-router";
+import {type NavigateFunction, useNavigate, useLocation, type Location} from "react-router";
 import type {UseMutationResult} from "@tanstack/react-query";
 import useAuthStore from "~/model/auth/zustand/AuthStore";
 import {useShallow} from "zustand/react/shallow";
@@ -16,8 +16,16 @@ export const useLoginModel = () => {
     const reducer = ViewModel.reducer<LoginRequest,TokenResponse,LoginState>(initialLoginState);
     const [state, dispatch] = useReducer(reducer, initialLoginState);
 
+    // Stable dispatch to prevent unnecessary re-renders
+    const stableDispatch = useCallback((action: ActionDispatch<LoginRequest, TokenResponse>) => dispatch(action), []);
+
+    // Use ref to always have latest state without triggering re-renders
+    const stateRef = useRef(state);
+    stateRef.current = state;
+
     const loginMutation = useLogin();
     const navigateFunction = useNavigate();
+    const location = useLocation();
 
     const login = useAuthStore(useShallow(state => state.login));
 
@@ -26,15 +34,15 @@ export const useLoginModel = () => {
         []
     );
 
+    // Model only depends on stable references, not state
     const model = useMemo(
-        () => new UserLoginModel(state, dispatch, resolver, loginMutation, navigateFunction, login),
-        [state]
+        () => new UserLoginModel(stateRef, stableDispatch, resolver, loginMutation, navigateFunction, login, location),
+        [stableDispatch, resolver, loginMutation, navigateFunction, login, location]
     );
 
     useEffect(() => {
-
-            model.catchStateChange(state);
-    }, [state.response?.isSuccess])
+        model.catchStateChange(state);
+    }, [state.response?.isSuccess]);
 
     return {
         state,
@@ -46,43 +54,38 @@ export const useLoginModel = () => {
 export class UserLoginModel extends ViewModel<LoginRequest,TokenResponse,LoginState>{
 
     constructor(
-        protected state: LoginState,
+        private stateRef: React.RefObject<LoginState>,
         protected dispatch: Dispatch<ActionDispatch<LoginRequest,TokenResponse>>,
         protected resolver: (data: LoginRequest) => Promise<{ errors?: TypeError<LoginRequest>; values?: LoginRequest }>,
-        private loginMutation:  UseMutationResult<TokenResponse, LoginMutationError, {data:LoginRequest}, unknown>,
+        private loginMutation: UseMutationResult<TokenResponse, LoginMutationError, {data:LoginRequest}, unknown>,
         private navigateFunction: NavigateFunction,
         private login: (tokenResponse: TokenResponse) => void,
+        private location: Location,
     ) {
-        super(state,dispatch,resolver,initialLoginState);
+        super(stateRef.current, dispatch, resolver, initialLoginState);
     }
 
-    //Override parent method
-     submitToAPI = (data: LoginRequest):void => {
-
-            this.loginMutation?.mutate({data:data}, this.loginMutationOptions());
-    };
-    private loginMutationOptions = () => {
-
-        return {
-            onSuccess: (data: TokenResponse) => {
-                this.login(data);
-                this.dispatch({type: ActionEvent.SET_API_RESPONSE_SUCCESS, message: "success logged in"});
-
-            },
-            onError: (error: LoginMutationError) => {
-                console.log("Error: ", error,"Status: ", error.status);
-                const message = (error.status ===401)?"Invalid email or password" : error?.message||"Service currently unavailable, try again later";
-                this.dispatch({type: ActionEvent.SET_API_ERROR, error: {isError: true, message: message}});
-            },
+    // Override parent method - use mutateAsync
+    submitToAPI = async (data: LoginRequest): Promise<void> => {
+        try {
+            const response = await this.loginMutation.mutateAsync({ data });
+            this.login(response);
+            this.dispatch({ type: ActionEvent.SET_API_RESPONSE_SUCCESS, message: "Successfully logged in" });
+        } catch (error) {
+            const mutationError = error as LoginMutationError;
+            console.log("Error: ", mutationError, "Status: ", mutationError.status);
+            const message = (mutationError.status === 401)
+                ? "Invalid email or password"
+                : mutationError?.message || "Service currently unavailable, try again later";
+            this.dispatch({ type: ActionEvent.SET_API_ERROR, error: { isError: true, message: message } });
         }
-    }
+    };
 
     catchStateChange(state: LoginState) {
-
         if (state.response?.isSuccess) {
-            const path = "appointments";
-            console.log("Navigate to :", path)
-            this.navigateFunction(path, { replace: true});
+            // Navigate back to where user came from, or default to appointments
+            const from = (this.location.state as { from?: { pathname: string } })?.from?.pathname || "appointments";
+            this.navigateFunction(from, { replace: true });
         }
     }
 }
@@ -117,6 +120,3 @@ export const initialLoginState: LoginState = {
         },
     },
 };
-
-
-

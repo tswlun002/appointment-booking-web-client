@@ -1,27 +1,25 @@
-import {FormButton} from "~/components/ui/buttons";
-import {Link} from "react-router";
-import {PasswordInput, CustomerInput} from "~/components/ui/inputs";
-import {COMPANY_DATA, loginScreenResources} from "~/resources/label/auth-labels";
-import {useLoginModel} from "~/model/auth/LoginViewModel";
+import { memo } from "react";
+import { Link } from "react-router";
+import { PasswordInput, CustomerInput } from "~/components/ui/inputs";
+import { COMPANY_DATA, loginScreenResources } from "~/resources/label/auth-labels";
+import { useLoginModel } from "~/model/auth/LoginViewModel";
 import Error from "~/components/ui/error";
-import type {LoginRequest} from "~/domain/auth/generated/model";
+import type { LoginRequest } from "~/domain/auth/generated/model";
 import { colors, typography } from "~/resources/colors/colors";
-import Loader from "~/components/ui/loader";
+import { Spinner } from "~/components/ui/spinner";
 
-export default function Login() {
+const Login = memo(() => {
+    const { state, model } = useLoginModel();
 
-    const {state, model} = useLoginModel();
+    // Derived state
+    const isLoading = state?.isLoading;
+    const formButtonLabel = isLoading ? "Signing in..." : loginScreenResources?.loginButton?.label;
+    const isFormButtonDisabled = loginScreenResources?.loginButton?.disabled || isLoading;
 
-    const formButtonLabel = (state?.isLoading) ? "Loading ..." : loginScreenResources?.loginButton?.label;
-    const isFormButtonDisabled = loginScreenResources?.loginButton?.disabled || state?.isLoading;
-    const isResponse = state.errors?.response?.isError || state?.response?.isSuccess;
-    const responseStyle = { color: state.errors?.response?.isError ? colors.red : colors.success };
-    const responseMessage = state.errors?.response?.message || state?.response?.data || "";
-    const responseElement = isResponse && <Error style={responseStyle} message={responseMessage as string}></Error>;
-
-    if (state?.isLoading) {
-        return <Loader fullScreen message="Signing you in..." />;
-    }
+    // Response handling
+    const hasError = state.errors?.response?.isError;
+    const hasSuccess = state?.response?.isSuccess;
+    const responseMessage = state.errors?.response?.message || "";
 
     return (
         <div
@@ -44,18 +42,29 @@ export default function Login() {
                     className="py-3"
                     style={{
                         color: colors.textSecondary,
-                        fontSize: typography.bodySmall.fontSize,
-                        fontWeight: typography.bodySmall.fontWeight
+                        ...typography.bodySmall
                     }}
                 >
-                    {`${loginScreenResources?.instructionMessage}`}{" "}
+                    {loginScreenResources?.instructionMessage}{" "}
                     <strong style={{ color: colors.primaryDark }}>{COMPANY_DATA.shortName}</strong>
                 </p>
             </div>
 
             <form onSubmit={model.submit} className="flex w-full flex-col gap-5 px-5 flex-1">
-                {responseElement}
+                {/* Error/Success Message - Inline */}
+                {hasError && (
+                    <Error style={{ color: colors.red }} message={responseMessage} />
+                )}
 
+                {hasSuccess && (
+                    <div className="flex items-center justify-center gap-2 p-3 rounded-lg" style={{ backgroundColor: colors.successLight }}>
+                        <span style={{ color: colors.success, ...typography.bodySmall, fontWeight: "500" }}>
+                            ✓ Successfully signed in. Redirecting...
+                        </span>
+                    </div>
+                )}
+
+                {/* Email Input */}
                 <CustomerInput<LoginRequest>
                     label={loginScreenResources?.email?.label}
                     id={loginScreenResources?.email?.id}
@@ -64,6 +73,8 @@ export default function Login() {
                     value={state?.userData?.email}
                     error={state?.errors}
                 />
+
+                {/* Password Input */}
                 <PasswordInput<LoginRequest>
                     id={loginScreenResources?.password?.id}
                     passwordVisibilityStatus={loginScreenResources?.password?.passwordVisibility}
@@ -73,39 +84,46 @@ export default function Login() {
                     onChange={model.onChange}
                 />
 
+                {/* Forgot Password Link */}
                 <div className="flex flex-col justify-center items-end px-1">
                     <Link
                         to={loginScreenResources?.forgotPasswordLink?.path}
-                        className="underline"
+                        className="underline hover:opacity-80 transition-opacity"
                         style={{
                             color: colors.primary,
-                            fontSize: typography.bodySmall.fontSize,
+                            ...typography.bodySmall,
                             fontWeight: typography.label.fontWeight
                         }}
                     >
-                        {`${loginScreenResources?.forgotPasswordLink?.label}`}
+                        {loginScreenResources?.forgotPasswordLink?.label}
                     </Link>
                 </div>
 
+                {/* Submit Button & Register Link */}
                 <div className="flex flex-col gap-4">
-                    <FormButton
+                    <button
                         type="submit"
                         disabled={isFormButtonDisabled}
-                        label={formButtonLabel}
-                        style="w-full text-center p-2 sm:p-4 lg:p-3 xl:p-3 rounded-lg"
-                    />
+                        className="w-full flex items-center justify-center gap-2 p-2 sm:p-4 lg:p-3 xl:p-3 rounded-lg font-semibold transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
+                        style={{
+                            backgroundColor: colors.primary,
+                            color: colors.white,
+                        }}
+                    >
+                        {isLoading && <Spinner color={colors.white} className="h-4 w-4" />}
+                        <span>{formButtonLabel}</span>
+                    </button>
                     <p
                         className="text-center"
                         style={{
                             color: colors.textSecondary,
-                            fontSize: typography.bodySmall.fontSize,
-                            fontWeight: typography.bodySmall.fontWeight
+                            ...typography.bodySmall
                         }}
                     >
                         {loginScreenResources?.registerLink?.label}
                         <Link
                             to={loginScreenResources?.registerLink?.path}
-                            className="px-1 underline"
+                            className="px-1 underline hover:opacity-80 transition-opacity"
                             style={{
                                 color: colors.primary,
                                 fontWeight: typography.label.fontWeight
@@ -118,4 +136,8 @@ export default function Login() {
             </form>
         </div>
     );
-}
+});
+
+Login.displayName = "Login";
+
+export default Login;

@@ -1,29 +1,27 @@
-import {Link} from "react-router";
-import {FormButton} from "~/components/ui/buttons";
-import {PasswordInput, CustomerInput} from "~/components/ui/inputs";
+import { memo } from "react";
+import { Link } from "react-router";
+import { PasswordInput, CustomerInput } from "~/components/ui/inputs";
 import NBIcon from "~/components/ui/NBIcon";
-import {useRegisterModel} from "~/model/auth/RegisterViewModel";
-import {registerScreenResources} from "~/resources/label/auth-labels";
+import { useRegisterModel } from "~/model/auth/RegisterViewModel";
+import { registerScreenResources } from "~/resources/label/auth-labels";
 import Error from "~/components/ui/error";
-import type {NewUserRequest} from "~/domain/user/generated/model";
+import type { NewUserRequest } from "~/domain/user/generated/model";
 import CustomerCheckBox from "~/components/ui/check-box";
 import { colors, typography } from "~/resources/colors/colors";
-import Loader from "~/components/ui/loader";
+import { Spinner } from "~/components/ui/spinner";
 
-export default function register() {
-
+const Register = memo(() => {
     const { state, model } = useRegisterModel();
 
-    const formButtonLabel = (state?.isLoading)?"Loading ...":registerScreenResources?.registerButton?.label;
-    const isFormButtonDisabled = registerScreenResources?.registerButton?.disabled || state?.isLoading;
-    const isResponse = state.errors?.response?.isError || state?.response?.isSuccess;
-    const responseStyle = { color: state.errors?.response?.isError ? colors.red : colors.success };
-    const responseMessage = state.errors?.response?.message || state?.response?.data || "";
-    const responseElement = isResponse && <Error style={responseStyle} message={responseMessage}></Error>;
+    // Derived state
+    const isLoading = state?.isLoading;
+    const formButtonLabel = isLoading ? "Creating account..." : registerScreenResources?.registerButton?.label;
+    const isFormButtonDisabled = registerScreenResources?.registerButton?.disabled || isLoading;
 
-    if (state?.isLoading) {
-        return <Loader fullScreen message="Creating your account..." />;
-    }
+    // Response handling
+    const hasError = state.errors?.response?.isError;
+    const hasSuccess = state?.response?.isSuccess;
+    const responseMessage = state.errors?.response?.message || "";
 
     return (
         <div
@@ -46,8 +44,7 @@ export default function register() {
                         <h1
                             style={{
                                 color: colors.primary,
-                                fontSize: typography.h4.fontSize,
-                                fontWeight: typography.h4.fontWeight
+                                ...typography.h4
                             }}
                         >
                             {registerScreenResources?.headerInstruction}
@@ -55,13 +52,13 @@ export default function register() {
                     </div>
                     <div className="flex flex-row items-center gap-1 -mt-5">
                         <div className="flex flex-row items-center w-8 sm:w-9">
-                            <NBIcon size={120}/>
+                            <NBIcon size={120} />
                         </div>
                         <p
                             className="text-xs sm:text-sm lg:text-sm"
                             style={{
                                 color: colors.primaryDark,
-                                fontWeight: typography.body.fontWeight
+                                ...typography.body
                             }}
                         >
                             {registerScreenResources?.subHeaderInstruction?.message}
@@ -72,7 +69,18 @@ export default function register() {
 
             {/* Registration Form */}
             <form onSubmit={e => model.submit(e)} className="flex w-full flex-col gap-5 px-10 flex-1">
-                {responseElement}
+                {/* Error/Success Message - Inline */}
+                {hasError && (
+                    <Error style={{ color: colors.red }} message={responseMessage} />
+                )}
+
+                {hasSuccess && (
+                    <div className="flex items-center justify-center gap-2 p-3 rounded-lg" style={{ backgroundColor: colors.successLight }}>
+                        <span style={{ color: colors.success, ...typography.bodySmall, fontWeight: "500" }}>
+                            ✓ Account created! Redirecting to email verification...
+                        </span>
+                    </div>
+                )}
 
                 <div className="flex flex-col gap-2.5">
                     <CustomerCheckBox
@@ -130,26 +138,32 @@ export default function register() {
                     />
                 </div>
 
+                {/* Submit Button & Login Link */}
                 <div className="flex flex-col gap-4">
-                    <FormButton
-                        label={formButtonLabel}
+                    <button
+                        type="submit"
                         disabled={isFormButtonDisabled}
-                        type={"submit"}
-                        style="w-full text-center p-2 sm:p-4 lg:p-3 xl:p-3 rounded-lg"
-                    />
+                        className="w-full flex items-center justify-center gap-2 p-2 sm:p-4 lg:p-3 xl:p-3 rounded-lg font-semibold transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
+                        style={{
+                            backgroundColor: colors.primary,
+                            color: colors.white,
+                        }}
+                    >
+                        {isLoading && <Spinner color={colors.white} className="h-4 w-4" />}
+                        <span>{formButtonLabel}</span>
+                    </button>
 
                     <p
                         className="text-center"
                         style={{
                             color: colors.textSecondary,
-                            fontSize: typography.bodySmall.fontSize,
-                            fontWeight: typography.bodySmall.fontWeight
+                            ...typography.bodySmall
                         }}
                     >
                         {registerScreenResources?.loginLinkButton?.label}
                         <Link
                             to={registerScreenResources?.loginLinkButton?.path}
-                            className="px-1 underline"
+                            className="px-1 underline hover:opacity-80 transition-opacity"
                             style={{
                                 color: colors.primary,
                                 fontWeight: typography.label.fontWeight
@@ -162,4 +176,8 @@ export default function register() {
             </form>
         </div>
     );
-}
+});
+
+Register.displayName = "Register";
+
+export default Register;
