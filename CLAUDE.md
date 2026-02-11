@@ -153,6 +153,8 @@ this.mutation.mutate({ data }, options); // Don't use mutate
 | Select entire objects from zustand when you only need one field | Select only the specific field: `useAuthStore(s => s.user?.username)` |
 | Use hooks (useState, useEffect, useCallback) directly in UI/tsx files | Create a ModelView hook that manages all state and logic, UI only calls `useModelView()` |
 | Put event handlers or logic functions in UI components | All handlers must be in ModelView class (e.g., `model.handleLogout()`) |
+| Call useModelView hooks inside UI sub-components | Only top-level page calls useModelView, pass state/model via props to child components |
+| Compose ModelView hooks in UI components | Compose in parent ModelView hook (e.g., useCancelModelView inside useUserAppointmentsModelView) |
 
 ---
 
