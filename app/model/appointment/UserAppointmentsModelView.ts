@@ -119,19 +119,18 @@ export const useUserAppointmentsModelView = () => {
                 message: "Appointments loaded successfully",
                 data: appointmentsQuery.data,
             });
-            stableDispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
         }
     }, [appointmentsQuery.isSuccess, appointmentsQuery.data, stableDispatch]);
 
     // Handle error
     useEffect(() => {
+
         if (appointmentsQuery.isError) {
             const error = appointmentsQuery.error as GetCustomerAppointmentsQueryError;
             stableDispatch({
                 type: ActionEvent.SET_API_ERROR,
                 error: { isError: true, message: error?.message || "Failed to load appointments" },
             });
-            stableDispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
         }
     }, [appointmentsQuery.isError, appointmentsQuery.error, stableDispatch]);
 
