@@ -1,12 +1,26 @@
-// src/config/env.ts
-// Supports both build-time (Vite) and runtime (Node.js server) environment variables
-
 import type { EnvironmentConfig } from "~/utils/env/env-types";
+
+declare global {
+    interface Window {
+        ENV?: {
+            INTERNAL_BASE_URL: string;
+            API_BASE_URL: string;
+            API_RETRIES: string;
+            API_KEY: string;
+            REALM: string;
+            [key: string]: string | undefined;
+        };
+    }
+}
 
 const parseCustomHeaders = (headerString: string | undefined): Record<string, string> => {
     if (!headerString) return {};
 
     try {
+        // if place holder
+        if(!(headerString.startsWith("{") && headerString.endsWith("}"))) {
+            return {}
+        }
         const parsed = JSON.parse(headerString);
         if (typeof parsed === 'object' && parsed !== null) {
             return parsed as Record<string, string>;
@@ -23,12 +37,18 @@ const parseCustomHeaders = (headerString: string | undefined): Record<string, st
  * 1. Runtime (process.env) - for SSR/server
  * 2. Build-time (import.meta.env) - for client
  */
-const getEnvVar = (key: string, defaultValue: string = ''): string => {
-    // Server-side: use process.env (runtime)
-    if (typeof process !== 'undefined' && process.env?.[key]) {
-        return process.env[key] as string;
+export const getEnvVar = (key: string, defaultValue: string = ''): string => {
+    // For SSR, always read from process.env at runtime
+    if (typeof process !== 'undefined' && process.env) {
+        // Read with or without VITE_ prefix
+        const value = process.env[key] || process.env[`VITE_${key}`];
+        if (value) return value;
     }
     // Client-side: use import.meta.env (build-time)
+
+    if (typeof window !== 'undefined' && window.ENV?.[key]) {
+        return window.ENV[key];
+    }
     const viteKey = `VITE_${key}`;
     if (import.meta.env?.[viteKey]) {
         return import.meta.env[viteKey] as string;
@@ -37,11 +57,12 @@ const getEnvVar = (key: string, defaultValue: string = ''): string => {
 };
 
 const env: EnvironmentConfig = {
-    API_BASE_URL: getEnvVar('API_BASE_URL', 'http://localhost:57943'),
-    API_RETRIES: parseInt(getEnvVar('API_RETRIES', '2'), 10),
-    CUSTOM_HEADERS: parseCustomHeaders(getEnvVar('CUSTOM_HEADERS')),
-    API_KEY: getEnvVar('API_KEY', 'CAPITEC_APPOINTMENT_WEB_CLIENT_APP'),
-    REALM: getEnvVar('REALM', 'capitec_appointment-DEV')
+    INTERNAL_BASE_URL: getEnvVar('INTERNAL_BASE_URL'),
+    API_BASE_URL: getEnvVar('API_BASE_URL'),
+    API_RETRIES: parseInt(getEnvVar('API_RETRIES', '0'), 10),
+    CUSTOM_HEADERS: parseCustomHeaders(getEnvVar('CUSTOM_HEADERS','{}')),
+    API_TIMEOUT: parseInt(getEnvVar('API_TIMEOUT','5'),10) *1000,
+    REALM: getEnvVar('REALM')
 };
 
 // Validation with type safety
@@ -49,8 +70,10 @@ const validateEnvironment = (config: EnvironmentConfig): void => {
     if (!config.API_BASE_URL) {
         throw new Error('API_BASE_URL is required');
     }
+    if (!config.INTERNAL_BASE_URL) {
+        throw new Error('INTERNAL_BASE_URL is required');
+    }
 };
-
 validateEnvironment(env);
 
 export default env;
