@@ -8,10 +8,8 @@ const SecuredHeader = memo(() => {
 
     return (
         <header
-            className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 shadow-sm"
-            style={{
-                backgroundColor: colors.primary,
-            }}
+            className="fixed top-0 backdrop-blur-xs left-0 right-0 z-50 flex items-center justify-between px-4 py-3 shadow-sm"
+
         >
             {/* Logo / Brand */}
             <div className="flex items-center gap-2">
@@ -26,11 +24,11 @@ const SecuredHeader = memo(() => {
             <div className="flex items-center gap-4">
                 {/* User Display */}
                 <div className="hidden sm:flex items-center gap-2">
-                    <User size={18} style={{ color: colors.white }} />
+                    <User size={18} style={{ color: colors.primary }} />
                     <span
                         style={{
                             ...typography.bodySmall,
-                            color: colors.white,
+                            color: colors.primary,
                             fontWeight: "500",
                         }}
                     >
@@ -42,7 +40,7 @@ const SecuredHeader = memo(() => {
                 <button
                     onClick={model.handleLogout}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 active:scale-95"
-                    style={{ color: colors.white }}
+                    style={{ color: colors.primary }}
                     aria-label="Logout"
                 >
                     <LogOut size={18} />

@@ -14,9 +14,9 @@ export default function SecuredLayout() {
     }
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen w-full">
             <SecuredHeader />
-            <main className="pt-14">
+            <main className="pt-14 w-full">
                 <Outlet />
             </main>
         </div>
