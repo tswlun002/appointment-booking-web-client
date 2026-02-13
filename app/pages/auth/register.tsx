@@ -150,7 +150,14 @@ const Register = memo(() => {
                         }}
                     >
                         {isLoading && <Spinner color={colors.white} className="h-4 w-4" />}
-                        <span>{formButtonLabel}</span>
+                        <span
+                            style={{
+                                backgroundColor: colors.primary,
+                            color: colors.white,
+                            }}
+                        >
+                            {formButtonLabel}
+                        </span>
                     </button>
 
                     <p
