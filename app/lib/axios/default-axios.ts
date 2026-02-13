@@ -9,13 +9,12 @@ const createJSONHeaders = (): AxiosHeaders => {
     return {
         ...baseHeaders,
         ...env.CUSTOM_HEADERS,
-        'X-API-Key': env.API_KEY
     };
 };
 
 const axiosJSONConfig: AxiosRequestConfig = {
     baseURL: env.API_BASE_URL,
- //   timeout: env.API_TIMEOUT,
+    timeout: env.API_TIMEOUT,
     headers: createJSONHeaders(),
     withCredentials: true,
 
@@ -34,7 +33,7 @@ export interface BackendError {
 //For api that consumer other Content-Type
 const axiosConfig: AxiosRequestConfig = {
     baseURL: env.API_BASE_URL,
-    //timeout: env.API_TIMEOUT,
+    timeout: env.API_TIMEOUT,
     headers: env.CUSTOM_HEADERS,
     withCredentials: true,
 };
