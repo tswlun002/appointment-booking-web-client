@@ -1,14 +1,35 @@
-import { reactRouter } from "@react-router/dev/vite";
+import {reactRouter} from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
+import {defineConfig, loadEnv} from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import path from "path";
 
-export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./app"),
+export default defineConfig(({mode}) => {
+
+    const env = loadEnv(mode, process.cwd(), '')
+
+    const SEVER_API = env["VITE_INTERNAL_BASE_URL"];
+    const REALM = env["VITE_REALM"];
+
+    return {
+        plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+        resolve: {
+            alias: {
+                "@": path.resolve(__dirname, "./app"),
+            },
         },
-    },
-});
+        define: {
+            // This string-replaces 'process.env' with an empty object or specific vars
+            'process.env': {
+                'process.env.VITE_API_BASE_URL': env.VITE_API_BASE_URL,
+                'process.env.VITE_API_TIMEOUT': env.VITE_API_TIMEOUT,
+                'process.env.VITE_API_RETRIES': env.VITE_API_RETRIES,
+                'process.env.VITE_CUSTOM_HEADERS': env.VITE_CUSTOM_HEADERS,
+                'process.env.VITE_REALM': REALM,
+                'process.env.VITE_INTERNAL_BASE_URL': SEVER_API,
+
+            }
+        }
+    }
+})
+
