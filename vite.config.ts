@@ -8,9 +8,6 @@ export default defineConfig(({mode}) => {
 
     const env = loadEnv(mode, process.cwd(), '')
 
-    const SEVER_API = env["VITE_INTERNAL_BASE_URL"];
-    const REALM = env["VITE_REALM"];
-
     return {
         plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
         resolve: {
@@ -25,8 +22,8 @@ export default defineConfig(({mode}) => {
                 'process.env.VITE_API_TIMEOUT': env.VITE_API_TIMEOUT,
                 'process.env.VITE_API_RETRIES': env.VITE_API_RETRIES,
                 'process.env.VITE_CUSTOM_HEADERS': env.VITE_CUSTOM_HEADERS,
-                'process.env.VITE_REALM': REALM,
-                'process.env.VITE_INTERNAL_BASE_URL': SEVER_API,
+                'process.env.VITE_REALM': env.VITE_REALM,
+                'process.env.VITE_INTERNAL_BASE_URL': env.VITE_INTERNAL_BASE_URL,
 
             }
         }

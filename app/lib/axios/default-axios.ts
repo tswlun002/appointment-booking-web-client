@@ -42,7 +42,7 @@ export const axiosAuthorizedRequest: AxiosInstance = axios.create(axiosJSONConfi
 const apiClient = new ApiClient();
 const axiosForPrivateApi = apiClient.getInstance();
 
-export const axiosInstanceWrapper = <T>(
+export const axiosInstanceWrapper = async <T>(
     config: AxiosRequestConfig,
     options?: AxiosRequestConfig,
 ): Promise<T> => {

@@ -165,34 +165,33 @@ components:
       description: Response containing branches matching the search criteria
       required:
         - branches
-        - totalCount
+        - pagination
       properties:
         branches:
           type: array
           description: List of branches matching the search
           items:
             $ref: '#/components/schemas/BranchLocation'
-        totalCount:
-          type: integer
-          description: Total number of matching branches
-          example: 5
+        pagination:
+          type: object
+          $ref: '#/components/schemas/Pagination'
 
     NearbyBranchesResponse:
       type: object
       description: Response containing nearest branches to the given coordinates
       required:
         - branches
-        - totalCount
+        - pagination
       properties:
         branches:
           type: array
           description: List of nearby branches sorted by distance
           items:
             $ref: '#/components/schemas/BranchLocation'
-        totalCount:
-          type: integer
+        pagination:
+          type: object
           description: Total number of branches returned
-          example: 10
+          $ref: "#/components/schemas/Pagination"
 
     BranchLocation:
       type: object
@@ -306,7 +305,56 @@ components:
           type: boolean
           description: Whether this day is a holiday
           example: false
-
+    Pagination:
+      type: object
+      description: Pagination metadata for paginated responses
+      required:
+        - totalCount
+        - page
+        - limit
+        - totalPages
+        - hasNext
+        - hasPrevious
+        - isFirstPage
+        - isLastPage
+      properties:
+        totalCount:
+          type: integer
+          minimum: 0
+          description: Total number of items across all pages
+          example: 125
+        page:
+          type: integer
+          minimum: 0
+          description: Current page number (0-based, calculated from offset/limit)
+          example: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Number of items per page
+          example: 10
+        totalPages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+          example: 13
+        hasNext:
+          type: boolean
+          description: Whether there is a next page
+          example: true
+        hasPrevious:
+          type: boolean
+          description: Whether there is a previous page
+          example: false
+        isFirstPage:
+          type: boolean
+          description: Whether this is the first page
+          example: true
+        isLastPage:
+          type: boolean
+          description: Whether this is the last page
+          example: false
     ErrorResponse:
       type: object
       description: Standard error response

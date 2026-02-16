@@ -7,7 +7,7 @@ import {
     registerUserBodyFirstnameRegExp,
     registerUserBodyLastnameMin,
     registerUserBodyLastnameRegExp,
-    registerUserBodyIdNumberRegExp,
+    registerUserBodyIdNumberRegExp, registerUserBody,
 } from "~/domain/user/generated/zod";
 import type {RegisterUserMutationBody} from "~/api/user/generated/endpoints/registration/registration";
 
@@ -17,7 +17,7 @@ export interface RegisterState extends State<RegisterUserMutationBody,string> {}
  * Wrapper for registerUserBody with custom validation messages
  * and password confirmation matching
  */
-export const registerUserSchema = z.strictObject({
+export const registerUserSchema = registerUserBody.extend({
         email: z
             .string({ error: "Email is required" })
             .email("Please enter a valid email address"),

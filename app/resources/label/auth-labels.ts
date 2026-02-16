@@ -134,3 +134,57 @@ export const loginScreenResources = {
     }
 
 }
+
+
+//====================================== FORGOT PASSWORD PAGE DEFAULT DATA ========================================================
+export const forgotPasswordResources =  {
+    instructionMessage: "Enter the email address you used to sign in.",
+    email: {
+        label: "Email",
+        id:"email",
+    },
+    forgotPasswordButton: {
+        label: "Continue",
+        linkLabel: "Continue",
+        path: "password",
+        disabled:false
+    },
+    loginLinkButton: {
+        label: "You have new/remember credentials?",
+        linkLabel: " Log in",
+        path: "/",
+        disabled:false
+    }
+}
+//====================================== RESET PASSWORD PAGE DEFAULT DATA ========================================================
+
+export  const resetPasswordResources={
+    headerTitle:"Reset Password",
+    instructionMessage:"Remember to keep your password safe",
+    otp: {
+        label: "OTP",
+        id:"OTP",
+    },
+    password: {
+        passwordVisibility: PasswordVisibility.TOGGLE_VISIBILITY,
+        type: "newPassword",
+        label: "New password",
+        id:"newPassword",
+    },
+    confirmPassword: {
+        passwordVisibility: PasswordVisibility.TOGGLE_VISIBILITY,
+        type: "password",
+        label: "Confirm password",
+        id:"confirmPassword",
+    },
+    resetPasswordButton:{
+        Label:"Reset Password",
+        disabled:false
+    },
+    loginLinkButton: {
+        label: "Already have an account?",
+        linkLabel: " Log in",
+        path: "/",
+        disabled:false
+    }
+}

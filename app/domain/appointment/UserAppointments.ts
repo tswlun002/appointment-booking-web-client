@@ -26,9 +26,10 @@ export const sortAppointments = (appointments: AppointmentResponse[]): Appointme
         if (a.status === "BOOKED" && b.status !== "BOOKED") return -1;
         if (a.status !== "BOOKED" && b.status === "BOOKED") return 1;
 
-        // BOOKED: sort by closest date first (ascending)
+        // BOOKED: sort by latest date first (descending)
         if (a.status === "BOOKED" && b.status === "BOOKED") {
-            return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
+            console.log("A: ", a, " B: ", b);
+            return new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime();
         }
 
         // Other statuses: sort by date descending (most recent first)
