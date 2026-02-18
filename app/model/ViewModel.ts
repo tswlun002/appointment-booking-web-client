@@ -2,7 +2,7 @@ import type {ChangeEvent, Dispatch, SubmitEvent} from "react";
 import type {Error, TypeError} from "~/domain/error/Error";
 import {isNotBlank} from "~/utils/CompanionObjects";
 import {type ActionDispatch, ActionEvent} from "~/model/ActionEvent";
-import type {State} from "~/domain/State";
+import type {State, PaginatedState, PaginationMeta} from "~/domain/State";
 
 /**
  * @T   model type
@@ -190,6 +190,63 @@ export abstract  class ViewModel<T,R, S extends State<T,R>>{
                 }
             };
     }
+
+    /**
+     * Creates a reducer for paginated state.
+     * Handles appending items when offset > 0, otherwise replaces items.
+     * @param initialState - Initial paginated state
+     * @param extractItems - Function to extract items array from response
+     * @param extractPagination - Function to extract pagination from response
+     * @param sortItems - Optional function to sort items
+     */
+    static paginatedReducer = <
+        T extends { offset: number; limit: number },
+        R,
+        I,
+        S extends PaginatedState<T, R, I>
+    >(
+        initialState: S,
+        extractItems: (response: R) => I[],
+        extractPagination: (response: R) => PaginationMeta | null,
+        sortItems?: (items: I[]) => I[]
+    ) => {
+        const baseReducer = ViewModel.reducer<T, R, S>(initialState);
+
+        return (state: S, action: ActionDispatch<T, R>): S => {
+            switch (action.type) {
+                case ActionEvent.SET_API_RESPONSE_SUCCESS: {
+                    const baseResult = baseReducer(state, action);
+                    const data = action.data as R | undefined;
+
+                    if (!data) {
+                        return { ...baseResult, items: [], pagination: null };
+                    }
+
+                    const newItems = extractItems(data);
+                    const pagination = extractPagination(data);
+
+                    // If offset > 0, append to existing items (pagination)
+                    // Otherwise, replace with new items (initial load or refresh)
+                    const isLoadingMore = state.userData.offset > 0;
+                    const combinedItems = isLoadingMore
+                        ? [...state.items, ...newItems]
+                        : newItems;
+
+                    // Apply sorting if provided
+                    const items = sortItems ? sortItems(combinedItems) : combinedItems;
+
+                    return {
+                        ...baseResult,
+                        items,
+                        pagination,
+                    };
+                }
+
+                default:
+                    return baseReducer(state, action);
+            }
+        };
+    };
 
     protected handleQueryResults<E>(result: {
         isError: boolean;

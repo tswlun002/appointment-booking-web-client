@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Calendar, AlertCircle, RefreshCw } from "lucide-react";
+import { Calendar, AlertCircle, RefreshCw, ChevronDown } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
 import { Spinner } from "~/components/ui/spinner";
 import AppointmentCard from "~/components/ui/AppointmentCard";
@@ -88,6 +88,34 @@ const AppointmentsWidget = memo(({ state, model, appointments, cancelState, canc
                                 onRescheduleClick={(apt) => model.handleRescheduleClick(apt)}
                             />
                         ))}
+
+                        {/* Load More Button */}
+                        {model.hasMore && (
+                            <button
+                                onClick={() => model.loadMoreAppointments()}
+                                disabled={state.isLoading}
+                                className="w-full flex items-center justify-center gap-2 py-3 mt-4 rounded-lg hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{
+                                    backgroundColor: colors.bgWhite,
+                                    color: colors.textSecondary,
+                                    border: `1px solid ${colors.borderLight}`,
+                                    ...typography.button
+                                }}
+                                aria-label="Load older appointments"
+                            >
+                                {state.isLoading ? (
+                                    <>
+                                        <Spinner color={colors.textSecondary} className="h-4 w-4" />
+                                        <span>Loading...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ChevronDown size={16} />
+                                        <span>Load older appointments</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

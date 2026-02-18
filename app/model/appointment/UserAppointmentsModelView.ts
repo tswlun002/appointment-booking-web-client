@@ -4,6 +4,7 @@ import {
     useGetCustomerAppointments,
     getGetCustomerAppointmentsQueryKey,
     type GetCustomerAppointmentsQueryError,
+    getCustomerAppointments,
 } from "~/api/appointment/generated/endpoints/customer-appointments/customer-appointments";
 import { ViewModel } from "~/model/ViewModel";
 import { type ActionDispatch, ActionEvent } from "~/model/ActionEvent";
@@ -11,6 +12,7 @@ import {
     sortAppointments,
     type UserAppointmentsQuery,
     type UserAppointmentsState,
+    DEFAULT_PAGE_LIMIT,
 } from "~/domain/appointment/UserAppointments";
 import type { AppointmentResponse, AppointmentsResponse } from "~/domain/appointment/generated/model";
 import { AppointmentStatus } from "~/domain/appointment/generated/model";
@@ -24,17 +26,22 @@ import { type NavigateFunction, useNavigate } from "react-router";
 
 const initialUserAppointmentsState: UserAppointmentsState = {
     isLoading: true,
-    appointments: [],
+    items: [],
+    pagination: null,
     errors: {
         customerUsername: { isError: false },
         expandedAppointmentId: { isError: false },
         activeTab: { isError: false },
+        offset: { isError: false },
+        limit: { isError: false },
         response: { isError: false },
     },
     userData: {
         customerUsername: "",
         expandedAppointmentId: "",
         activeTab: 'branch',
+        offset: 0,
+        limit: DEFAULT_PAGE_LIMIT,
     },
 };
 
@@ -46,12 +53,30 @@ const initUserAppointments = (username: string): UserAppointmentsState => ({
     },
 });
 
+/** Extract appointments from API response */
+const extractAppointments = (response: AppointmentsResponse): AppointmentResponse[] => response.appointments || [];
+
+/** Extract pagination from API response */
+const extractPagination = (response: AppointmentsResponse) => response.pagination || null;
+
+/** Create reducer using base paginatedReducer with sorting */
+const userAppointmentsReducer = ViewModel.paginatedReducer<
+    UserAppointmentsQuery,
+    AppointmentsResponse,
+    AppointmentResponse,
+    UserAppointmentsState
+>(
+    initialUserAppointmentsState,
+    extractAppointments,
+    extractPagination,
+    sortAppointments
+);
+
 export const useUserAppointmentsModelView = () => {
     const username = useAuthStore(useShallow((s) => s.user?.username ?? ""));
     const navigateFunction = useNavigate();
 
-    const reducer = ViewModel.reducer<UserAppointmentsQuery, AppointmentsResponse, UserAppointmentsState>(initialUserAppointmentsState);
-    const [state, dispatch] = useReducer(reducer, initUserAppointments(username));
+    const [state, dispatch] = useReducer(userAppointmentsReducer, initUserAppointments(username));
 
     const stateRef = useRef(state);
     stateRef.current = state;
@@ -72,10 +97,10 @@ export const useUserAppointmentsModelView = () => {
     // Cancel appointment ModelView
     const { state: cancelState, model: cancelModel } = useCancelAppointmentModelView(handleCancelSuccess);
 
-    // Fetch appointments query with cache config
+    // Fetch appointments query with cache config and pagination params
     const appointmentsQuery = useGetCustomerAppointments(
         username,
-        undefined,
+        { offset: 0, limit: DEFAULT_PAGE_LIMIT },
         {
             query: {
                 enabled: !!username,
@@ -148,13 +173,8 @@ export const useUserAppointmentsModelView = () => {
     // Update modelRef for cancel callback
     modelRef.current = model;
 
-    // Get sorted appointments from response
-    const appointments = useMemo(() => {
-        if (state.response?.data?.appointments) {
-            return sortAppointments(state.response.data.appointments);
-        }
-        return [];
-    }, [state.response?.data]);
+    // Get appointments from state (already sorted in reducer)
+    const appointments = state.items;
 
     return {
         state,
@@ -177,6 +197,45 @@ export class UserAppointmentsModelView {
     private get state(): UserAppointmentsState {
         return this.stateRef.current!;
     }
+
+    /** Check if there are more appointments to load */
+    get hasMore(): boolean {
+        return this.state.pagination?.hasNext ?? false;
+    }
+
+    /** Load more appointments (next page) */
+    loadMoreAppointments = async (): Promise<void> => {
+        const { pagination, userData, isLoading } = this.state;
+
+        // Don't load if already loading or no more pages
+        if (isLoading || !pagination?.hasNext) {
+            return;
+        }
+
+        // Update offset first, then set loading
+        const nextOffset = userData.offset + userData.limit;
+        this.dispatch({ type: ActionEvent.SET_FIELD, field: "offset", value: nextOffset });
+        this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
+
+        try {
+            const response = await getCustomerAppointments(
+                this.username,
+                { offset: nextOffset, limit: userData.limit }
+            );
+
+            this.dispatch({
+                type: ActionEvent.SET_API_RESPONSE_SUCCESS,
+                message: "Loaded more appointments",
+                data: response,
+            });
+        } catch (error) {
+            const errorMessage = (error as Error)?.message || "Failed to load more appointments";
+            this.dispatch({
+                type: ActionEvent.SET_API_ERROR,
+                error: { isError: true, message: errorMessage },
+            });
+        }
+    };
 
     /** Refetch appointments */
     refetch = (): void => {

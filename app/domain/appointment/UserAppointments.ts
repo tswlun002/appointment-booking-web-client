@@ -1,5 +1,8 @@
-import type { State } from "~/domain/State";
+import type { PaginatedState } from "~/domain/State";
 import type { AppointmentResponse, AppointmentsResponse } from "~/domain/appointment/generated/model";
+
+/** Default pagination limit */
+export const DEFAULT_PAGE_LIMIT = 10;
 
 /**
  * Query parameters for fetching user appointments
@@ -8,14 +11,15 @@ export interface UserAppointmentsQuery {
     customerUsername: string;
     expandedAppointmentId: string;
     activeTab: 'branch' | 'appointments';
+    offset: number;
+    limit: number;
 }
 
 /**
- * State for user appointments
+ * State for user appointments - extends PaginatedState for pagination support
+ * items: AppointmentResponse[] - accumulated appointments from all loaded pages
  */
-export interface UserAppointmentsState extends State<UserAppointmentsQuery, AppointmentsResponse> {
-    appointments: AppointmentResponse[];
-}
+export type UserAppointmentsState = PaginatedState<UserAppointmentsQuery, AppointmentsResponse, AppointmentResponse>;
 
 /**
  * Sort appointments: BOOKED first (closest date ascending), then others (date descending)
