@@ -3,6 +3,7 @@ import useAuthStore from "~/model/auth/zustand/AuthStore";
 import {useShallow} from "zustand/react/shallow";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {SECURED_PAGE_ROLES} from "~/domain/role/Roles";
+import {USERNAME_REGEX} from "~/domain/user/User";
 
 const HYDRATION_TIMEOUT_MS = 10000;
 
@@ -13,9 +14,10 @@ export const useSecuredLayoutModel = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const {isAuthenticated, roles} = useAuthStore(useShallow((state) => ({
+    const {isAuthenticated, roles, username} = useAuthStore(useShallow((state) => ({
         isAuthenticated: state.isAuthenticated,
         roles: state.roles,
+        username: state.user?.username,
     })));
 
     const normalizedSecuredRoles = useMemo(
@@ -59,14 +61,21 @@ export const useSecuredLayoutModel = () => {
             return;
         }
 
-        const hasAccess = isAuthenticated && hasMatchingRole(roles);
+        const hasValidUsername = !!username && USERNAME_REGEX.test(username);
+        const hasAccess = isAuthenticated && hasMatchingRole(roles) && hasValidUsername;
 
         if (!hasAccess || hydrationTimedOut) {
-            navigate("/", { replace: true, state: { from: location } });
+            const errorMessage = hydrationTimedOut
+                ? "Session timed out. Please login again."
+                : !hasValidUsername && isAuthenticated
+                    ? "Session corrupted. Please login again."
+                    : undefined;
+            navigate("/", { replace: true, state: { from: location, error: errorMessage } });
         }
     }, [isHydrated]);
 
-    const hasAccess = isHydrated && isAuthenticated && hasMatchingRole(roles);
+    const hasValidUsername = !!username && USERNAME_REGEX.test(username);
+    const hasAccess = isHydrated && isAuthenticated && hasMatchingRole(roles) && hasValidUsername;
 
     return {
         isAuthenticated: hasAccess,

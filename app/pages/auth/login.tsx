@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { PasswordInput, CustomerInput } from "~/components/ui/inputs";
 import { COMPANY_DATA, loginScreenResources } from "~/resources/label/auth-labels";
 import { useLoginModel } from "~/model/auth/LoginViewModel";
@@ -10,16 +10,22 @@ import { Spinner } from "~/components/ui/spinner";
 
 const Login = memo(() => {
     const { state, model } = useLoginModel();
+    const location = useLocation();
+
+    // Get error from navigation state (e.g., redirected from SecuredLayout)
+    const navigationError = (location.state as { error?: string })?.error;
 
     // Derived state
     const isLoading = state?.isLoading;
     const formButtonLabel = isLoading ? "Signing in..." : loginScreenResources?.loginButton?.label;
     const isFormButtonDisabled = loginScreenResources?.loginButton?.disabled || isLoading;
 
-    // Response handling
-    const hasError = state.errors?.response?.isError;
+    // Response handling - prioritize API error over navigation error
+    const hasApiError = state.errors?.response?.isError;
+    const hasNavigationError = !!navigationError && !hasApiError;
+    const hasError = hasApiError || hasNavigationError;
     const hasSuccess = state?.response?.isSuccess;
-    const responseMessage = state.errors?.response?.message || "";
+    const responseMessage = hasApiError ? (state.errors?.response?.message || "") : (navigationError || "");
 
     return (
         <div
