@@ -1,3 +1,4 @@
+import {memo} from "react";
 import {Link} from "react-router";
 import {CustomerInput, PasswordInput} from "~/components/ui/inputs";
 import {useResetPasswordViewModel} from "~/model/auth/ResetPasswordViewModel";
@@ -8,51 +9,79 @@ import type {PasswordResetRequest} from "~/domain/user/generated/model";
 import {colors, typography} from "~/resources/colors/colors";
 import {Spinner} from "~/components/ui/spinner";
 
-export default function ForgotPassword() {
+const ResetPassword = memo(() => {
 
     const {state, model} = useResetPasswordViewModel();
 
     const isLoading = state?.isLoading;
-    const formButtonLabel = (state?.isLoading) ? "Loading ..." : resetPasswordResources?.resetPasswordButton?.Label;
+    const formButtonLabel = isLoading ? "Resetting..." : resetPasswordResources?.resetPasswordButton?.Label;
     const isFormButtonDisabled = resetPasswordResources?.resetPasswordButton?.disabled || state?.isLoading;
 
-    const hasError = state.errors?.response?.isError ;
+    // Response handling - prioritize current page response over instruction message from previous page
+    const hasCurrentPageResponse = state?.response?.isSuccess || state.errors?.response?.isError;
+    const hasError = state.errors?.response?.isError;
+    const hasSuccess = !hasError && state?.response?.isSuccess;
 
-    const  hasSuccess = !hasError && state?.response?.isSuccess|| isNotBlank( state.instructionMessage) || false;
-    const responseMessage = state?.errors?.response?.message || state?.response?.data as string || state.instructionMessage||""
+    // Show instruction message only if no current page response yet
+    const showInstructionMessage = !hasCurrentPageResponse && isNotBlank(state.instructionMessage);
+
+    // Determine which message to show
+    const errorMessage = state?.errors?.response?.message || "";
+    const successMessage = state?.response?.data as string || "";
+    const instructionMessage = state.instructionMessage || "";
 
     return (
-        <div className="'flex flex-col items-center justify-center gap-4  w-full max-w-sm  p-4  sm:text-2xl sm:max-w-lg
-        md:text-3xl md:max-w-xl  lg:text-xl lg:max-w-lg lg:gap-2'">
-
-            <div className="flex flex-col text-center gap-10">
-                <p>
+        <div
+            className="flex flex-col items-center justify-center gap-4 w-full max-w-sm p-4 sm:max-w-lg md:max-w-xl lg:max-w-lg lg:gap-2"
+            style={{ backgroundColor: colors.bgWhite }}
+        >
+            {/* Header Section */}
+            <div className="flex flex-col items-center gap-2">
+                <p
+                    style={{
+                        color: colors.primaryDark,
+                        ...typography.h4
+                    }}
+                >
                     {resetPasswordResources.headerTitle}
                 </p>
             </div>
 
-            <form onSubmit={model.submit}
-                  className={'flex flex-col justify-center w-full gap-5 px-5 flex-1 sm:text-lg'}>
-                {/* Error/Success Message - Inline */}
-                {hasError && (
-                    <Error style={{ color: colors.red }} message={responseMessage} />
-                )}
-
-                {hasSuccess && (
+            <form onSubmit={model.submit} className="flex w-full flex-col gap-5 px-5 flex-1">
+                {/* Instruction Message from previous page */}
+                {showInstructionMessage && (
                     <div className="flex items-center justify-center gap-2 p-3 rounded-lg" style={{ backgroundColor: colors.successLight }}>
                         <span style={{ color: colors.success, ...typography.bodySmall, fontWeight: "500" }}>
-                            ✓ {responseMessage}
+                            ✓ {instructionMessage}
                         </span>
                     </div>
                 )}
+
+                {/* Error Message from current page */}
+                {hasError && (
+                    <Error style={{ color: colors.red }} message={errorMessage} />
+                )}
+
+                {/* Success Message from current page */}
+                {hasSuccess && (
+                    <div className="flex items-center justify-center gap-2 p-3 rounded-lg" style={{ backgroundColor: colors.successLight }}>
+                        <span style={{ color: colors.success, ...typography.bodySmall, fontWeight: "500" }}>
+                            ✓ {successMessage}
+                        </span>
+                    </div>
+                )}
+
+                {/* OTP Input */}
                 <CustomerInput<PasswordResetRequest>
                     id={resetPasswordResources.otp?.id}
                     label={resetPasswordResources.otp?.label}
                     value={state?.userData?.OTP}
                     error={state.errors}
-                    type={"text"}
+                    type="text"
                     onChange={model.onChange}
                 />
+
+                {/* New Password Input */}
                 <PasswordInput<PasswordResetRequest>
                     label={resetPasswordResources.password?.label}
                     id={resetPasswordResources.password?.id}
@@ -61,6 +90,8 @@ export default function ForgotPassword() {
                     error={state.errors}
                     onChange={model.onChange}
                 />
+
+                {/* Confirm Password Input */}
                 <PasswordInput<PasswordResetRequest>
                     label={resetPasswordResources.confirmPassword?.label}
                     id={resetPasswordResources?.confirmPassword?.id}
@@ -69,7 +100,9 @@ export default function ForgotPassword() {
                     error={state.errors}
                     onChange={model.onChange}
                 />
-                <div className=" flex flex-col gap-4">
+
+                {/* Submit Button & Login Link */}
+                <div className="flex flex-col gap-4">
                     <button
                         type="submit"
                         disabled={isFormButtonDisabled}
@@ -82,7 +115,8 @@ export default function ForgotPassword() {
                         {isLoading && <Spinner color={colors.white} className="h-4 w-4" />}
                         <span>{formButtonLabel}</span>
                     </button>
-                    <p  className="text-center"
+                    <p
+                        className="text-center"
                         style={{
                             color: colors.textSecondary,
                             ...typography.bodySmall
@@ -105,4 +139,6 @@ export default function ForgotPassword() {
 
         </div>
     )
-}
+});
+
+export default ResetPassword;

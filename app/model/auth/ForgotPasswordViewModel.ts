@@ -1,5 +1,5 @@
 import type {TypeError} from "~/domain/error/Error"
-import {type Dispatch, useEffect, useMemo, useReducer} from "react";
+import React, {type Dispatch, type RefObject, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
 import {createZodResolver} from "~/model/auth/zod/ZodResolver";
 import {type NavigateFunction, useNavigate} from "react-router";
 import type {UseMutationResult} from "@tanstack/react-query";
@@ -13,6 +13,8 @@ import {
     useRequestPasswordReset
 } from "~/api/user/generated/endpoints/password-reset/password-reset";
 import useAuthStore from "~/model/auth/zustand/AuthStore";
+
+const SUCCESS_MESSAGE_DELAY_MS = 2000;
 
 type Resolver =(data: ForgotPasswordRequest) => Promise<{
     values: ForgotPasswordRequest
@@ -29,11 +31,17 @@ export const useForgotPasswordModel = () => {
     const forgoPasswordMutation = useRequestPasswordReset();
     const navigateFunction = useNavigate();
     const setEmailVerificationResponseMessage  = useAuthStore(useShallow(state => state.setEmailVerificationResponseMessage));
+    const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Stable dispatch - prevents unnecessary re-renders
+    const stableDispatch = useCallback(
+        (action: ActionDispatch<ForgotPasswordRequest, RequestPasswordResetMutationResult>) => dispatch(action),
+        []
+    );
 
-    useEffect(()=>{
-        model.catchStateChange(state)
-    }, [state.response?.isSuccess])
+    // Keep state fresh in ref for stable model instance
+    const stateRef = useRef(state);
+    stateRef.current = state;
 
     const resolver = useMemo(
         () => createZodResolver<ForgotPasswordRequest, TypeError<ForgotPasswordRequest>>(ForgotPasswordSchema),
@@ -41,9 +49,18 @@ export const useForgotPasswordModel = () => {
     );
 
     const model = useMemo(
-        () => new ForgotPasswordModel(state, dispatch, resolver, forgoPasswordMutation, navigateFunction,setEmailVerificationResponseMessage),
-        [state, resolver]
+        () => new ForgotPasswordModel(stateRef, stableDispatch, resolver, forgoPasswordMutation, navigateFunction, setEmailVerificationResponseMessage, navigationTimeoutRef),
+        [stableDispatch, resolver, forgoPasswordMutation, navigateFunction, setEmailVerificationResponseMessage]
     );
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (navigationTimeoutRef.current) {
+                clearTimeout(navigationTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return {
         state,
@@ -54,48 +71,51 @@ export const useForgotPasswordModel = () => {
 export class ForgotPasswordModel extends ViewModel<ForgotPasswordRequest,RequestPasswordResetMutationResult, ForgotPasswordState>{
 
     constructor(
-        protected state: ForgotPasswordState,
+        private stateRef: RefObject<ForgotPasswordState>,
         protected dispatch: Dispatch<ActionDispatch<ForgotPasswordRequest,RequestPasswordResetMutationResult>>,
         protected resolver: Resolver,
         private forgoPasswordMutation:  UseMutationResult<RequestPasswordResetMutationResult, RequestPasswordResetMutationError, { data: ForgotPasswordRequest }, unknown>,
         private navigateFunction: NavigateFunction,
-        private setEmailVerificationResponseMessage:  (data:{email: string, message: string}) => void
+        private setEmailVerificationResponseMessage:  (data:{email: string, message: string}) => void,
+        private navigationTimeoutRef: RefObject<NodeJS.Timeout | null>
     ) {
-        super(state,dispatch,resolver,initialForgotPasswordState)
+        super(stateRef.current!,dispatch,resolver,initialForgotPasswordState)
     }
-     submitToAPI = (data: ForgotPasswordRequest) => {
-         this.forgoPasswordMutation?.mutateAsync({data:data}, this.forgoPasswordMutationOptions())
+
+    /** Access current state from ref */
+    private getCurrentState(): ForgotPasswordState {
+        return this.stateRef.current!;
+    }
+
+    submitToAPI = async (data: ForgotPasswordRequest) => {
+       await  this.forgoPasswordMutation?.mutateAsync({data:data}, this.forgoPasswordMutationOptions())
     };
     private forgoPasswordMutationOptions = () => {
 
         return {
             onSuccess: (data: RequestPasswordResetMutationResult) => {
-                this.setEmailVerificationResponseMessage({message:data, email:this.state.userData.email});
+                const currentState = this.getCurrentState();
+                this.setEmailVerificationResponseMessage({message:data, email: currentState.userData.email});
                 this.dispatch({type: ActionEvent.SET_API_RESPONSE_SUCCESS, message: data , isSuccess: true});
 
+                // Show success message for 2 seconds, then navigate
+                (this.navigationTimeoutRef as React.MutableRefObject<NodeJS.Timeout | null>).current = setTimeout(() => {
+                    const path = "/password/reset";
+                    this.navigateFunction(path, {
+                        replace: true,
+                        state: {
+                            email: currentState.userData.email,
+                            prevResponseMessage: data
+                        }
+                    });
+                }, SUCCESS_MESSAGE_DELAY_MS);
             },
             onError: (error: RequestPasswordResetMutationError) => {
-
 
                 const message =  error.message || error.error;
 
                 this.dispatch({type: ActionEvent.SET_API_ERROR, error: {isError: true, message: message }});
             },
-        }
-    }
-
-    catchStateChange(state: ForgotPasswordState) {
-        if (state.response?.isSuccess) {
-                const path = "/password/reset";
-                console.log("Navigate to :", path)
-                this.navigateFunction(path,
-                    {
-                        replace: true,
-                        state:{
-                            email:this.state.userData.email,
-                            prevResponseMessage:this.state.response?.message
-                        }
-                    });
         }
     }
 }
