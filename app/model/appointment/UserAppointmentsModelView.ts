@@ -18,12 +18,12 @@ import useAuthStore from "~/model/auth/zustand/AuthStore";
 import { useShallow } from "zustand/react/shallow";
 import { LocalDate } from "~/utils/CompanionObjects";
 import { getStatusColors } from "~/resources/colors/colors";
-import { APPOINTMENT_CACHE_CONFIG, getCachedAppointmentData, queryClient } from "~/lib/react-query/Client";
+import { APPOINTMENT_CACHE_CONFIG, queryClient } from "~/lib/react-query/Client";
 import { useCancelAppointmentModelView } from "~/model/appointment/CancelAppointmentModelView";
 import { type NavigateFunction, useNavigate } from "react-router";
 
 const initialUserAppointmentsState: UserAppointmentsState = {
-    isLoading: true,
+    isLoading: false,
     appointments: [],
     errors: {
         customerUsername: { isError: false },
@@ -86,53 +86,47 @@ export const useUserAppointmentsModelView = () => {
         }
     );
 
-    // Check for cached data on mount and populate state
+    // Consolidated effect: Handle loading, success, and error states
     useEffect(() => {
-        // Don't overwrite if we already have data
-        if (state.response?.data) return;
+        // Skip if no username
         if (!username) return;
 
-        // Get cached appointment data for this user
-        const cachedData = getCachedAppointmentData(username);
-        if (cachedData?.data) {
+        const { isLoading, isFetching, isSuccess, isError, data, error } = appointmentsQuery;
+
+        // Priority 1: Handle error state
+        if (isError) {
+            const queryError = error as GetCustomerAppointmentsQueryError;
             stableDispatch({
-                type: ActionEvent.SET_API_RESPONSE_SUCCESS,
-                message: "Loaded from cache",
-                data: cachedData.data
+                type: ActionEvent.SET_API_ERROR,
+                error: { isError: true, message: queryError?.message || "Failed to load appointments" },
             });
-            stableDispatch({ type: ActionEvent.SET_LOADING, isLoading: false });
+            return;
         }
-    }, [username]); // Only run on mount or when username changes
 
-    // Handle loading state
-    useEffect(() => {
-        if (appointmentsQuery.isLoading) {
+        // Priority 2: Handle loading/fetching state
+        if (isLoading || isFetching) {
             stableDispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
+            return;
         }
-    }, [appointmentsQuery.isLoading, stableDispatch]);
 
-    // Handle success
-    useEffect(() => {
-        if (appointmentsQuery.isSuccess && appointmentsQuery.data) {
+        // Priority 3: Handle success state
+        if (isSuccess && data) {
             stableDispatch({
                 type: ActionEvent.SET_API_RESPONSE_SUCCESS,
                 message: "Appointments loaded successfully",
-                data: appointmentsQuery.data,
+                data: data,
             });
         }
-    }, [appointmentsQuery.isSuccess, appointmentsQuery.data, stableDispatch]);
-
-    // Handle error
-    useEffect(() => {
-
-        if (appointmentsQuery.isError) {
-            const error = appointmentsQuery.error as GetCustomerAppointmentsQueryError;
-            stableDispatch({
-                type: ActionEvent.SET_API_ERROR,
-                error: { isError: true, message: error?.message || "Failed to load appointments" },
-            });
-        }
-    }, [appointmentsQuery.isError, appointmentsQuery.error, stableDispatch]);
+    }, [
+        username,
+        appointmentsQuery.isLoading,
+        appointmentsQuery.isFetching,
+        appointmentsQuery.isSuccess,
+        appointmentsQuery.isError,
+        appointmentsQuery.data,
+        appointmentsQuery.error,
+        stableDispatch
+    ]);
 
     const model = useMemo(
         () => new UserAppointmentsModelView(
@@ -180,7 +174,6 @@ export class UserAppointmentsModelView {
 
     /** Refetch appointments */
     refetch = (): void => {
-        this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
         this.refetchFn();
     };
 
