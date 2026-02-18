@@ -23,7 +23,7 @@ import { useCancelAppointmentModelView } from "~/model/appointment/CancelAppoint
 import { type NavigateFunction, useNavigate } from "react-router";
 
 const initialUserAppointmentsState: UserAppointmentsState = {
-    isLoading: false,
+    isLoading: true,
     appointments: [],
     errors: {
         customerUsername: { isError: false },
@@ -88,8 +88,14 @@ export const useUserAppointmentsModelView = () => {
 
     // Consolidated effect: Handle loading, success, and error states
     useEffect(() => {
-        // Skip if no username
-        if (!username) return;
+        // Handle missing username - show error state
+        if (!username) {
+            stableDispatch({
+                type: ActionEvent.SET_API_ERROR,
+                error: { isError: true, message: "Session invalid. Please login again." },
+            });
+            return;
+        }
 
         const { isLoading, isFetching, isSuccess, isError, data, error } = appointmentsQuery;
 
