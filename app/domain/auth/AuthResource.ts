@@ -16,6 +16,7 @@ export type Auth ={
     resourceAccess?: ClientRoles,
     isAuthenticated: boolean,
     isCapitecClient?:boolean,
+    /** Clears frontend state only - called by LogoutModelView after API logout */
     logout: () => Promise<void>,
     login: (tokenResponse:TokenResponse) => Promise<void>
     refreshToken: (tokenResponse:TokenResponse)  => Promise<void>,
