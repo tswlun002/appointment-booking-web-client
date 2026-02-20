@@ -1,9 +1,163 @@
 'use client'
 import {type FC, type MouseEvent, useState} from "react";
 import {Link} from "react-router";
-import { blue_primary} from "~/resources/colors/colors";
+import { blue_primary, colors, typography} from "~/resources/colors/colors";
 import {Spinner} from "~/components/ui/spinner";
 import {isNotBlank} from "~/utils/CompanionObjects";
+import { Loader2 } from "lucide-react";
+
+//====================================== PRIMARY BUTTON ========================================================
+
+interface PrimaryButtonProps {
+    label: string;
+    onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+    disabled?: boolean;
+    isLoading?: boolean;
+    type?: "button" | "submit";
+    className?: string;
+    fullWidth?: boolean;
+}
+
+/**
+ * Primary action button - used for main form submissions and primary actions
+ * Uses primary color background with white text
+ */
+export const PrimaryButton: FC<PrimaryButtonProps> = ({
+    label,
+    onClick,
+    disabled = false,
+    isLoading = false,
+    type = "button",
+    className = "",
+    fullWidth = true,
+}) => {
+    const isDisabled = disabled || isLoading;
+
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={isDisabled}
+            className={`${fullWidth ? "w-full" : ""} py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+                isDisabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:opacity-90 active:scale-98"
+            } ${className}`}
+            style={{
+                ...typography.button,
+                backgroundColor: isDisabled ? colors.borderMedium : colors.primary,
+                color: colors.white,
+            }}
+        >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {label}
+        </button>
+    );
+};
+
+//====================================== SECONDARY BUTTON ========================================================
+
+interface SecondaryButtonProps {
+    label: string;
+    onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+    disabled?: boolean;
+    isLoading?: boolean;
+    type?: "button" | "submit";
+    className?: string;
+    fullWidth?: boolean;
+}
+
+/**
+ * Secondary action button - used for cancel, back, or secondary actions
+ * Uses white background with border and muted text
+ */
+export const SecondaryButton: FC<SecondaryButtonProps> = ({
+    label,
+    onClick,
+    disabled = false,
+    isLoading = false,
+    type = "button",
+    className = "",
+    fullWidth = true,
+}) => {
+    const isDisabled = disabled || isLoading;
+
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={isDisabled}
+            className={`${fullWidth ? "w-full" : ""} py-3 rounded-lg border-2 transition-all duration-200 flex items-center justify-center gap-2 ${
+                isDisabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:bg-gray-50 active:scale-98"
+            } ${className}`}
+            style={{
+                ...typography.button,
+                borderColor: colors.borderLight,
+                color: colors.textSecondary,
+                backgroundColor: colors.white,
+            }}
+        >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {label}
+        </button>
+    );
+};
+
+//====================================== DANGER BUTTON ========================================================
+
+interface DangerButtonProps {
+    label: string;
+    onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+    disabled?: boolean;
+    isLoading?: boolean;
+    loadingLabel?: string;
+    type?: "button" | "submit";
+    className?: string;
+    fullWidth?: boolean;
+}
+
+/**
+ * Danger action button - used for destructive actions like cancel, delete
+ * Uses red background with white text
+ */
+export const DangerButton: FC<DangerButtonProps> = ({
+    label,
+    onClick,
+    disabled = false,
+    isLoading = false,
+    loadingLabel,
+    type = "button",
+    className = "",
+    fullWidth = true,
+}) => {
+    const isDisabled = disabled || isLoading;
+    const displayLabel = isLoading && loadingLabel ? loadingLabel : label;
+
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={isDisabled}
+            className={`${fullWidth ? "w-full" : ""} py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+                isDisabled
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:opacity-90 active:scale-98"
+            } ${className}`}
+            style={{
+                ...typography.button,
+                backgroundColor: colors.red,
+                color: colors.white,
+            }}
+        >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {displayLabel}
+        </button>
+    );
+};
+
+//====================================== LEGACY FORM BUTTON ========================================================
 
 
 interface FormButtonProps {

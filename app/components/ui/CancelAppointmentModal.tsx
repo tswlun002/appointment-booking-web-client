@@ -5,6 +5,7 @@ import { cancelAppointmentResources } from "~/resources/label/appointment-labels
 import type { CancelAppointmentState } from "~/domain/appointment/CancelAppointment";
 import type { CancelAppointmentModelView } from "~/model/appointment/CancelAppointmentModelView";
 import ReactDOM from "react-dom";
+import { SecondaryButton, DangerButton } from "~/components/ui/buttons";
 
 interface CancelAppointmentModalProps {
     state: CancelAppointmentState;
@@ -166,36 +167,22 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
 
                 {/* Buttons */}
                 <div className="flex gap-3">
-                    <button
+                    <SecondaryButton
+                        label={cancelAppointmentResources.keepButton.label}
                         onClick={model.closeModal}
                         disabled={isLoading}
-                        className="flex-1 py-3 rounded-lg border-2 transition-all hover:bg-gray-50 disabled:opacity-50"
-                        style={{
-                            borderColor: colors.borderMedium,
-                            color: colors.textSecondary,
-                            fontSize: typography.button.fontSize,
-                            fontWeight: typography.button.fontWeight,
-                            lineHeight: typography.button.lineHeight,
-                            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-                        }}
-                    >
-                        {cancelAppointmentResources.keepButton.label}
-                    </button>
-                    <button
+                        className="flex-1"
+                        fullWidth={false}
+                    />
+                    <DangerButton
+                        label={cancelAppointmentResources.cancelButton.label}
+                        loadingLabel={cancelAppointmentResources.cancelButton.loadingLabel}
                         onClick={model.confirmCancel}
-                        disabled={isLoading || !reason.trim()}
-                        className="flex-1 py-3 rounded-lg transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{
-                            backgroundColor: colors.red,
-                            color: colors.white,
-                            fontSize: typography.button.fontSize,
-                            fontWeight: typography.button.fontWeight,
-                            lineHeight: typography.button.lineHeight,
-                            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-                        }}
-                    >
-                        {isLoading ? cancelAppointmentResources.cancelButton.loadingLabel : cancelAppointmentResources.cancelButton.label}
-                    </button>
+                        disabled={!reason.trim()}
+                        isLoading={isLoading}
+                        className="flex-1"
+                        fullWidth={false}
+                    />
                 </div>
             </div>
         </div>

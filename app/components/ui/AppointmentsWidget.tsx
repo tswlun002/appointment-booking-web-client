@@ -51,15 +51,15 @@ const AppointmentsWidget = memo(({ state, model, appointments, cancelState, canc
                     <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
                         <AlertCircle size={48} style={{ color: colors.red }} />
                         <p style={{ ...typography.body, color: colors.textSecondary, textAlign: "center" }}>
-                            {state.errors.response?.message || "Failed to load appointments"}
+                            {state.errors.response?.message || userAppointmentsScreenResources.errorState.title}
                         </p>
                         <button
                             onClick={() => model.refetch()}
                             className="flex items-center gap-2 px-4 py-2 rounded-lg hover:opacity-80 transition-opacity"
                             style={{ backgroundColor: colors.primary, color: colors.white, ...typography.button }}
-                            aria-label="Retry loading appointments"
+                            aria-label={userAppointmentsScreenResources.errorState.retryButton}
                         >
-                            <RefreshCw size={16} /> Try Again
+                            <RefreshCw size={16} /> {userAppointmentsScreenResources.errorState.retryButton}
                         </button>
                     </div>
                 )}
@@ -69,10 +69,10 @@ const AppointmentsWidget = memo(({ state, model, appointments, cancelState, canc
                     <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
                         <Calendar size={48} style={{ color: colors.textMuted }} />
                         <p style={{ ...typography.body, color: colors.textSecondary, textAlign: "center" }}>
-                            No appointments yet
+                            {userAppointmentsScreenResources.emptyState.title}
                         </p>
                         <p style={{ ...typography.caption, color: colors.textMuted, textAlign: "center" }}>
-                            Find a branch and book your first appointment
+                            {userAppointmentsScreenResources.emptyState.message}
                         </p>
                     </div>
                 )}
@@ -107,12 +107,12 @@ const AppointmentsWidget = memo(({ state, model, appointments, cancelState, canc
                                 {state.isLoading ? (
                                     <>
                                         <Spinner color={colors.textSecondary} className="h-4 w-4" />
-                                        <span>Loading...</span>
+                                        <span>{userAppointmentsScreenResources.loadMoreButton.loadingLabel}</span>
                                     </>
                                 ) : (
                                     <>
                                         <ChevronDown size={16} />
-                                        <span>Load older appointments</span>
+                                        <span>{userAppointmentsScreenResources.loadMoreButton.label}</span>
                                     </>
                                 )}
                             </button>

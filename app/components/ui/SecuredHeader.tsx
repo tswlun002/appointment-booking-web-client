@@ -1,7 +1,8 @@
 import { memo } from "react";
 import { LogOut, User } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
-import { useSecuredHeaderModelView } from "~/model/layout/SecuredHeaderModelView";
+import { useSecuredHeaderModelView, getDisplayName } from "~/model/layout/SecuredHeaderModelView";
+import { securedHeaderResources } from "~/resources/label/layout-labels";
 
 const SecuredHeader = memo(() => {
     const { user, model } = useSecuredHeaderModelView();
@@ -32,7 +33,7 @@ const SecuredHeader = memo(() => {
                             fontWeight: "500",
                         }}
                     >
-                        {model.getDisplayName(user)}
+                        {getDisplayName(user)}
                     </span>
                 </div>
 
@@ -41,14 +42,14 @@ const SecuredHeader = memo(() => {
                     onClick={model.handleLogout}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 active:scale-95"
                     style={{ color: colors.primary }}
-                    aria-label="Logout"
+                    aria-label={securedHeaderResources.logoutButton.ariaLabel}
                 >
                     <LogOut size={18} />
                     <span
                         className="hidden sm:inline"
                         style={{ ...typography.bodySmall, fontWeight: "600" }}
                     >
-                        Logout
+                        {securedHeaderResources.logoutButton.label}
                     </span>
                 </button>
             </div>
