@@ -106,7 +106,7 @@ export const useUserAppointmentsModelView = () => {
                 enabled: !!username,
                 staleTime: APPOINTMENT_CACHE_CONFIG.staleTime,
                 gcTime: APPOINTMENT_CACHE_CONFIG.gcTime,
-                refetchOnWindowFocus: false,
+                refetchOnWindowFocus: APPOINTMENT_CACHE_CONFIG.refetchOnWindowFocus,
             }
         }
     );
