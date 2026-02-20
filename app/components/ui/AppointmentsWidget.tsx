@@ -86,7 +86,6 @@ const AppointmentsWidget = memo(({ state, model, appointments, cancelState, canc
                                 appointment={appointment}
                                 model={model}
                                 onCancelClick={(apt) => cancelModel.openModal(apt)}
-                                onRescheduleClick={(apt) => model.handleRescheduleClick(apt)}
                             />
                         ))}
 

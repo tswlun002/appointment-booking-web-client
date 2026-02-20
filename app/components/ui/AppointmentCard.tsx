@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { CalendarClock, XCircle, Info, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { XCircle, Info, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
 import { appointmentCardResources } from "~/resources/label/appointment-labels";
 import type { AppointmentResponse } from "~/domain/appointment/generated/model";
@@ -9,10 +9,9 @@ interface AppointmentCardProps {
     appointment: AppointmentResponse;
     model: UserAppointmentsModelView;
     onCancelClick: (appointment: AppointmentResponse) => void;
-    onRescheduleClick: (appointment: AppointmentResponse) => void;
 }
 
-const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleClick }: AppointmentCardProps) => {
+const AppointmentCard = memo(({ appointment, model, onCancelClick }: AppointmentCardProps) => {
     const isExpanded = model.isExpanded(appointment.id);
 
     return (
@@ -121,17 +120,6 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                             aria-label={appointmentCardResources.cancelButton.ariaLabel(appointment.serviceType)}
                         >
                             <XCircle size={14} /> {appointmentCardResources.cancelButton.label}
-                        </button>
-                        <button
-                            onClick={() => onRescheduleClick(appointment)}
-                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border rounded-lg text-xs font-bold hover:opacity-80 transition-opacity"
-                            style={{
-                                borderColor: colors.primary,
-                                color: colors.primary
-                            }}
-                            aria-label={appointmentCardResources.rescheduleButton.ariaLabel(appointment.serviceType)}
-                        >
-                            <CalendarClock size={14} /> {appointmentCardResources.rescheduleButton.label}
                         </button>
                     </>
                 ) : (

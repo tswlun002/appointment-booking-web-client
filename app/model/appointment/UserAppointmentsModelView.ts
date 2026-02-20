@@ -338,12 +338,6 @@ export class UserAppointmentsModelView {
         return status === AppointmentStatus.BOOKED;
     };
 
-    /** Check if appointment can be rebooked */
-    canRebook = (status: string): boolean => {
-        return status === AppointmentStatus.CANCELLED ||
-               status === AppointmentStatus.NO_SHOW ||
-               status === AppointmentStatus.COMPLETED;
-    };
 
     /** Get display status text */
     getStatusText = (status: string): string => {
