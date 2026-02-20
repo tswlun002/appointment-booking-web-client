@@ -10,6 +10,7 @@ import type { CancelAppointmentState } from "~/domain/appointment/CancelAppointm
 import type { AppointmentResponse } from "~/domain/appointment/generated/model";
 import type { UserAppointmentsState } from "~/domain/appointment/UserAppointments";
 import type { UserAppointmentsModelView } from "~/model/appointment/UserAppointmentsModelView";
+import {userAppointmentsScreenResources} from "~/resources/label/appointment-labels";
 
 interface AppointmentsWidgetProps {
     state: UserAppointmentsState;
@@ -101,7 +102,7 @@ const AppointmentsWidget = memo(({ state, model, appointments, cancelState, canc
                                     border: `1px solid ${colors.borderLight}`,
                                     ...typography.button
                                 }}
-                                aria-label="Load older appointments"
+                                aria-label={userAppointmentsScreenResources.loadMoreButton.label}
                             >
                                 {state.isLoading ? (
                                     <>
