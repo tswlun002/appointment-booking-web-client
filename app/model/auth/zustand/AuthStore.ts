@@ -2,14 +2,14 @@ import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import { jwtDecode } from "jwt-decode"
 import type { JWTPayload } from "~/domain/auth/JWTPayLoad"
-import type { Auth, ClientRoles, EnvRoles, Role } from "~/domain/auth/AuthResource"
+import type { Auth, ClientRoles, EnvRoles } from "~/domain/auth/AuthResource"
 import type { User } from "~/domain/user/User"
 import { isNotBlank } from "~/utils/CompanionObjects"
 import type { TokenResponse } from "~/domain/user/generated/model"
 
 const useAuthStore = create<Auth>()(
     persist(
-        (set, get) => ({
+        (set) => ({
             token: {
                 accessToken: ""
             },
@@ -57,6 +57,7 @@ const useAuthStore = create<Auth>()(
                 }))
             },
 
+            /** Clears frontend state only - called by LogoutModelView after API logout */
             logout: async () => {
                 // Clear all caches from session storage
                 const { clearAllCaches } = await import("~/lib/react-query/Client");
@@ -68,9 +69,9 @@ const useAuthStore = create<Auth>()(
                     realmAccess: undefined,
                     resourceAccess: undefined,
                     isAuthenticated: false,
-                    user: undefined
+                    user: undefined,
+                    roles: undefined,
                 }))
-                window.location.href = '/';
             },
 
             setEmailVerificationResponseMessage(data: { email: string, message: string }) {
