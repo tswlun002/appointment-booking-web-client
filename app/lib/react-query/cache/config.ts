@@ -5,11 +5,12 @@ export const BRANCH_CACHE_CONFIG = {
 };
 
 // Cache configuration for appointments
-// staleTime: Infinity - never auto-refetch, only invalidate on mutations (book/cancel/reschedule)
-// gcTime: session duration - keep until logout
+// Shorter staleTime to catch backend status updates (scheduler runs every 40 mins, admin actions)
+// refetchOnWindowFocus: true - refresh when user returns to app
 export const APPOINTMENT_CACHE_CONFIG = {
-    staleTime: Infinity,
-    gcTime: 60 * 60 * 1000, // 60 minutes - keep in memory
+    staleTime: 3 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: true,
 };
 
 // Default query options
