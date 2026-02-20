@@ -1,6 +1,8 @@
 import {
     useSearchBranchesByArea,
     getFindNearestBranchesQueryOptions,
+    searchBranchesByArea,
+    findNearestBranches,
 } from "~/api/branch-locator/generated/endpoints/branch-location/branch-location";
 import  {
     type Dispatch,
@@ -17,32 +19,81 @@ import { useQueryClient, type QueryClient, type UseQueryResult } from "@tanstack
 import { createZodResolver } from "~/model/auth/zod/ZodResolver";
 import type { TypeError } from "~/domain/error/Error";
 import type {
+    BranchLocation,
     BranchSearchResponse, ErrorResponse, FindNearestBranchesParams,
-    NearbyBranchesResponse, SearchBranchesByAreaParams
+    SearchBranchesByAreaParams
 } from "~/domain/branch-locator/generated/model";
-import { BranchLocatorSchema, type BranchLocatorState } from "~/domain/branch-locator/BranchLocator";
+import {
+    BranchLocatorSchema,
+    type BranchLocatorState,
+    type BranchParams,
+    type BranchResponse,
+    DEFAULT_BRANCH_PAGE_LIMIT
+} from "~/domain/branch-locator/BranchLocator";
 import { ViewModel } from "~/model/ViewModel";
 import { type ActionDispatch, ActionEvent } from "~/model/ActionEvent";
 import type { QueryObserverResult } from "@tanstack/query-core";
 import { BRANCH_CACHE_CONFIG, getLastCachedBranchData } from "~/lib/react-query/Client";
-
-type BranchParams = SearchBranchesByAreaParams | FindNearestBranchesParams;
-type BranchResponse = NearbyBranchesResponse | BranchSearchResponse;
+import type { PaginationMeta } from "~/domain/State";
 
 type Resolver = (data: BranchParams) => Promise<{
-    values: BranchParams;
-    errors?: undefined;
-} | {
-    errors: TypeError<BranchResponse>;
-    values?: undefined;
+    values?: BranchParams;
+    errors?: TypeError<BranchParams>;
 }>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createBranchResolver = (): any => createZodResolver<BranchParams, TypeError<BranchParams>>(BranchLocatorSchema);
 
+const SearchInitialState: BranchLocatorState = {
+    DISTANCES: [5, 10, 25, 35],
+    searchType: "latLong",
+    items: [],
+    pagination: null,
+    errors: {
+        searchText: {
+            isError: false,
+            message: ""
+        },
+        offset: { isError: false },
+        limit: { isError: false },
+        response: {
+            isError: false,
+            message: ''
+        }
+    } as TypeError<BranchParams>,
+    isLoading: false,
+    userData: {
+        searchText: "",
+        maxDistanceKm: 10,
+        limit: DEFAULT_BRANCH_PAGE_LIMIT,
+        offset: 0,
+    } as BranchParams
+};
+
+/** Extract branches from API response */
+const extractBranches = (response: BranchResponse): BranchLocation[] => response.branches || [];
+
+/** Extract pagination from API response */
+const extractPagination = (response: BranchResponse): PaginationMeta | null => response.pagination || null;
+
+/** Create reducer using base paginatedReducer */
+const branchLocatorReducer = ViewModel.paginatedReducer<
+    BranchParams,
+    BranchResponse,
+    BranchLocation,
+    BranchLocatorState
+>(
+    SearchInitialState,
+    extractBranches,
+    extractPagination
+);
 
 export const useBranchLocatorModelView = () => {
     const queryClient = useQueryClient();
-    const reducer = ViewModel.reducer<BranchParams, BranchResponse, BranchLocatorState>(SearchInitialState);
-    const [state, dispatch] = useReducer(reducer, SearchInitialState);
+    const [state, dispatch] = useReducer(branchLocatorReducer, SearchInitialState);
+
+    const stateRef = useRef(state);
+    stateRef.current = state;
 
     const coordinates = useRef<FindNearestBranchesParams | null>(null);
 
@@ -54,7 +105,7 @@ export const useBranchLocatorModelView = () => {
             coordinates.current = {
                 latitude: data.lat,
                 longitude: data.lng,
-                limit: userData.limit ?? 10,
+                limit: userData.limit ?? DEFAULT_BRANCH_PAGE_LIMIT,
                 maxDistanceKm: userData.maxDistanceKm ?? 5,
             };
 
@@ -122,24 +173,25 @@ export const useBranchLocatorModelView = () => {
         }
     }, []); // Only run on mount
 
-
-    const resolver = useMemo(
-        () => createZodResolver<BranchParams, TypeError<BranchResponse>>(BranchLocatorSchema), []
-    );
+    const resolver = useMemo(() => createBranchResolver(), []);
 
     const model = useMemo(
         () => new BranchLocatorModelView(
-            state,
+            stateRef,
             dispatch,
             resolver,
             areaQuery,
             coordinates,
-            fetchCoordinates,queryClient
+            fetchCoordinates,
+            queryClient
         ),
-        [state, resolver, areaQuery, fetchCoordinates, queryClient]
+        [resolver, areaQuery, fetchCoordinates, queryClient]
     );
 
-    return { state, model };
+    // Get branches from state (already handled by paginated reducer)
+    const branches = state.items;
+
+    return { state, model, branches };
 };
 
 export class BranchLocatorModelView extends ViewModel<BranchParams, BranchResponse, BranchLocatorState> {
@@ -148,7 +200,7 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
     private static GEOLOCATION_AGE = 0;
 
     constructor(
-        protected state: BranchLocatorState,
+        protected stateRef: RefObject<BranchLocatorState>,
         protected dispatch: Dispatch<ActionDispatch<BranchParams, BranchResponse>>,
         protected resolver: Resolver,
         private areaQuery: UseQueryResult<BranchSearchResponse, ErrorResponse> & { queryKey: readonly unknown[] },
@@ -156,8 +208,69 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
         private fetchCoordinateFn: () => Promise<FindNearestBranchesParams | null>,
         private queryClient: QueryClient
     ) {
-        super(state, dispatch, resolver, SearchInitialState);
+        super(stateRef.current!, dispatch, resolver, SearchInitialState);
     }
+
+    private get currentState(): BranchLocatorState {
+        return this.stateRef.current!;
+    }
+
+    /** Check if there are more branches to load */
+    get hasMore(): boolean {
+        return this.currentState.pagination?.hasNext ?? false;
+    }
+
+    /** Load more branches (next page) */
+    loadMoreBranches = async (): Promise<void> => {
+        const { pagination, userData, isLoading, searchType } = this.currentState;
+
+        // Don't load if already loading or no more pages
+        if (isLoading || !pagination?.hasNext) {
+            return;
+        }
+
+        // Update offset first
+        const nextOffset = userData.offset + userData.limit;
+        this.dispatch({ type: ActionEvent.SET_FIELD, field: "offset", value: nextOffset });
+        this.dispatch({ type: ActionEvent.SET_LOADING, isLoading: true });
+
+        try {
+            let response: BranchResponse;
+
+            if (searchType === "area") {
+                const searchParams = userData as SearchBranchesByAreaParams;
+                response = await searchBranchesByArea({
+                    searchText: searchParams.searchText,
+                    offset: nextOffset,
+                    limit: userData.limit,
+                });
+            } else {
+                const coords = this.coordinates.current;
+                if (!coords) {
+                    throw new Error("Coordinates not available");
+                }
+                response = await findNearestBranches({
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    maxDistanceKm: (userData as FindNearestBranchesParams).maxDistanceKm,
+                    offset: nextOffset,
+                    limit: userData.limit,
+                });
+            }
+
+            this.dispatch({
+                type: ActionEvent.SET_API_RESPONSE_SUCCESS,
+                message: "Loaded more branches",
+                data: response,
+            });
+        } catch (error) {
+            const errorMessage = (error as Error)?.message || "Failed to load more branches";
+            this.dispatch({
+                type: ActionEvent.SET_API_ERROR,
+                error: { isError: true, message: errorMessage },
+            });
+        }
+    };
 
     public static async getLatLong(): Promise<{ lat: number; lng: number }> {
         const coords = await this.getNearByBranchesByLatLong();
@@ -194,18 +307,18 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             );
         });
     };
-    onFilterEvent = async (id:string, event: MouseEvent<HTMLButtonElement>, value?:number) => {
 
+    onFilterEvent = async (id: string, event: MouseEvent<HTMLButtonElement>, value?: number) => {
         event.preventDefault();
         const field = id as keyof BranchParams;
-        this.clearTimeout()
-        this.dispatch({type: ActionEvent.SET_FIELD, field:field, value:value});
+        this.clearTimeout();
+        this.dispatch({ type: ActionEvent.SET_FIELD, field: field, value: value });
     };
 
     catchStateChange(_state: BranchLocatorState): void {}
 
     submitToAPI = async () => {
-        const searchParams = this.state.userData as SearchBranchesByAreaParams;
+        const searchParams = this.currentState.userData as SearchBranchesByAreaParams;
 
         // Skip if no search text
         if (!searchParams.searchText?.trim()) {
@@ -218,6 +331,9 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             });
             return;
         }
+
+        // Reset offset for new search
+        this.dispatch({ type: ActionEvent.SET_FIELD, field: "offset", value: 0 });
 
         this.areaQuery.refetch().then((result) => {
             // Check loading states
@@ -265,9 +381,8 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
         });
     };
 
-    public async searchByCurrentLocation(event?:  SubmitEvent<HTMLFormElement>): Promise<void> {
-
-        if(event){
+    public async searchByCurrentLocation(event?: SubmitEvent<HTMLFormElement>): Promise<void> {
+        if (event) {
             event.preventDefault();
         }
 
@@ -287,11 +402,10 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             }
         }
 
-        const maxDistanceKm = (this.state.userData as FindNearestBranchesParams).maxDistanceKm;
-        if(coords.maxDistanceKm !== maxDistanceKm){
+        const maxDistanceKm = (this.currentState.userData as FindNearestBranchesParams).maxDistanceKm;
+        if (coords.maxDistanceKm !== maxDistanceKm) {
             coords.maxDistanceKm = maxDistanceKm;
         }
-
 
         try {
             // Use fetchQuery with cache config - this will use cached data if available
@@ -304,16 +418,15 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
 
             const data = await this.queryClient.fetchQuery(queryOptions);
 
-            if(data == undefined || data.branches.length == 0) {
+            if (data == undefined || data.branches.length == 0) {
                 this.dispatch({
-                    type:ActionEvent.SET_API_ERROR,
-                    error:{
-                        message:`No branch found for within ${coords.maxDistanceKm} km radius`,
+                    type: ActionEvent.SET_API_ERROR,
+                    error: {
+                        message: `No branch found within ${coords.maxDistanceKm} km radius`,
                         isError: true
                     }
-                })
-            }
-            else{
+                });
+            } else {
                 this.dispatch({
                     type: ActionEvent.SET_API_RESPONSE_SUCCESS,
                     isSuccess: true,
@@ -331,6 +444,7 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
             });
         }
     }
+
     private handleQueryResponse = (result: QueryObserverResult<BranchResponse, ErrorResponse>) => {
         return {
             status: result.status,
@@ -343,23 +457,3 @@ export class BranchLocatorModelView extends ViewModel<BranchParams, BranchRespon
         };
     };
 }
-const SearchInitialState: BranchLocatorState = {
-    DISTANCES:[5, 10, 25, 35],
-    searchType: "latLong",
-    errors: {
-        searchText: {
-            isError: false,
-            message: ""
-        },
-        response: {
-            isError: false,
-            message: ''
-        }
-    } as TypeError<BranchParams>,
-    isLoading: false,
-    userData: {
-        searchText: "",
-        maxDistanceKm: 10,
-        limit: 10,
-    }
-};
