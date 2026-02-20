@@ -85,7 +85,9 @@ export class ApiClient {
                 // logout when refresh token request error is bad request, forbidden, unauthorized, token expired, refresh token expired
                 const statusCode = error.status ?? error.response?.status ?? 0;
                 if(statusCode <500 && statusCode>=400 && originalRequest?.url?.endsWith("/auth/refresh")){
+                    // Token is invalid, just clear frontend (can't call API logout with invalid token)
                     await useAuthStore.getState().logout();
+                    window.location.href = '/';
                     const normalizedError = this.normalizeError(error);
                     return Promise.reject(normalizedError);
 
@@ -108,15 +110,18 @@ export class ApiClient {
 
                             return this.getInstance()(originalRequest!);
                         } catch (refreshError) {
-                            // Refresh failed, logout user
+                            // Refresh failed, token is invalid - just clear frontend
                             await useAuthStore.getState().logout();
+                            window.location.href = '/';
                             const normalizedError = this.normalizeError(error);
                             return Promise.reject(normalizedError);
                         }
 
                     }
                     else{
+                        // Max retries exceeded - clear frontend and navigate
                         await useAuthStore.getState().logout();
+                        window.location.href = '/';
                         const normalizedError = this.normalizeError(error, true);
                         return Promise.reject(normalizedError);
                     }
