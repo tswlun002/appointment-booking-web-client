@@ -19,12 +19,29 @@ Only returns branches available for appointment booking (excludes ATMs and close
 export const searchBranchesByAreaQuerySearchTextMin = 2;
 export const searchBranchesByAreaQuerySearchTextMax = 100;
 
+export const searchBranchesByAreaQueryOffsetDefault = 0;
+export const searchBranchesByAreaQueryOffsetMin = 0;
+
+export const searchBranchesByAreaQueryLimitDefault = 50;
+export const searchBranchesByAreaQueryLimitMax = 100;
+
 export const searchBranchesByAreaQueryParams = zod.object({
   searchText: zod
     .string()
     .min(searchBranchesByAreaQuerySearchTextMin)
     .max(searchBranchesByAreaQuerySearchTextMax)
     .describe("Search text (city, suburb, postal code, branch name, etc.)"),
+  offset: zod
+    .number()
+    .min(searchBranchesByAreaQueryOffsetMin)
+    .optional()
+    .describe("Number of records to skip for pagination"),
+  limit: zod
+    .number()
+    .min(1)
+    .max(searchBranchesByAreaQueryLimitMax)
+    .default(searchBranchesByAreaQueryLimitDefault)
+    .describe("Maximum number of records to return"),
 });
 
 export const searchBranchesByAreaHeader = zod.object({
@@ -148,10 +165,13 @@ export const findNearestBranchesQueryLatitudeMax = 90;
 export const findNearestBranchesQueryLongitudeMin = -180;
 export const findNearestBranchesQueryLongitudeMax = 180;
 
-export const findNearestBranchesQueryLimitDefault = 10;
-export const findNearestBranchesQueryLimitMax = 50;
+export const findNearestBranchesQueryLimitDefaultOne = 50;
+export const findNearestBranchesQueryLimitMaxOne = 100;
 
 export const findNearestBranchesQueryMaxDistanceKmMax = 500;
+
+export const findNearestBranchesQueryOffsetDefault = 0;
+export const findNearestBranchesQueryOffsetMin = 0;
 
 export const findNearestBranchesQueryParams = zod.object({
   latitude: zod
@@ -167,15 +187,20 @@ export const findNearestBranchesQueryParams = zod.object({
   limit: zod
     .number()
     .min(1)
-    .max(findNearestBranchesQueryLimitMax)
-    .default(findNearestBranchesQueryLimitDefault)
-    .describe("Maximum number of branches to return (default 10)"),
+    .max(findNearestBranchesQueryLimitMaxOne)
+    .default(findNearestBranchesQueryLimitDefaultOne)
+    .describe("Maximum number of records to return"),
   maxDistanceKm: zod
     .number()
     .min(1)
     .max(findNearestBranchesQueryMaxDistanceKmMax)
     .optional()
     .describe("Maximum distance in kilometers to search for branches"),
+  offset: zod
+    .number()
+    .min(findNearestBranchesQueryOffsetMin)
+    .optional()
+    .describe("Number of records to skip for pagination"),
 });
 
 export const findNearestBranchesHeader = zod.object({

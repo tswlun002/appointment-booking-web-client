@@ -33,4 +33,15 @@ export type FindNearestBranchesParams = {
    * @maximum 500
    */
   maxDistanceKm?: number;
+  /**
+   * Number of records to skip for pagination
+   * @minimum 0
+   */
+  offset?: number;
+  /**
+   * Maximum number of records to return
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
 };

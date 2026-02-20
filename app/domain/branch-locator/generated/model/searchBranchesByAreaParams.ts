@@ -15,4 +15,15 @@ export type SearchBranchesByAreaParams = {
    * @maxLength 100
    */
   searchText: string;
+  /**
+   * Number of records to skip for pagination
+   * @minimum 0
+   */
+  offset?: number;
+  /**
+   * Maximum number of records to return
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
 };
