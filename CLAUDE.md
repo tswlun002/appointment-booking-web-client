@@ -168,6 +168,35 @@ When unsure, look at these working examples:
 | Register | `domain/user/Register.ts` | `model/auth/RegisterViewModel.ts` | `pages/auth/register.tsx` |
 | Slots | `domain/slot/generated/Slot.ts` | `model/slot/SlotModelView.ts` | `pages/slots/appointment-slots.tsx` |
 | Book Appointment | `domain/appointment/BookAppointment.ts` | `model/appointment/BookAppointmentModelView.ts` | `pages/appointment/` |
+| Logout | `domain/auth/Logout.ts` | `model/auth/LogoutModelView.ts` | Used via `SecuredHeaderModelView` |
+
+---
+
+## Special Patterns
+
+### Logout Pattern
+Logout uses React Query mutation via `LogoutModelView`:
+```typescript
+// LogoutModelView calls API via useLogout mutation
+// Then calls zustand logout() for frontend cleanup
+// Then navigates to login page
+
+// Usage in other ModelViews:
+const { model: logoutModel } = useLogoutModelView();
+logoutModel.handleLogout();
+```
+
+**Axios Interceptor Exception**: In `axios-api.ts`, we can't use React hooks. When token expires/refresh fails, directly call:
+```typescript
+await useAuthStore.getState().logout(); // Frontend cleanup only
+window.location.href = '/';             // Hard redirect
+```
+This is acceptable because the token is already invalid - calling API logout would fail anyway.
+
+### Zustand Store Role
+Zustand stores (like `AuthStore`) should only handle **state storage**, not API calls:
+- ✅ `logout()` - clears frontend state (caches, storage, user data)
+- ❌ `logoutFromApi()` - should NOT exist, API calls belong in ModelView
 
 ---
 
