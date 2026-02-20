@@ -1,4 +1,5 @@
 import { colors, typography } from "~/resources/colors/colors";
+import { emptySlotsResources } from "~/resources/label/slots-labels";
 
 /** Empty state when no slots available */
 const EmptySlots = () => (
@@ -7,7 +8,7 @@ const EmptySlots = () => (
         style={{ borderColor: colors.borderLight }}
     >
         <p style={{ ...typography.bodySmall, fontWeight: "500", color: colors.textMuted }}>
-            No slots available for this date.
+            {emptySlotsResources.message}
         </p>
     </div>
 );

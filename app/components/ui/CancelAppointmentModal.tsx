@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
+import { cancelAppointmentResources } from "~/resources/label/appointment-labels";
 import type { CancelAppointmentState } from "~/domain/appointment/CancelAppointment";
 import type { CancelAppointmentModelView } from "~/model/appointment/CancelAppointmentModelView";
 import ReactDOM from "react-dom";
@@ -43,7 +44,7 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                     onClick={model.closeModal}
                     disabled={isLoading}
                     className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
-                    aria-label="Close"
+                    aria-label={cancelAppointmentResources.closeButton.ariaLabel}
                 >
                     <X size={20} style={{ color: colors.textMuted }} />
                 </button>
@@ -68,7 +69,7 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                         color: colors.textPrimary,
                     }}
                 >
-                    Cancel Appointment?
+                    {cancelAppointmentResources.title}
                 </h3>
 
                 {/* Appointment info */}
@@ -81,7 +82,7 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                         color: colors.textSecondary,
                     }}
                 >
-                    Are you sure you want to cancel your appointment for{" "}
+                    {cancelAppointmentResources.confirmMessage}{" "}
                     <strong style={{ color: colors.textPrimary }}>{appointment.serviceType}</strong> on{" "}
                     <strong style={{ color: colors.textPrimary }}>{model.formatFullDate(appointment.dateTime)}</strong>?
                 </p>
@@ -129,13 +130,15 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                             color: colors.textSecondary,
                         }}
                         className="block mb-2"
+                        htmlFor={cancelAppointmentResources.reason.id}
                     >
-                        Reason for cancellation <span style={{ color: colors.red }}>*</span>
+                        {cancelAppointmentResources.reason.label} <span style={{ color: colors.red }}>*</span>
                     </label>
                     <textarea
+                        id={cancelAppointmentResources.reason.id}
                         value={reason}
                         onChange={(e) => model.setReason(e.target.value)}
-                        placeholder="Please tell us why you're cancelling..."
+                        placeholder={cancelAppointmentResources.reason.placeholder}
                         disabled={isLoading}
                         className="w-full p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 transition-all"
                         style={{
@@ -176,7 +179,7 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                             fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                         }}
                     >
-                        Keep Appointment
+                        {cancelAppointmentResources.keepButton.label}
                     </button>
                     <button
                         onClick={model.confirmCancel}
@@ -191,7 +194,7 @@ const CancelAppointmentModal = memo(({ state, model }: CancelAppointmentModalPro
                             fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
                         }}
                     >
-                        {isLoading ? "Cancelling..." : "Yes, Cancel"}
+                        {isLoading ? cancelAppointmentResources.cancelButton.loadingLabel : cancelAppointmentResources.cancelButton.label}
                     </button>
                 </div>
             </div>
