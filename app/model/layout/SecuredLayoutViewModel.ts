@@ -4,6 +4,7 @@ import {useShallow} from "zustand/react/shallow";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {SECURED_PAGE_ROLES} from "~/domain/role/Roles";
 import {USERNAME_REGEX} from "~/domain/user/User";
+import {useLogoutModelView} from "~/model/auth/LogoutModelView";
 
 const HYDRATION_TIMEOUT_MS = 10000;
 
@@ -14,10 +15,14 @@ export const useSecuredLayoutModel = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const {isAuthenticated, roles, username} = useAuthStore(useShallow((state) => ({
+    // Use LogoutModelView for logout functionality (authenticated users)
+    const { model: logoutModel } = useLogoutModelView();
+
+    const {isAuthenticated, roles, username, logout} = useAuthStore(useShallow((state) => ({
         isAuthenticated: state.isAuthenticated,
         roles: state.roles,
         username: state.user?.username,
+        logout: state.logout,
     })));
 
     const normalizedSecuredRoles = useMemo(
@@ -31,6 +36,37 @@ export const useSecuredLayoutModel = () => {
             normalizedSecuredRoles.includes(role.toLowerCase())
         );
     }, [normalizedSecuredRoles]);
+
+    /** Handle unauthorized access - calls LogoutModelView if authenticated, frontend logout otherwise */
+    const handleUnauthorizedAccess = useCallback(async (errorMessage?: string) => {
+        try {
+            if (isAuthenticated) {
+                // User was authenticated but failed validation - call API logout via LogoutModelView
+                logoutModel.handleLogout();
+            } else {
+                // User was never authenticated - just clear frontend and navigate
+                await logout();
+                navigate("/", {
+                    replace: true,
+                    state: {
+                        from: location,
+                        error: errorMessage || "Please login to continue."
+                    }
+                });
+            }
+        } catch (error) {
+            // If anything fails, force cleanup and navigate
+            console.error("Logout failed during unauthorized access handling:", error);
+            useAuthStore.persist.clearStorage();
+            navigate("/", {
+                replace: true,
+                state: {
+                    from: location,
+                    error: errorMessage || "Session expired. Please login again."
+                }
+            });
+        }
+    }, [isAuthenticated, logout, logoutModel, navigate, location]);
 
     useEffect(() => {
         if (useAuthStore.persist.hasHydrated()) {
@@ -70,9 +106,11 @@ export const useSecuredLayoutModel = () => {
                 : !hasValidUsername && isAuthenticated
                     ? "Session corrupted. Please login again."
                     : undefined;
-            navigate("/", { replace: true, state: { from: location, error: errorMessage } });
+
+            // Call appropriate logout based on authentication state
+            handleUnauthorizedAccess(errorMessage);
         }
-    }, [isHydrated]);
+    }, [isHydrated, hydrationTimedOut, isAuthenticated, roles, username, hasMatchingRole, handleUnauthorizedAccess]);
 
     const hasValidUsername = !!username && USERNAME_REGEX.test(username);
     const hasAccess = isHydrated && isAuthenticated && hasMatchingRole(roles) && hasValidUsername;
