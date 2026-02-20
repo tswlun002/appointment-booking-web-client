@@ -1,6 +1,7 @@
 import { memo } from "react";
-import { CalendarClock, XCircle, RotateCcw, Info, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarClock, XCircle, Info, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
+import { appointmentCardResources } from "~/resources/label/appointment-labels";
 import type { AppointmentResponse } from "~/domain/appointment/generated/model";
 import type { UserAppointmentsModelView } from "~/model/appointment/UserAppointmentsModelView";
 
@@ -23,12 +24,12 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                 borderWidth: 1
             }}
         >
-            <div className="flex justify-between items-start mb-1">
-                <p style={{ ...typography.bodyLarge, fontWeight: "700", color: colors.textPrimary }}>
+            <div className="flex justify-between items-start gap-2 mb-1">
+                <p className="flex-1" style={{ ...typography.bodyLarge, fontWeight: "700", color: colors.textPrimary }}>
                     {appointment.serviceType}
                 </p>
                 <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-tighter ${model.isBeingProcessed(appointment.status) ? 'animate-pulse' : ''}`}
+                    className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black border uppercase tracking-tighter whitespace-nowrap ${model.isBeingProcessed(appointment.status) ? 'animate-pulse' : ''}`}
                     style={model.getStatusStyle(appointment.status)}
                 >
                     {model.getStatusText(appointment.status)}
@@ -42,7 +43,7 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
 
             {/* Reference */}
             <p style={{ ...typography.caption, color: colors.primary, fontWeight: "600" }} className="mb-3">
-                Ref: {appointment.reference}
+                {appointmentCardResources.referenceLabel} {appointment.reference}
             </p>
 
             {/* View More/Hide Toggle */}
@@ -50,10 +51,10 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                 onClick={() => model.toggleAppointmentInfo(appointment.id)}
                 className="flex items-center gap-1 text-xs font-bold mb-3 hover:underline"
                 style={{ color: colors.primary }}
-                aria-label={isExpanded ? "Hide appointment details" : "View appointment details"}
+                aria-label={isExpanded ? appointmentCardResources.moreInfoButton.hideLabel : appointmentCardResources.moreInfoButton.showLabel}
             >
                 <Info size={14} />
-                {isExpanded ? "Hide info" : "View more info"}
+                {isExpanded ? appointmentCardResources.moreInfoButton.hideLabel : appointmentCardResources.moreInfoButton.showLabel}
                 {isExpanded ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
             </button>
 
@@ -106,7 +107,7 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                             backgroundColor: colors.warningLight
                         }}
                     >
-                        Your appointment is being processed...
+                        {appointmentCardResources.processingMessage}
                     </div>
                 ) : model.canModify(appointment.status) ? (
                     <>
@@ -117,9 +118,9 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                                 borderColor: colors.redBorder,
                                 color: colors.red
                             }}
-                            aria-label={`Cancel appointment for ${appointment.serviceType}`}
+                            aria-label={appointmentCardResources.cancelButton.ariaLabel(appointment.serviceType)}
                         >
-                            <XCircle size={14} /> Cancel
+                            <XCircle size={14} /> {appointmentCardResources.cancelButton.label}
                         </button>
                         <button
                             onClick={() => onRescheduleClick(appointment)}
@@ -128,22 +129,11 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                                 borderColor: colors.primary,
                                 color: colors.primary
                             }}
-                            aria-label={`Reschedule appointment for ${appointment.serviceType}`}
+                            aria-label={appointmentCardResources.rescheduleButton.ariaLabel(appointment.serviceType)}
                         >
-                            <CalendarClock size={14} /> Reschedule
+                            <CalendarClock size={14} /> {appointmentCardResources.rescheduleButton.label}
                         </button>
                     </>
-                ) : model.canRebook(appointment.status) ? (
-                    <button
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-opacity"
-                        style={{
-                            backgroundColor: colors.primary,
-                            color: colors.white
-                        }}
-                        aria-label={`Rebook appointment for ${appointment.serviceType}`}
-                    >
-                        <RotateCcw size={16} /> Rebook Appointment
-                    </button>
                 ) : (
                     <div
                         className="w-full text-center py-2 text-xs font-medium rounded-lg"
