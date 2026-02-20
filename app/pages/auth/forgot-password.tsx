@@ -6,7 +6,7 @@ import {useForgotPasswordModel} from "~/model/auth/ForgotPasswordViewModel";
 import Error from "~/components/ui/error";
 import type {ForgotPasswordRequest} from "~/domain/user/generated/model";
 import {colors, typography} from "~/resources/colors/colors";
-import {Spinner} from "~/components/ui/spinner";
+import {PrimaryButton} from "~/components/ui/buttons";
 
 const ForgotPassword = memo(() => {
 
@@ -66,18 +66,12 @@ const ForgotPassword = memo(() => {
 
                 {/* Submit Button & Login Link */}
                 <div className="flex flex-col gap-4">
-                    <button
+                    <PrimaryButton
+                        label={formButtonLabel}
                         type="submit"
                         disabled={isFormButtonDisabled}
-                        className="w-full flex items-center justify-center gap-2 p-2 sm:p-4 lg:p-3 xl:p-3 rounded-lg font-semibold transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
-                        style={{
-                            backgroundColor: colors.primary,
-                            color: colors.white,
-                        }}
-                    >
-                        {isLoading && <Spinner color={colors.white} className="h-4 w-4" />}
-                        <span>{formButtonLabel}</span>
-                    </button>
+                        isLoading={isLoading}
+                    />
                     <p
                         className="text-center"
                         style={{

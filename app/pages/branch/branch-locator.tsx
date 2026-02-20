@@ -1,31 +1,24 @@
 import {useBranchLocatorModelView} from "~/model/branch/BranchLocatorModelView";
 import type {
     BranchLocation,
-    BranchSearchResponse, FindNearestBranchesParams,
-    NearbyBranchesResponse, SearchBranchesByAreaParams,
+    FindNearestBranchesParams,
+    SearchBranchesByAreaParams,
 } from "~/domain/branch-locator/generated/model";
 import BranchItem from "~/pages/branch/branchItem";
 import { CustomerSearchInput} from "~/components/ui/inputs";
 import Error from "~/components/ui/error";
-import { colors } from "~/resources/colors/colors";
+import { colors, typography } from "~/resources/colors/colors";
 import {BranchLocatorScreenResources} from "~/resources/label/branch-labels";
-import { SendHorizonal} from "lucide-react";
+import { SendHorizonal, ChevronDown} from "lucide-react";
+import { Spinner } from "~/components/ui/spinner";
+
 const BranchLocator = () => {
 
-    const {state, model} = useBranchLocatorModelView();
+    const {state, model, branches} = useBranchLocatorModelView();
 
-    let branches = [] as BranchLocation[];
-    if (state.searchType == "area") {
-        const data = state.response?.data as BranchSearchResponse || [];
-        branches = data.branches || [] as BranchLocation[];
-    } else if (state.searchType == "latLong") {
-        const data = state.response?.data as NearbyBranchesResponse || [] as BranchLocation[];
-        branches = data.branches;
-    }
-
-
-    const branchesElements = branches?.map((branch) => (
+    const branchesElements = branches?.map((branch: BranchLocation) => (
         <BranchItem
+            key={branch.branchId}
             branchId={branch.branchId}
             name={branch.name}
             distanceKm={branch.distanceKm}
@@ -155,6 +148,35 @@ const BranchLocator = () => {
                         {/* Scrollable List Area */}
                         <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
                             {branchesElements}
+
+                            {/* Load More Button */}
+                            {model.hasMore && (
+                                <button
+                                    onClick={() => model.loadMoreBranches()}
+                                    disabled={state.isLoading}
+                                    className="w-full flex items-center justify-center gap-2 py-3 hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{
+                                        backgroundColor: colors.bgLight,
+                                        color: colors.textSecondary,
+                                        borderTopWidth: 1,
+                                        borderColor: colors.borderLight,
+                                        ...typography.button
+                                    }}
+                                    aria-label={BranchLocatorScreenResources.loadMoreButton.label}
+                                >
+                                    {state.isLoading ? (
+                                        <>
+                                            <Spinner color={colors.textSecondary} className="h-4 w-4" />
+                                            <span>{BranchLocatorScreenResources.loadMoreButton.loadingLabel}</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ChevronDown size={16} />
+                                            <span>{BranchLocatorScreenResources.loadMoreButton.label}</span>
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}

@@ -1,6 +1,7 @@
 import { useBookAppointmentModelView } from "~/model/appointment/BookAppointmentModelView";
 import BookAppointmentModal from "./BookAppointmentModal";
 import { colors, typography } from "~/resources/colors/colors";
+import { bookAppointmentResources } from "~/resources/label/appointment-labels";
 import { ArrowLeft, MapPin, Calendar, Clock, CalendarClock, Briefcase } from "lucide-react";
 
 /**
@@ -23,7 +24,7 @@ const BookAppointment = () => {
                     <button
                         onClick={() => window.history.back()}
                         className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                        aria-label="Go back"
+                        aria-label={bookAppointmentResources.backButton.ariaLabel}
                     >
                         <ArrowLeft className="h-6 w-6" style={{ color: colors.textSecondary }} />
                     </button>
@@ -31,7 +32,7 @@ const BookAppointment = () => {
                         <div className="flex items-center gap-2">
                             {isReschedule && <CalendarClock className="h-5 w-5" style={{ color: colors.primary }} />}
                             <p style={{ ...typography.bodyLarge, fontWeight: "700", color: isReschedule ? colors.primary : colors.textSecondary }}>
-                                {isReschedule ? "Reschedule Appointment" : "Book Appointment"}
+                                {isReschedule ? bookAppointmentResources.pageTitle.reschedule : bookAppointmentResources.pageTitle.book}
                             </p>
                         </div>
                         <div className="flex items-center gap-1">
@@ -47,7 +48,7 @@ const BookAppointment = () => {
             {/* Content - Appointment Summary */}
             <div className="flex-1 p-6">
                 <h4 style={{ ...typography.h4, color: colors.primary, marginBottom: "24px" }}>
-                    {isReschedule ? "New Appointment Details" : "Appointment Details"}
+                    {isReschedule ? bookAppointmentResources.appointmentDetails.titleReschedule : bookAppointmentResources.appointmentDetails.title}
                 </h4>
 
                 {/* Date & Time Summary */}
@@ -55,7 +56,7 @@ const BookAppointment = () => {
                     <div className="flex items-center gap-3 p-4 rounded-lg" style={{ backgroundColor: colors.bgLight }}>
                         <Calendar className="h-5 w-5" style={{ color: colors.primary }} />
                         <div>
-                            <p style={{ ...typography.caption, color: colors.textMuted }}>Date</p>
+                            <p style={{ ...typography.caption, color: colors.textMuted }}>{bookAppointmentResources.fields.date.label}</p>
                             <p style={{ ...typography.bodyLarge, fontWeight: "600", color: colors.textPrimary }}>
                                 {state.userData.displayDate}
                             </p>
@@ -65,7 +66,7 @@ const BookAppointment = () => {
                     <div className="flex items-center gap-3 p-4 rounded-lg" style={{ backgroundColor: colors.bgLight }}>
                         <Clock className="h-5 w-5" style={{ color: colors.primary }} />
                         <div>
-                            <p style={{ ...typography.caption, color: colors.textMuted }}>Time</p>
+                            <p style={{ ...typography.caption, color: colors.textMuted }}>{bookAppointmentResources.fields.time.label}</p>
                             <p style={{ ...typography.bodyLarge, fontWeight: "600", color: colors.textPrimary }}>
                                 {state.userData.slotTime}
                             </p>
@@ -77,7 +78,7 @@ const BookAppointment = () => {
                         <div className="flex items-center gap-3 p-4 rounded-lg" style={{ backgroundColor: colors.bgLight }}>
                             <Briefcase className="h-5 w-5" style={{ color: colors.primary }} />
                             <div>
-                                <p style={{ ...typography.caption, color: colors.textMuted }}>Service Type</p>
+                                <p style={{ ...typography.caption, color: colors.textMuted }}>{bookAppointmentResources.fields.serviceType.label}</p>
                                 <p style={{ ...typography.bodyLarge, fontWeight: "600", color: colors.textPrimary }}>
                                     {state.userData.serviceType}
                                 </p>

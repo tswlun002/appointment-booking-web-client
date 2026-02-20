@@ -4,6 +4,7 @@ import { Search, Calendar } from "lucide-react";
 import { colors } from "~/resources/colors/colors";
 import { useUserAppointmentsModelView } from "~/model/appointment/UserAppointmentsModelView";
 import AppointmentsWidget from "~/components/ui/AppointmentsWidget";
+import { userAppointmentsScreenResources } from "~/resources/label/appointment-labels";
 
 const UserAppointments = () => {
     const { appointments, model, state, cancelState, cancelModel } = useUserAppointmentsModelView();
@@ -56,10 +57,10 @@ const UserAppointments = () => {
                         backgroundColor: activeTab === 'branch' ? colors.primaryLight : colors.bgWhite,
                         color: activeTab === 'branch' ? colors.primary : colors.textMuted
                     }}
-                    aria-label="Find Branch"
+                    aria-label={userAppointmentsScreenResources.mobileNav.findBranch.ariaLabel}
                 >
                     <Search size={20} />
-                    <span className="text-xs font-semibold">Find Branch</span>
+                    <span className="text-xs font-semibold">{userAppointmentsScreenResources.mobileNav.findBranch.label}</span>
                 </button>
                 <button
                     onClick={() => model.setActiveTab('appointments')}
@@ -68,10 +69,10 @@ const UserAppointments = () => {
                         backgroundColor: activeTab === 'appointments' ? colors.primaryLight : colors.bgWhite,
                         color: activeTab === 'appointments' ? colors.primary : colors.textMuted
                     }}
-                    aria-label="View Appointments"
+                    aria-label={userAppointmentsScreenResources.mobileNav.appointments.ariaLabel}
                 >
                     <Calendar size={20} />
-                    <span className="text-xs font-semibold">Appointments</span>
+                    <span className="text-xs font-semibold">{userAppointmentsScreenResources.mobileNav.appointments.label}</span>
                 </button>
             </div>
         </div>

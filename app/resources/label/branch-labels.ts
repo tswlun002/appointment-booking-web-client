@@ -19,7 +19,10 @@ export const BranchLocatorScreenResources = {
     branchesList:{
         label:"Nearby branches",
     },
-
+    loadMoreButton: {
+        label: "Load more branches",
+        loadingLabel: "Loading...",
+    },
 }
 export const BranchItemResources = {
     branchItemHeader:{

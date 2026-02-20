@@ -47,9 +47,11 @@ const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes}:Br
                             <p className="font-bold text-lg" style={{ color: colors.textSecondary }}>
                                 {name}
                             </p>
-                            <p className="text-xs font-bold mt-1" style={{ color: colors.primary }}>
-                                {`${distanceKm}km away`}
-                            </p>
+                            {distanceKm != null && (
+                                <p className="text-xs font-bold mt-1" style={{ color: colors.primary }}>
+                                    {`${distanceKm}km away`}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <button
@@ -80,7 +82,7 @@ const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes}:Br
                             backgroundColor: colors.primary,
                             color: colors.bgWhite
                         }}
-                        onClick={e=>model.onBook(branchId,name,`${distanceKm}km`,e)}
+                        onClick={e=>model.onBook(branchId,name, distanceKm != null ? `${distanceKm}km` : "",e)}
                     >
                         {BranchItemResources.bookAppointmentButton.label}
                     </button>

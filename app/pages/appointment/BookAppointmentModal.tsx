@@ -1,9 +1,11 @@
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
 import { colors, typography } from "~/resources/colors/colors";
 import { SERVICE_TYPES } from "~/domain/appointment/BookAppointment";
 import type { BookAppointmentModelView } from "~/model/appointment/BookAppointmentModelView";
 import type { BookAppointmentState } from "~/domain/appointment/BookAppointment";
 import { useBookAppointmentModalModelView } from "~/model/appointment/BookAppointmentModalModelView";
+import { bookAppointmentModalResources } from "~/resources/label/appointment-labels";
+import { PrimaryButton, SecondaryButton } from "~/components/ui/buttons";
 
 interface BookAppointmentModalProps {
     state: BookAppointmentState;
@@ -71,7 +73,7 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                         onClick={model.closeModal}
                         disabled={isLoading}
                         className="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
-                        aria-label="Close modal"
+                        aria-label={bookAppointmentModalResources.closeButton.ariaLabel}
                     >
                         <X className="h-5 w-5" style={{ color: colors.textMuted }} />
                     </button>
@@ -103,7 +105,7 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                                 marginBottom: "4px",
                             }}
                         >
-                            {isRescheduleMode ? "New Appointment Time" : "Selected Appointment"}
+                            {isRescheduleMode ? bookAppointmentModalResources.selectedAppointment.labelReschedule : bookAppointmentModalResources.selectedAppointment.label}
                         </p>
                         <p
                             style={{
@@ -127,8 +129,8 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                                     marginBottom: "12px",
                                 }}
                             >
-                                What do you need help with?{" "}
-                                <span style={{ color: colors.red }}>*</span>
+                                {bookAppointmentModalResources.serviceType.label}{" "}
+                                <span style={{ color: colors.red }}>{bookAppointmentModalResources.serviceType.required}</span>
                             </p>
                             <div className="flex flex-wrap gap-2">
                                 {SERVICE_TYPES.map((serviceType) => {
@@ -165,7 +167,7 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                                     marginBottom: "8px",
                                 }}
                             >
-                                Service Type
+                                {bookAppointmentModalResources.serviceType.labelReschedule}
                             </p>
                             <p
                                 style={{
@@ -190,37 +192,21 @@ const BookAppointmentModal = ({ state, model }: BookAppointmentModalProps) => {
                         backgroundColor: colors.bgLight,
                     }}
                 >
-                    <button
+                    <SecondaryButton
+                        label={bookAppointmentModalResources.buttons.cancel.label}
                         onClick={model.closeModal}
                         disabled={isLoading}
-                        className="flex-1 py-3 rounded-lg border-2 transition-all duration-200 hover:bg-gray-50 active:scale-98 disabled:opacity-50"
-                        style={{
-                            ...typography.button,
-                            borderColor: colors.borderLight,
-                            color: colors.textSecondary,
-                            backgroundColor: colors.white,
-                        }}
-                    >
-                        Cancel
-                    </button>
-                    <button
+                        className="flex-1"
+                        fullWidth={false}
+                    />
+                    <PrimaryButton
+                        label={model.confirmButtonText}
                         onClick={model.confirmBooking}
                         disabled={!isConfirmEnabled}
-                        className={`flex-1 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
-                            isConfirmEnabled
-                                ? "hover:opacity-90 active:scale-98"
-                                : "cursor-not-allowed"
-                        }`}
-                        style={{
-                            ...typography.button,
-                            backgroundColor: isConfirmEnabled ? colors.primary : colors.borderMedium,
-                            color: colors.white,
-                            opacity: isConfirmEnabled ? 1 : 0.5,
-                        }}
-                    >
-                        {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                        {model.confirmButtonText}
-                    </button>
+                        isLoading={isLoading}
+                        className="flex-1"
+                        fullWidth={false}
+                    />
                 </div>
             </div>
         </div>

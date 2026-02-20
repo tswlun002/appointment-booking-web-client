@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { colors, typography } from "~/resources/colors/colors";
 import { CheckCircle } from "lucide-react";
 import type { AppointmentResponse } from "~/domain/appointment/generated/model";
+import { appointmentSuccessResources } from "~/resources/label/appointment-labels";
 
 interface SuccessState {
     appointment?: AppointmentResponse;
@@ -49,7 +50,7 @@ const AppointmentSuccess = () => {
                         style={{ color: colors.white }}
                     />
                     <h1 style={{ ...typography.h3, color: colors.white, margin: 0 }}>
-                        Appointment Booked!
+                        {appointmentSuccessResources.title}
                     </h1>
                     <p
                         style={{
@@ -59,7 +60,7 @@ const AppointmentSuccess = () => {
                             marginTop: "8px",
                         }}
                     >
-                        Your appointment has been successfully scheduled.
+                        {appointmentSuccessResources.message}
                     </p>
                 </div>
 
@@ -71,7 +72,7 @@ const AppointmentSuccess = () => {
                             style={{ borderColor: colors.borderLight }}
                         >
                             <p style={{ ...typography.caption, color: colors.textMuted }}>
-                                Reference Number
+                                {appointmentSuccessResources.referenceNumber.label}
                             </p>
                             <p style={{ ...typography.h4, color: colors.primary, margin: 0 }}>
                                 {appointment.reference}
@@ -86,7 +87,7 @@ const AppointmentSuccess = () => {
                         {appointment.serviceType && (
                             <div>
                                 <p style={{ ...typography.caption, color: colors.textMuted }}>
-                                    Service
+                                    {appointmentSuccessResources.details.service.label}
                                 </p>
                                 <p
                                     style={{
@@ -104,7 +105,7 @@ const AppointmentSuccess = () => {
                         {appointment.dateTime && (
                             <div>
                                 <p style={{ ...typography.caption, color: colors.textMuted }}>
-                                    Date & Time
+                                    {appointmentSuccessResources.details.dateTime.label}
                                 </p>
                                 <p
                                     style={{
@@ -139,7 +140,7 @@ const AppointmentSuccess = () => {
                         {appointment.status && (
                             <div>
                                 <p style={{ ...typography.caption, color: colors.textMuted }}>
-                                    Status
+                                    {appointmentSuccessResources.details.status.label}
                                 </p>
                                 <p
                                     style={{
@@ -158,17 +159,10 @@ const AppointmentSuccess = () => {
 
                 {/* Back Button */}
                 <div className="p-6 pt-0">
-                    <button
+                    <PrimaryButton
+                        label={appointmentSuccessResources.backButton.label}
                         onClick={handleBackToAppointments}
-                        className="w-full py-3 rounded-lg transition-all duration-200 hover:opacity-90 active:scale-98"
-                        style={{
-                            ...typography.button,
-                            backgroundColor: colors.primary,
-                            color: colors.white,
-                        }}
-                    >
-                        Back to Appointments
-                    </button>
+                    />
                 </div>
             </div>
         </div>
