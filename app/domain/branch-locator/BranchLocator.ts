@@ -1,21 +1,25 @@
 import {
     findNearestBranchesQueryLatitudeMax,
-    findNearestBranchesQueryLatitudeMin, findNearestBranchesQueryLimitDefault,
-    findNearestBranchesQueryLimitMax, findNearestBranchesQueryLongitudeMax, findNearestBranchesQueryLongitudeMin,
+    findNearestBranchesQueryLatitudeMin, findNearestBranchesQueryLimitDefaultOne,
+    findNearestBranchesQueryLimitMaxOne, findNearestBranchesQueryLongitudeMax, findNearestBranchesQueryLongitudeMin,
     findNearestBranchesQueryMaxDistanceKmMax,
     findNearestBranchesQueryParams,
     searchBranchesByAreaQueryParams, searchBranchesByAreaQuerySearchTextMax,
     searchBranchesByAreaQuerySearchTextMin
 } from "~/domain/branch-locator/generated/zod";
 import {z} from "zod";
-import type {State} from "~/domain/State";
+import type {PaginatedState, State} from "~/domain/State";
 import type {
+    BranchLocation,
     BranchSearchResponse,
     FindNearestBranchesParams,
     NearbyBranchesResponse,
     SearchBranchesByAreaParams
 } from "~/domain/branch-locator/generated/model";
 import type {TypeError} from "~/domain/error/Error";
+
+/** Default pagination limit for branches */
+export const DEFAULT_BRANCH_PAGE_LIMIT = 10;
 
 const searchBranchesByAreaQueryParamSchema = searchBranchesByAreaQueryParams.extend(({
     searchText:z
@@ -36,8 +40,8 @@ const findNearestBranchesQueryParamsSchema = findNearestBranchesQueryParams.exte
     limit: z
         .number()
         .min(1)
-        .max(findNearestBranchesQueryLimitMax)
-        .default(findNearestBranchesQueryLimitDefault),
+        .max(findNearestBranchesQueryLimitMaxOne)
+        .default(findNearestBranchesQueryLimitDefaultOne),
     maxDistanceKm: z
         .number()
         .min(1)
@@ -49,9 +53,20 @@ export const BranchItemSchema = z.strictObject({
     branchId:z.string({error:"BranchId of the select branch is require"}).min(1,"BranchId of the select branch is require")
 });
 export  const BranchLocatorSchema= searchBranchesByAreaQueryParamSchema || findNearestBranchesQueryParamsSchema;
-export  interface  BranchLocatorState extends State<SearchBranchesByAreaParams|FindNearestBranchesParams, NearbyBranchesResponse|BranchSearchResponse>{
-    searchType: "area"|"latLong",
-    errors: TypeError<SearchBranchesByAreaParams|FindNearestBranchesParams>,
+
+/** Combined branch params with pagination */
+export type BranchParams = (SearchBranchesByAreaParams | FindNearestBranchesParams) & {
+    offset: number;
+    limit: number;
+};
+
+/** Combined branch response */
+export type BranchResponse = NearbyBranchesResponse | BranchSearchResponse;
+
+/** Paginated state for branch locator */
+export interface BranchLocatorState extends PaginatedState<BranchParams, BranchResponse, BranchLocation> {
+    searchType: "area" | "latLong";
+    errors: TypeError<BranchParams>;
     DISTANCES: number[];
 }
 
