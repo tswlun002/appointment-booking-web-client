@@ -20,7 +20,6 @@ jobs:
       contents: write
       actions: read
     outputs:
-      VERSION: ${{ steps.build.outputs.VERSION }}
       ARTIFACT_PATH: ${{ steps.build.outputs.ARTIFACT_PATH }}
     steps:
       - name: Checkout
@@ -50,6 +49,7 @@ jobs:
       - build-app
     runs-on: ubuntu-latest
     outputs:
+      VERSION: ${{ steps.upload.outputs.VERSION }}
       IMAGE_NAME: ${{ steps.upload.outputs.IMAGE_NAME }}
       IMAGE_DIGEST: ${{ steps.upload.outputs.IMAGE_DIGEST }}
     steps:
