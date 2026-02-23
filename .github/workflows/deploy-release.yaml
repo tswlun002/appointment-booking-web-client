@@ -57,21 +57,6 @@ jobs:
             echo "should_deploy=true" >> $GITHUB_OUTPUT
           fi
 
-  # Cache and pull Docker images on host runner
-  cache-docker-images:
-    needs: check-changes
-    if: needs.check-changes.outputs.should_deploy == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Docker images
-        uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: docker-layer-cache-${{ runner.os }}-{hash}
-          restore-keys: |
-            docker-layer-cache-${{ runner.os }}-
-
-
   build-app:
     needs:
       - check-changes
@@ -105,15 +90,7 @@ jobs:
           fi
           echo " $current_branch is up to date with origin/main"
 
-      - name: Build with Gradle
-        id: build
-        uses: ./.github/actions/node-build
-        with:
-          ARTIFACT_ID: "appointment-booking-web-client"
-
   build-docker:
-    needs:
-      - build-app
     runs-on: ubuntu-latest
     outputs:
       IMAGE_NAME: ${{ steps.upload.outputs.IMAGE_NAME }}
