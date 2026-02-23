@@ -108,12 +108,20 @@ runs:
     - name: Push to Docker Hub
       run: |
         echo "Pushing image: ${{ steps.variables.outputs.IMAGE_NAME }}"
-        docker push "${{ steps.variables.outputs.IMAGE_NAME }}"
+        
+        docker buildx create --name mybuilder --use
+        
+        docker buildx build --platform linux/amd64,linux/arm64 \
+        -t ${{ steps.variables.outputs.IMAGE_NAME }} --push .
+        
         
         if [ "${{ inputs.PUSH_LATEST }}" == "true" ]; then
+        
           echo "Tagging and pushing latest..."
           docker tag "${{ steps.variables.outputs.IMAGE_NAME }}" "${{ steps.variables.outputs.IMAGE_LATEST }}"
-          docker push "${{ steps.variables.outputs.IMAGE_LATEST }}"
+        
+          docker buildx build --platform linux/amd64,linux/arm64 \
+          -t "${{ steps.variables.outputs.IMAGE_LATEST }}" --push .
         fi
         
         echo "Successfully pushed to Docker Hub!"
