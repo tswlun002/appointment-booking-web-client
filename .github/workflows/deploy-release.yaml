@@ -1,4 +1,4 @@
-name: Java CI/CD With NPM 🛠️🔨
+name: React CI/CD With NPM 🛠️🔨
 on:
   workflow_dispatch: #Manual kickoff
   push:
