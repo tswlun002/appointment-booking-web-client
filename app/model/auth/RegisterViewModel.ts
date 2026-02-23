@@ -139,8 +139,6 @@ export class RegisterModel extends ViewModel<RegisterUserMutationBody,RegisterUs
 
             },
             onError: (error:RegisterUserMutationError) => {
-
-                console.info(error.message, error.error, "\n", error);
                 const message = error.message || error.error;
                 this.dispatch({type: ActionEvent.SET_API_ERROR,error: {isError: true, message: message }});
             },

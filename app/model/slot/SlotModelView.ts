@@ -131,7 +131,6 @@ export const useSlotModelView = () => {
                     });
                 }
             } catch (error) {
-                console.debug("Failed to fetch slots", error);
                 stableDispatch({
                     type: ActionEvent.SET_API_ERROR,
                     error: {

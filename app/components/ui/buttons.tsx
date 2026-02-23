@@ -175,7 +175,7 @@ export function FormButton({ label, handleClick, style , disabled,type}: FormBut
 
     const classname = isNotBlank<String>(style)?style:'w-full text-center text-black p-4 rounded-xl';
 
-    handleClick = handleClick===undefined?(e)=>{console.debug(`submitted , id ${e.target}`)}
+    handleClick = handleClick===undefined?(e)=>{}
         :handleClick
 
     return (

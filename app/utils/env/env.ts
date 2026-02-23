@@ -39,7 +39,6 @@ const parseCustomHeaders = (headerString: string | undefined): Record<string, st
  */
 export const getEnvVar = (key: string, defaultValue: string = ''): string => {
     // For SSR, always read from process.env at runtime
-    console.log("Custom headers getEnvVar: ", key, defaultValue);
     if (typeof process !== 'undefined' && process.env) {
         // Read with or without VITE_ prefix
         const value = process.env[key] || process.env[`VITE_${key}`];
@@ -75,7 +74,7 @@ const validateEnvironment = (config: EnvironmentConfig): void => {
         throw new Error('INTERNAL_BASE_URL is required');
     }
 };
-console.log("Env server: ",env)
+
 validateEnvironment(env);
 
 export default env;

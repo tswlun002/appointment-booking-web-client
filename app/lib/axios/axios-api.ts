@@ -53,7 +53,6 @@ export class ApiClient {
             (response: AxiosResponse) => response,
             (error) =>{
 
-                console.debug("error message:",error.message,"\n stack: ",JSON.stringify(error));
 
                 if(error.code === AxiosError.ERR_NETWORK){
                     error.message = "Our service is down at the moment, please try again later";

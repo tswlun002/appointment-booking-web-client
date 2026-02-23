@@ -111,7 +111,6 @@ export const useBranchLocatorModelView = () => {
 
             return coordinates.current;
         } catch (err) {
-            console.log(err)
             dispatch({
                 type: ActionEvent.SET_API_ERROR,
                 error: {

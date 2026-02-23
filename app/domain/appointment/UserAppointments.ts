@@ -32,7 +32,6 @@ export const sortAppointments = (appointments: AppointmentResponse[]): Appointme
 
         // BOOKED: sort by latest date first (descending)
         if (a.status === "BOOKED" && b.status === "BOOKED") {
-            console.log("A: ", a, " B: ", b);
             return new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime();
         }
 

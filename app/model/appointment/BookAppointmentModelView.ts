@@ -51,7 +51,6 @@ export const useBookAppointmentModelView = () => {
     const { branchId: routeBranchId, slotId: routeSlotId } = useParams();
     // Get username from auth store
     const username = useAuthStore(useShallow((s) => s.user?.username ?? ""));
-    console.log("useBookAppointmentModelView: username ", username);
     // Get additional booking data from navigation state (passed from slots page)
     const locationState = useLocation().state || {};
     const {

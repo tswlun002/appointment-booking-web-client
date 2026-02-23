@@ -31,7 +31,7 @@ export const persistAppointmentCache = (queryClient: QueryClient): void => {
         }
     });
     try { sessionStorage.setItem(APPOINTMENT_CACHE_KEY, JSON.stringify(cacheData)); }
-    catch (e) { console.debug("Failed to persist appointment cache:", e); }
+    catch { /* Cache persistence failed silently */ }
 };
 
 export const restoreAppointmentCache = (queryClient: QueryClient): void => {
@@ -45,12 +45,12 @@ export const restoreAppointmentCache = (queryClient: QueryClient): void => {
                 queryClient.setQueryData(JSON.parse(keyString), value.data, { updatedAt: value.dataUpdatedAt });
             }
         });
-    } catch (e) { console.debug("Failed to restore appointment cache:", e); }
+    } catch { /* Cache restore failed silently */ }
 };
 
 export const clearAppointmentCache = (): void => {
     try { sessionStorage.removeItem(APPOINTMENT_CACHE_KEY); }
-    catch (e) { console.debug("Failed to clear appointment cache:", e); }
+    catch { /* Cache clear failed silently */ }
 };
 
 export const getCachedAppointmentData = (username: string): { data: AppointmentsResponse; queryKey: string[] } | null => {
@@ -68,6 +68,6 @@ export const getCachedAppointmentData = (username: string): { data: Appointments
             }
         }
         return null;
-    } catch (e) { console.debug("Failed to get cached appointment data:", e); return null; }
+    } catch { return null; }
 };
 
