@@ -1,12 +1,12 @@
 name: React CI/CD With NPM 🛠️🔨
 on:
   workflow_dispatch: #Manual kickoff
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
+#  push:
+#    branches:
+#      - main
+#    paths-ignore:
+#      - '*.md'
+#      - 'docs/**'
 
 # Prevent multiple deployments from running simultaneously
 concurrency:
