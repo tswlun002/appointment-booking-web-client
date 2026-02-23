@@ -1,5 +1,5 @@
 import type {Error, TypeError} from "~/domain/error/Error"
-import React, {type ChangeEvent, type Dispatch, type RefObject, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
+import {type ChangeEvent, type Dispatch, type RefObject, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
 import {createZodResolver} from "~/model/auth/zod/ZodResolver";
 import {type NavigateFunction, useNavigate} from "react-router";
 import type {UseMutationResult} from "@tanstack/react-query";

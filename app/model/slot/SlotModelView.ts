@@ -1,7 +1,7 @@
 import {ViewModel} from "~/model/ViewModel";
 import {type WeeklySlotsQuery, WeeklySlotsRequestDataSchema, type WeeklySlotsState, type RescheduleNavigationState} from "~/domain/slot/generated/Slot";
 import {LocalDate} from "~/utils/CompanionObjects";
-import React, {type Dispatch, type MouseEvent, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
+import {type Dispatch, type MouseEvent, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
 import {useGetWeeklySlots} from "~/api/slot/generated/endpoints/slot-queries/slot-queries";
 import {type NavigateFunction, useLocation, useNavigate, useParams} from "react-router";
 import type {

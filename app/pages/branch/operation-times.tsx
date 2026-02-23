@@ -1,4 +1,3 @@
-import React from 'react';
 import {colors} from "~/resources/colors/colors";
 type OperationTimesProps = {
     startAt: string,
