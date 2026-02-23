@@ -30,6 +30,9 @@ inputs:
     default: "true"
 
 outputs:
+  VERSION:
+    description: "Version number"
+    value: ${{ steps.version.outputs.VERSION }}
   IMAGE_NAME:
     description: "Full Docker Hub image name with version tag"
     value: ${{ steps.variables.outputs.IMAGE_NAME }}
@@ -93,7 +96,7 @@ runs:
       id: docker_build
       run: |
         echo "Building Docker image..."
-        docker build --build-arg --iidfile=image-sha.txt \
+        docker build --iidfile=image-sha.txt \
           -t "${{ steps.variables.outputs.IMAGE_NAME }}" \
           "${{ inputs.MODULE_PATH }}" --no-cache
         

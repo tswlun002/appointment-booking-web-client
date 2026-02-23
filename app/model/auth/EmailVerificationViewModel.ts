@@ -88,7 +88,6 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
         return {
             onSuccess: async (response: string | void | TokenResponse) => {
 
-                console.log(response);
                 let message;
                 let status;
                 if (typeof response === "string" || typeof response === "undefined") {
@@ -104,7 +103,6 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
 
             },
             onError: (error: VerifyUserMutationError) => {
-                console.debug(error);
                 const message = error?.message || error?.error;
                 this.dispatch({type: ActionEvent.SET_API_ERROR, error: {isError: true, message: message}});
             },
@@ -113,14 +111,12 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
     }
 
     catchStateChange(state: EmailVerificationState) {
-        console.log(state);
         if (state.response?.isSuccess) {
 
             //switch (state.response.status) {
             if(state.response.status=== 200) {
                 setTimeout(() => {
                     const navigateTo = "/appointments";
-                    console.log("navigate to:", navigateTo)
                     this.navigateFunction(navigateTo, {replace: true});
                 }, NAVIGATION_DELAY_TIME_SECOND);
 
@@ -128,7 +124,6 @@ export class EmailVerificationModel extends ViewModel<VerifyUserMutationBody, Ve
             else if(state.response.status=== 2002 || state.response.status===   204) {
                 setTimeout(() => {
                     const navigateTo = "/login"
-                    console.log("navigate to:", navigateTo)
                     this.navigateFunction(navigateTo, {replace: true});
                 }, 16000);
 

@@ -33,7 +33,7 @@ export const persistBranchCache = (queryClient: QueryClient): void => {
         }
     });
     try { sessionStorage.setItem(BRANCH_CACHE_KEY, JSON.stringify(cacheData)); }
-    catch (e) { console.debug("Failed to persist branch cache:", e); }
+    catch { /* Cache persistence failed silently */ }
 };
 
 export const restoreBranchCache = (queryClient: QueryClient): void => {
@@ -47,12 +47,12 @@ export const restoreBranchCache = (queryClient: QueryClient): void => {
                 queryClient.setQueryData(JSON.parse(keyString), value.data, { updatedAt: value.dataUpdatedAt });
             }
         });
-    } catch (e) { console.debug("Failed to restore branch cache:", e); }
+    } catch { /* Cache restore failed silently */ }
 };
 
 export const clearBranchCache = (): void => {
     try { sessionStorage.removeItem(BRANCH_CACHE_KEY); }
-    catch (e) { console.debug("Failed to clear branch cache:", e); }
+    catch { /* Cache clear failed silently */ }
 };
 
 export const getLastCachedBranchData = (): { data: BranchCacheData; queryKey: string[] } | null => {
@@ -72,5 +72,5 @@ export const getLastCachedBranchData = (): { data: BranchCacheData; queryKey: st
             }
         });
         return mostRecentData && mostRecentKey ? { data: mostRecentData, queryKey: mostRecentKey } : null;
-    } catch (e) { console.debug("Failed to get cached branch data:", e); return null; }
+    } catch { return null; }
 };
