@@ -30,6 +30,9 @@ inputs:
     default: "true"
 
 outputs:
+  VERSION:
+    description: "Version number"
+    value: ${{ steps.version.outputs.VERSION }}
   IMAGE_NAME:
     description: "Full Docker Hub image name with version tag"
     value: ${{ steps.variables.outputs.IMAGE_NAME }}

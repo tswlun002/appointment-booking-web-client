@@ -109,5 +109,5 @@ jobs:
           gh release edit $VERSION --notes-file release-notes.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ needs.build-app.outputs.VERSION }}
+          VERSION: ${{ needs.build-docker.outputs.VERSION }}
           IMAGE: ${{ needs.build-docker.outputs.IMAGE_NAME }}
