@@ -43,20 +43,14 @@ runs:
     - name: Pull, Retag and Push
       id: push
       run: |
-        SOURCE_IMAGE="${{ inputs.IMAGE_NAME }}"
-        REPO="${SOURCE_IMAGE%:*}"
-        DOCKERHUB_IMAGE="${REPO}:${{ inputs.TARGET_TAG }}"
+        # 1. create builder
+        docker buildx create --name mybuilder --use
         
-        echo "Pulling: ${SOURCE_IMAGE}"
-        docker pull "${SOURCE_IMAGE}"
+        # 2. Build and push both architectures in one go
+        docker buildx build --platform linux/amd64,linux/arm64 \
+        -t ${{ inputs.IMAGE_NAME  }} --push .
         
-        echo "Retagging as: ${DOCKERHUB_IMAGE}"
-        docker tag "${SOURCE_IMAGE}" "${DOCKERHUB_IMAGE}"
-        
-        echo "Pushing: ${DOCKERHUB_IMAGE}"
-        docker push "${DOCKERHUB_IMAGE}"
-        
-        echo "DOCKERHUB_IMAGE=${DOCKERHUB_IMAGE}" >> "$GITHUB_OUTPUT"
+        echo "DOCKERHUB_IMAGE=${inputs.IMAGE_NAME }" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: Logout
