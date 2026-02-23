@@ -1,12 +1,10 @@
-'use client'
 import {
     type ChangeEvent,
     type ChangeEventHandler,
     type MouseEvent,
     type RefObject,
     useReducer,
-    useRef,
-    type SubmitEvent
+    useRef
 } from "react";
 import {Eye, EyeOff, Search} from "lucide-react";
 import {isNotBlank,  PasswordVisibility} from "~/utils/CompanionObjects";

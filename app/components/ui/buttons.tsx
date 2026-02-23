@@ -1,4 +1,3 @@
-'use client'
 import {type FC, type MouseEvent, useState} from "react";
 import {Link} from "react-router";
 import { blue_primary, colors, typography} from "~/resources/colors/colors";
