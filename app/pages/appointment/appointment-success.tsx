@@ -4,6 +4,7 @@ import { colors, typography } from "~/resources/colors/colors";
 import { CheckCircle } from "lucide-react";
 import type { AppointmentResponse } from "~/domain/appointment/generated/model";
 import { appointmentSuccessResources } from "~/resources/label/appointment-labels";
+import {PrimaryButton} from "~/components/ui/buttons";
 
 interface SuccessState {
     appointment?: AppointmentResponse;
