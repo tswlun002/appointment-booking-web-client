@@ -24,6 +24,7 @@ const BranchLocator = () => {
             distanceKm={branch.distanceKm}
             fullAddress={branch.fullAddress}
             operationTimes={branch.operationTimes}
+            searchType={state.searchType}
         />
     ));
 

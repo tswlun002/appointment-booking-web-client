@@ -8,10 +8,11 @@ import {BranchItemModelView, useBranchItemModelView} from "~/model/branch/Branch
 
 type BranchItemProps = {
     branchId:string, name:string, distanceKm:number, fullAddress:string,
-    operationTimes:BranchLocationOperationTimes
+    operationTimes:BranchLocationOperationTimes,
+    searchType:"latLong"|"area"
 }
 
-const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes}:BranchItemProps) => {
+const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes,searchType}:BranchItemProps) => {
 
 
     const {state, model} = useBranchItemModelView();
@@ -47,7 +48,7 @@ const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes}:Br
                             <p className="font-bold text-lg" style={{ color: colors.textSecondary }}>
                                 {name}
                             </p>
-                            {distanceKm != null && (
+                            {((searchType!=='area' && distanceKm != null) )&& (
                                 <p className="text-xs font-bold mt-1" style={{ color: colors.primary }}>
                                     {`${distanceKm}km away`}
                                 </p>

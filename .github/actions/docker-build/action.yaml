@@ -1,0 +1,123 @@
+name: Build and Push Docker Container to Docker Hub
+
+inputs:
+  MODULE:
+    description: "Module name"
+    required: false
+    default: "appointment-booking"
+  MODULE_PATH:
+    description: "Path to module directory"
+    default: .
+  ARTIFACT_ID:
+    description: "Artifact ID for the JAR file"
+    required: true
+  ARTIFACT_PATH:
+    description: "Path where artifact is stored"
+    required: false
+    default: "./build/libs"
+  DOCKERHUB_USERNAME:
+    description: "Docker Hub username"
+    required: true
+  DOCKERHUB_PASSWORD:
+    description: "Docker Hub password or access token"
+    required: true
+  DOCKERHUB_REPOSITORY:
+    description: "Docker Hub repository (e.g., username/repo-name)"
+    required: true
+  PUSH_LATEST:
+    description: "Also push with 'latest' tag"
+    required: false
+    default: "true"
+
+outputs:
+  IMAGE_NAME:
+    description: "Full Docker Hub image name with version tag"
+    value: ${{ steps.variables.outputs.IMAGE_NAME }}
+  IMAGE_DIGEST:
+    description: "Docker image digest/SHA"
+    value: ${{ steps.docker_build.outputs.IMAGE_DIGEST }}
+  IMAGE_LATEST:
+    description: "Docker Hub image with latest tag"
+    value: ${{ steps.variables.outputs.IMAGE_LATEST }}
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Rewrite version
+      id: version
+      run: |
+        DATE_TIME=$(date '+%Y.%m.%d.%H.%M')
+        SHA8=$(git rev-parse --short HEAD)
+        VERSION="${DATE_TIME}-${SHA8}"
+        find ${{ inputs.MODULE_PATH }} -name 'package.json' -exec sed -i "s/APPOINTMENT-BOOKING-UNSET-VERSION/${VERSION}/g" {} +
+        echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+        echo "VERSION=${VERSION}"
+      shell: bash
+      env:
+        TZ: Africa/Johannesburg
+
+    - name: Print Inputs
+      run: |
+        echo "======================"
+        echo "VERSION=${{ inputs.VERSION }}"
+        echo "MODULE=${{ inputs.MODULE }}"
+        echo "MODULE_PATH=${{ inputs.MODULE_PATH }}"
+        echo "DOCKERHUB_REPOSITORY=${{ inputs.DOCKERHUB_REPOSITORY }}"
+        echo "ARTIFACT_ID=${{ inputs.ARTIFACT_ID }}"
+        echo "PUSH_LATEST=${{ inputs.PUSH_LATEST }}"
+        echo "==========================="
+      shell: bash
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+
+    - name: Set Variables
+      id: variables
+      run: |
+        IMAGE_NAME="${{ inputs.DOCKERHUB_REPOSITORY }}:${{ inputs.VERSION }}"
+        IMAGE_LATEST="${{ inputs.DOCKERHUB_REPOSITORY }}:latest"
+        echo "IMAGE_NAME=${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+        echo "IMAGE_LATEST=${IMAGE_LATEST}" >> "$GITHUB_OUTPUT"
+        echo "IMAGE_NAME=${IMAGE_NAME}"
+      shell: bash
+
+    - name: Login to Docker Hub
+      run: |
+        echo "Logging in to Docker Hub..."
+        echo "${{ inputs.DOCKERHUB_PASSWORD }}" | docker login -u "${{ inputs.DOCKERHUB_USERNAME }}" --password-stdin
+      shell: bash
+
+    - name: Docker Build
+      id: docker_build
+      run: |
+        echo "Building Docker image..."
+        docker build --build-arg --iidfile=image-sha.txt \
+          -t "${{ steps.variables.outputs.IMAGE_NAME }}" \
+          "${{ inputs.MODULE_PATH }}" --no-cache
+        
+        IMAGE_DIGEST=$(cat image-sha.txt)
+        echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+        echo "Built image: ${{ steps.variables.outputs.IMAGE_NAME }}"
+      shell: bash
+
+    - name: Push to Docker Hub
+      run: |
+        echo "Pushing image: ${{ steps.variables.outputs.IMAGE_NAME }}"
+        docker push "${{ steps.variables.outputs.IMAGE_NAME }}"
+        
+        if [ "${{ inputs.PUSH_LATEST }}" == "true" ]; then
+          echo "Tagging and pushing latest..."
+          docker tag "${{ steps.variables.outputs.IMAGE_NAME }}" "${{ steps.variables.outputs.IMAGE_LATEST }}"
+          docker push "${{ steps.variables.outputs.IMAGE_LATEST }}"
+        fi
+        
+        echo "Successfully pushed to Docker Hub!"
+      shell: bash
+
+    - name: Logout from Docker Hub
+      if: always()
+      run: docker logout || true
+      shell: bash
+

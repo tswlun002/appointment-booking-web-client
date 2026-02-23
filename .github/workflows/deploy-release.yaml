@@ -1,0 +1,179 @@
+name: Java CI/CD With NPM 🛠️🔨
+on:
+  workflow_dispatch: #Manual kickoff
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+
+# Prevent multiple deployments from running simultaneously
+concurrency:
+  group: deployment-${{ github.ref }}
+  cancel-in-progress: false  # Don't cancel in-progress deployments, queue new ones
+
+jobs:
+  # Check if deployment should be skipped based on changed files
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.filter.outputs.should_deploy }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for deployment-relevant changes
+        id: filter
+        run: |
+          # Get list of changed files
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger - proceeding with deployment"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          
+          # Check if all changes are in ignored folders
+          ONLY_KEYCLOAK_MODULES=true
+          for file in $CHANGED_FILES; do
+            if [[ ! "$file" =~ ^generate-username-ui-register-module/ ]] && \
+               [[ ! "$file" =~ ^validate-credential-module/ ]] && \
+               [[ ! "$file" =~ \.md$ ]] && \
+               [[ ! "$file" =~ ^docs/ ]]; then
+              ONLY_KEYCLOAK_MODULES=false
+              break
+            fi
+          done
+          
+          if [ "$ONLY_KEYCLOAK_MODULES" == "true" ] && [ -n "$CHANGED_FILES" ]; then
+            echo "Only Keycloak module changes detected - skipping deployment"
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          else
+            echo "Deployment-relevant changes detected - proceeding"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          fi
+
+  # Cache and pull Docker images on host runner
+  cache-docker-images:
+    needs: check-changes
+    if: needs.check-changes.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Docker images
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: docker-layer-cache-${{ runner.os }}-{hash}
+          restore-keys: |
+            docker-layer-cache-${{ runner.os }}-
+
+
+  build-app:
+    needs:
+      - check-changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      VERSION: ${{ steps.build.outputs.VERSION }}
+      ARTIFACT_PATH: ${{ steps.build.outputs.ARTIFACT_PATH }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check branch status
+        run: |
+          git config --global --add safe.directory "*"
+          git fetch origin main
+          current_branch=$(git branch --show-current)
+          commits_behind=$(git rev-list --left-right --count origin/main..$current_branch | cut -f1)
+          if [ "$commits_behind" -gt 0 ]; then
+            echo "$current_branch is behind origin/main by $commits_behind commits"
+            echo "Please run the following command locally to rebase:"
+            echo ""
+            echo "   git pull --rebase origin main"
+            echo ""
+            echo "Resolve conflicts if needed, then push your changes before retrying this workflow."
+            exit 1
+          fi
+          echo " $current_branch is up to date with origin/main"
+
+      - name: Build with Gradle
+        id: build
+        uses: ./.github/actions/node-build
+        with:
+          ARTIFACT_ID: "appointment-booking-web-client"
+
+  build-docker:
+    needs:
+      - build-app
+    runs-on: ubuntu-latest
+    outputs:
+      IMAGE_NAME: ${{ steps.upload.outputs.IMAGE_NAME }}
+      IMAGE_DIGEST: ${{ steps.upload.outputs.IMAGE_DIGEST }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build and Push to Docker Hub
+        id: upload
+        uses: ./.github/actions/docker-build
+        with:
+          ARTIFACT_ID: "appointment-booking-web-client"
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_REPOSITORY: ${{ vars.DOCKERHUB_REPOSITORY }}
+          PUSH_LATEST: "false"
+
+  # Note: deploy job removed - build-docker now pushes directly to Docker Hub
+
+  update-helm:
+    name: Update Helm Chart
+    needs:
+      - build-app
+      - build-docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Helm Chart with new image
+        uses: ./.github/actions/update-helm-image
+        with:
+          ORGANIZATION: ${{ github.repository_owner }}
+          REPOSITORY: ${{ github.event.repository.name }}
+          MODULE: "appointment-booking-web-client"
+          ENVIRONMENT: ${{ vars.ENVIRONMENT || 'dev' }}
+          IMAGE: ${{ needs.build-docker.outputs.IMAGE_NAME }}
+          GIT_REPO_ACCESS_TOKEN: ${{ secrets.GIT_REPO_ACCESS_TOKEN }}
+          APP_GITHUB_EMAIL: ${{ vars.APP_GITHUB_EMAIL }}
+          APP_GITHUB_USERNAME: ${{ vars.APP_GITHUB_USERNAME }}
+
+  release-notes:
+    name: Create Release Notes
+    needs:
+      - build-app
+      - build-docker
+      - update-helm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create Github Release
+        run: |
+          gh release create $VERSION --target main --generate-notes
+          BODY=$(gh release view $VERSION --json body --jq '.body')
+          echo "$BODY" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "**Docker Hub Image**: ${IMAGE}" >> release-notes.md
+          gh release edit $VERSION --notes-file release-notes.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.build-app.outputs.VERSION }}
+          IMAGE: ${{ needs.build-docker.outputs.IMAGE_NAME }}

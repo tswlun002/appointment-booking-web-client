@@ -1,5 +1,6 @@
 {
   "name": "appointment-booking-web-client",
+  "version": "APPOINTMENT-BOOKING-UNSET-VERSION",
   "private": true,
   "type": "module",
   "scripts": {
