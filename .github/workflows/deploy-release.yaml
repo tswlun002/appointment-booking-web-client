@@ -69,6 +69,8 @@ jobs:
 
   update-helm:
     name: Update Helm Chart
+    permissions:
+      contents: write
     needs:
       - build-app
       - build-docker
