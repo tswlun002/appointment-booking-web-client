@@ -3,9 +3,8 @@ replicaCount: 1
 image:
   pullPolicy: IfNotPresent
   # Repository and Tag MANAGED BY DEVOPS REPO, MANUAL EDITING MIGHT CAUSE ERRORS!!!!!!!!!!
-  repository: appointment-booking-web-client # This sets the pull policy for images.
-  tag: "latest"
-
+  repository: tswlun002/appointment-booking-web-client # This sets the pull policy for images.
+  tag: "2026.02.23.15.42-bbec43c"
 # This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.
@@ -112,11 +111,11 @@ active: true
 rbac:
   create: true
   resources:
-#    - "configmaps"
+    #    - "configmaps"
     - "pods"
     - "services"
     - "endpoints"
-#    - "secrets"
+    #    - "secrets"
   verbs:
     - "get"
     - "list"
