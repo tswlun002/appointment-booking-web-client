@@ -60,7 +60,7 @@ runs:
     - name: Print Inputs
       run: |
         echo "======================"
-        echo "VERSION=${{ inputs.VERSION }}"
+        echo "VERSION=${{ steps.version.VERSION }}"
         echo "MODULE=${{ inputs.MODULE }}"
         echo "MODULE_PATH=${{ inputs.MODULE_PATH }}"
         echo "DOCKERHUB_REPOSITORY=${{ inputs.DOCKERHUB_REPOSITORY }}"
@@ -76,7 +76,7 @@ runs:
     - name: Set Variables
       id: variables
       run: |
-        IMAGE_NAME="${{ inputs.DOCKERHUB_REPOSITORY }}:${{ inputs.VERSION }}"
+        IMAGE_NAME="${{ inputs.DOCKERHUB_REPOSITORY }}:${{ steps.version.VERSION }}"
         IMAGE_LATEST="${{ inputs.DOCKERHUB_REPOSITORY }}:latest"
         echo "IMAGE_NAME=${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
         echo "IMAGE_LATEST=${IMAGE_LATEST}" >> "$GITHUB_OUTPUT"
