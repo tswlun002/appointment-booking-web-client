@@ -1,7 +1,16 @@
 import {ViewModel} from "~/model/ViewModel";
 import {type WeeklySlotsQuery, WeeklySlotsRequestDataSchema, type WeeklySlotsState, type RescheduleNavigationState} from "~/domain/slot/generated/Slot";
 import {LocalDate} from "~/utils/CompanionObjects";
-import {type Dispatch, type MouseEvent, useCallback, useEffect, useMemo, useReducer, useRef} from "react";
+import {
+    type Dispatch,
+    type MouseEvent,
+    type RefObject,
+    useCallback,
+    useEffect,
+    useMemo,
+    useReducer,
+    useRef
+} from "react";
 import {useGetWeeklySlots} from "~/api/slot/generated/endpoints/slot-queries/slot-queries";
 import {type NavigateFunction, useLocation, useNavigate, useParams} from "react-router";
 import type {
@@ -45,6 +54,8 @@ const sortSlotsByDate = (slotsByDay: Record<string, SlotResponse[]> | undefined)
 };
 
 export const useSlotModelView = () => {
+
+
     const { branchId } = useParams();
     const locationState = useLocation().state || {};
     const { branchName, distance, mode, appointmentId, serviceType, currentDateTime, rescheduleCount } = locationState as Partial<RescheduleNavigationState> & { branchName?: string; distance?: string };
@@ -75,6 +86,7 @@ export const useSlotModelView = () => {
         (action: ActionDispatch<WeeklySlotsQuery, SlotsResponse>) => dispatch(action),
         []
     );
+
 
     // Keep state fresh in ref for stable model instance
     const stateRef = useRef(state);
@@ -153,34 +165,23 @@ export const useSlotModelView = () => {
 
     const model = useMemo(
         () => new SlotModelView(stateRef, stableDispatch, resolver, initialState, navigateFunction),
-        [stableDispatch, resolver, navigateFunction]
+        [stableDispatch, resolver, navigateFunction, state.response]
     );
 
-    const currentWeek = useMemo(() => {
-        const sorted = sortSlotsByDate(state.response?.data?.slotsByDay);
-        return { days: Array.from(sorted.keys()), data: sorted };
-    }, [state.response]);
 
-    const yearMonth = useMemo(
-        () => ({
-            year: LocalDate.now.getFullYear(),
-            month: LocalDate.month,
-        }),
-        []
-    );
+
+    const currentDaySlots = useMemo(()=> model.currentWeek().data.get(state.userData.fromDate!) ?? [],[state.response])
 
     return {
         state,
         model,
-        responseData: currentWeek.data,
-        days: currentWeek.days,
-        yearMonth,
+        currentDaySlots,
     };
 };
 
 export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, WeeklySlotsState> {
     constructor(
-        private stateRef: React.MutableRefObject<WeeklySlotsState>,
+        private stateRef: RefObject<WeeklySlotsState>,
         protected dispatch: Dispatch<ActionDispatch<WeeklySlotsQuery, SlotsResponse>>,
         protected resolver: Resolver,
         initialState: WeeklySlotsState,
@@ -214,7 +215,29 @@ export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, We
         event.preventDefault();
         this.navigateFunction("/appointments");
     };
+    public yearMonth = () => ({
+            year: LocalDate.now.getFullYear(),
+            month: LocalDate.month,
+    })
+    public currentWeek = () => {
+        const sorted = sortSlotsByDate(this.state.response?.data?.slotsByDay);
+        return { days: Array.from(sorted.keys()), data: sorted };
+    };
+    // Handle slot selection - navigate to booking page with slot data
+    public handleSlotSelect = (slotId: string, event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        const currentDaySlots = this.currentWeek().data.get(this.state.userData.fromDate!) ?? [];
 
+        // Find the slot to get its details
+        const slot = currentDaySlots.find((s) => s.id === slotId);
+        if (slot) {
+            const slotTime = `${this.sliceTime(slot.startTime)} - ${this.sliceTime(slot.endTime)}`;
+            const formattedDate = `${LocalDate.dayName(new Date(this.state.userData.fromDate!))} ${LocalDate.dayOfTheMonth(new Date(this.state.userData.fromDate!))} ${LocalDate.month}`;
+
+            // Navigate to booking page with all slot data
+            this.navigateToBooking(slot, formattedDate, slotTime);
+        }
+    };
     /** Check if slot is fully booked */
     isFullyBooked = (slot: SlotResponse): boolean => {
         return slot.bookingCount === slot.maxBookingCapacity;

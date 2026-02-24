@@ -97,7 +97,7 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
 
             {/* Action Buttons */}
             <div
-                className="flex flex-wrap gap-2 pt-3 border-t"
+                className="flex flex-wrap gap-2 pt-3 border-t flex-col-reverse md:flex-row"
                 style={{ borderColor: colors.bgLight }}
             >
                 {model.isBeingProcessed(appointment.status) ? (
@@ -110,7 +110,7 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                     >
                         {appointmentCardResources.processingMessage}
                     </div>
-                ) : model.canModify(appointment.status) ? (
+                ) : model.canModify(appointment.status) && (
                     <>
                         <button
                             onClick={() => onCancelClick(appointment)}
@@ -135,13 +135,6 @@ const AppointmentCard = memo(({ appointment, model, onCancelClick, onRescheduleC
                             <CalendarClock size={14} /> {appointmentCardResources.rescheduleButton.label}
                         </button>
                     </>
-                ) : (
-                    <div
-                        className="w-full text-center py-2 text-xs font-medium rounded-lg"
-                        style={{ color: colors.textMuted, backgroundColor: colors.bgLight }}
-                    >
-                        {model.getStatusText(appointment.status)}
-                    </div>
                 )}
             </div>
         </div>

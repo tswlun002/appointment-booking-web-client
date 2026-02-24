@@ -1,33 +1,16 @@
 import { colors, typography } from "~/resources/colors/colors";
 import { useSlotModelView } from "~/model/slot/SlotModelView";
-import { LocalDate } from "~/utils/CompanionObjects";
 import SlotHeader from "~/components/ui/SlotHeader";
 import DateButton from "~/components/ui/DateButton";
 import LegendItem from "~/components/ui/LegendItem";
 import SlotButton from "~/components/ui/SlotButton";
 import EmptySlots from "~/components/ui/EmptySlots";
-import type { MouseEvent } from "react";
 import { AlertTriangle, CalendarClock } from "lucide-react";
 import { appointmentSlotsResources } from "~/resources/label/appointment-labels";
 
 const AppointmentSlots = () => {
-    const { state, model, responseData, days, yearMonth } = useSlotModelView();
-    const currentDaySlots = responseData.get(state.userData.fromDate!) ?? [];
+    const { state, model,currentDaySlots } = useSlotModelView();
 
-    // Handle slot selection - navigate to booking page with slot data
-    const handleSlotSelect = (slotId: string, event: MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-
-        // Find the slot to get its details
-        const slot = currentDaySlots.find((s) => s.id === slotId);
-        if (slot) {
-            const slotTime = `${model.sliceTime(slot.startTime)} - ${model.sliceTime(slot.endTime)}`;
-            const formattedDate = `${LocalDate.dayName(new Date(state.userData.fromDate!))} ${LocalDate.dayOfTheMonth(new Date(state.userData.fromDate!))} ${yearMonth.month}`;
-
-            // Navigate to booking page with all slot data
-            model.navigateToBooking(slot, formattedDate, slotTime);
-        }
-    };
 
     return (
         <div className="w-full max-w-[900px] h-[90vh] md:h-[800px] mt-4 rounded-sm shadow-xl flex flex-col overflow-hidden bg-white mx-auto">
@@ -78,7 +61,7 @@ const AppointmentSlots = () => {
                 <div className="mb-6">
                     <h4 style={{ ...typography.h4, color: colors.primary }}>{model.isRescheduleMode ? appointmentSlotsResources.selectDate.titleReschedule : appointmentSlotsResources.selectDate.title}</h4>
                     <p style={{ ...typography.caption, fontWeight: "700", color: colors.textMuted }}>
-                        {yearMonth.month} {yearMonth.year}
+                        {model.yearMonth.month} {model.yearMonth.year}
                     </p>
                 </div>
 
@@ -87,7 +70,7 @@ const AppointmentSlots = () => {
                     className="flex flex-row gap-6 overflow-x-auto pb-6 border-b mb-6 p-2"
                     style={{ borderColor: colors.borderLight }}
                 >
-                    {days?.map((date) => (
+                    { model.currentWeek().days?.map((date) => (
                         <DateButton
                             key={date}
                             date={date}
@@ -121,7 +104,7 @@ const AppointmentSlots = () => {
                                 slot={slot}
                                 isSelected={state.userData.selectedSlotId === slot.id}
                                 isPast={model.isSlotPast(slot)}
-                                onSelect={handleSlotSelect}
+                                onSelect={model.handleSlotSelect}
                                 formatTime={model.sliceTime}
                             />
                         ))}
