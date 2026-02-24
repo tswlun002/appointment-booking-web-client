@@ -1,40 +1,20 @@
-import { useLocation, useNavigate } from "react-router";
-import { useEffect } from "react";
+
 import { colors, typography } from "~/resources/colors/colors";
 import { CheckCircle } from "lucide-react";
-import type { AppointmentResponse } from "~/domain/appointment/generated/model";
 import { appointmentSuccessResources } from "~/resources/label/appointment-labels";
 import {PrimaryButton} from "~/components/ui/buttons";
+import useAppointmentSuccessModelView from "~/model/appointment/AppointmentSuccessModelView";
 
-interface SuccessState {
-    appointment?: AppointmentResponse;
-}
 
 /**
  * Appointment Success Page
  * Shows booking confirmation after successful appointment creation
  */
 const AppointmentSuccess = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const state = location.state as SuccessState | null;
-    const appointment = state?.appointment;
-
-    // Redirect if accessed directly without state
-    useEffect(() => {
-        if (!appointment) {
-            navigate("/appointments", { replace: true });
-        }
-    }, [appointment, navigate]);
-
-    const handleBackToAppointments = () => {
-        navigate("/appointments", { replace: true });
-    };
-
-    if (!appointment) {
-        return null;
-    }
-
+    const {appointment, handleBackToAppointments} = useAppointmentSuccessModelView();
+     if(!appointment) {
+         return null
+     }
     return (
         <div className="flex min-h-[80vh] items-center justify-center px-4">
             <div
