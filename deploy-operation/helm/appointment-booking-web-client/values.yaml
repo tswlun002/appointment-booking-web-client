@@ -4,7 +4,7 @@ image:
   pullPolicy: IfNotPresent
   # Repository and Tag MANAGED BY DEVOPS REPO, MANUAL EDITING MIGHT CAUSE ERRORS!!!!!!!!!!
   repository: tswlun002/appointment-booking-web-client # This sets the pull policy for images.
-  tag: "2026.02.23.22.36-e177ea6"
+  tag: "2026.02.24.09.09-7db091c"
 # This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.
