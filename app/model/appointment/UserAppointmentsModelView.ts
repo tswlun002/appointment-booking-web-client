@@ -73,6 +73,7 @@ const userAppointmentsReducer = ViewModel.paginatedReducer<
 );
 
 export const useUserAppointmentsModelView = () => {
+
     const username = useAuthStore(useShallow((s) => s.user?.username ?? ""));
     const navigateFunction = useNavigate();
 

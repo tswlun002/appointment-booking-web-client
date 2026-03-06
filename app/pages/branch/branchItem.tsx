@@ -48,7 +48,7 @@ const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes,sea
                             <p className="font-bold text-lg" style={{ color: colors.textSecondary }}>
                                 {name}
                             </p>
-                            {((searchType!=='area' && distanceKm != null) )&& (
+                            {((searchType==='latLong' && distanceKm != null) )&& (
                                 <p className="text-xs font-bold mt-1" style={{ color: colors.primary }}>
                                     {`${distanceKm}km away`}
                                 </p>
