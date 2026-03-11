@@ -27,13 +27,13 @@ const UserAppointments = () => {
 
             {/* Branch Locator - Hidden on mobile */}
             <div className="relative z-10 w-full md:w-[55%] hidden md:flex justify-end items-center">
-                <BranchLocator />
+                <BranchLocator haveSlotBookedInFuture={model.haveSlotBookedInFuture()}/>
             </div>
 
             {/* Mobile Layout - Show based on active tab */}
             <div className="relative z-10 w-full md:hidden flex flex-col min-h-[80vh]">
                 {activeTab === 'branch' ? (
-                    <BranchLocator />
+                    <BranchLocator haveSlotBookedInFuture={model.haveSlotBookedInFuture()} />
                 ) : (
                     <div className="w-full h-full flex flex-col justify-start pt-4">
                         <AppointmentsWidget state={state} model={model} appointments={appointments} cancelState={cancelState} cancelModel={cancelModel} />

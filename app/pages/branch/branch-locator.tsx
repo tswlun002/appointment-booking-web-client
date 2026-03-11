@@ -12,7 +12,10 @@ import {BranchLocatorScreenResources} from "~/resources/label/branch-labels";
 import { SendHorizonal, ChevronDown} from "lucide-react";
 import { Spinner } from "~/components/ui/spinner";
 
-const BranchLocator = () => {
+type HaveSlotBookedInFutureProps={
+    haveSlotBookedInFuture:boolean
+}
+const BranchLocator = ({haveSlotBookedInFuture}:HaveSlotBookedInFutureProps) => {
 
     const {state, model, branches} = useBranchLocatorModelView();
 
@@ -25,6 +28,7 @@ const BranchLocator = () => {
             fullAddress={branch.fullAddress}
             operationTimes={branch.operationTimes}
             searchType={state.searchType}
+            haveSlotBookedInFuture={haveSlotBookedInFuture}
         />
     ));
 

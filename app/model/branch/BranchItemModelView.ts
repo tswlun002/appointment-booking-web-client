@@ -35,7 +35,10 @@ const branchItemInitState:BranchItemState ={
     }
 
 }
-export const useBranchItemModelView = () => {
+type HaveSlotBookedInFutureProp={
+    haveSlotBookedInFuture:boolean
+}
+export const useBranchItemModelView = ({haveSlotBookedInFuture}:HaveSlotBookedInFutureProp) => {
 
     const reducer = ViewModel.reducer<BranchItem,string,BranchItemState>(branchItemInitState);
 
@@ -47,7 +50,7 @@ export const useBranchItemModelView = () => {
 
     const resolver = useMemo(() => createZodResolver<BranchItem, TypeError<BranchItem>>(BranchItemSchema), []);
 
-    const model = useMemo(()=>new BranchItemModelView(state,dispatch,resolver,navigateFunction),[state,resolver] );
+    const model = useMemo(()=>new BranchItemModelView(state,dispatch,resolver,navigateFunction,haveSlotBookedInFuture),[state,resolver] );
 
     return {state,model}
 
@@ -59,7 +62,8 @@ export class BranchItemModelView extends  ViewModel<BranchItem, string, BranchIt
         protected state: BranchItemState,
         protected dispatch: Dispatch<ActionDispatch<BranchItem, string>>,
         protected resolver:  (data: BranchItem) => Promise<{ errors?: TypeError<BranchItem>; values?: BranchItem; }>,
-        protected  navigateFunction: NavigateFunction
+        protected  navigateFunction: NavigateFunction,
+        private haveSlotBookedInFuture:boolean
     ) {
         super(state,dispatch,resolver, branchItemInitState);
     }
@@ -73,7 +77,7 @@ export class BranchItemModelView extends  ViewModel<BranchItem, string, BranchIt
 
     onBook = async (branchId:string,branchName:string ,distance:string, event: MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        this.navigateFunction(`${branchId}/slots`, {replace:false, state:{branchName:branchName, distance:distance}});
+        this.navigateFunction(`${branchId}/slots`, {replace:false, state:{branchName:branchName, distance:distance,haveSlotBookedInFuture:this.haveSlotBookedInFuture}});
     }
 
     static getDayName = (date: string) => {

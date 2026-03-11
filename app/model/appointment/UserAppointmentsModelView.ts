@@ -187,6 +187,7 @@ export const useUserAppointmentsModelView = () => {
 };
 
 export class UserAppointmentsModelView {
+
     constructor(
         private stateRef: RefObject<UserAppointmentsState>,
         protected dispatch: Dispatch<ActionDispatch<UserAppointmentsQuery, AppointmentsResponse>>,
@@ -194,7 +195,11 @@ export class UserAppointmentsModelView {
         private navigateFunction: NavigateFunction,
         private username: string
     ) {}
-
+    haveSlotBookedInFuture(): boolean {
+       return  this.stateRef.current.items.some(
+           a=>a.status==='BOOKED'||a.status==='CHECKED_IN'||a.status==='IN_PROGRESS'
+       )
+    }
     private get state(): UserAppointmentsState {
         return this.stateRef.current!;
     }
@@ -265,6 +270,8 @@ export class UserAppointmentsModelView {
                 currentDateTime: appointment.dateTime,
                 rescheduleCount: appointment.rescheduleCount ?? 0,
                 distance: "",
+                haveSlotBookedInFuture: false
+
             },
         });
     };

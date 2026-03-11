@@ -10,12 +10,15 @@ type BranchItemProps = {
     branchId:string, name:string, distanceKm:number, fullAddress:string,
     operationTimes:BranchLocationOperationTimes,
     searchType:"latLong"|"area"
+    haveSlotBookedInFuture:boolean
+
 }
 
-const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes,searchType}:BranchItemProps) => {
+const BranchItem = ({branchId, name, distanceKm, fullAddress, operationTimes,
+                        haveSlotBookedInFuture,searchType}:BranchItemProps) => {
 
 
-    const {state, model} = useBranchItemModelView();
+    const {state, model} = useBranchItemModelView({haveSlotBookedInFuture});
 
     const OperationElements = (state.userData.viewedBranch === branchId && operationTimes) ?
         Object.entries(operationTimes)
