@@ -32,6 +32,7 @@ export const slotButtonResources = {
 
 export const emptySlotsResources = {
     title: "No slots available",
-    message: "Please select another date or try a different branch.",
+    noAppointmentDatesInNearFuture: "Sorry, no appointment dates available in the near future for this branch.",
+    emptySlot: "Please select another date or try a different branch.",
 };
 
