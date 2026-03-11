@@ -81,9 +81,11 @@ export const appointmentSlotsResources = {
         service: "Service:",
     },
     lastRescheduleWarning: "Last Reschedule — This is your final reschedule. Maximum 3 reschedules allowed per appointment.",
-    selectDate: {
-        title: "Select Date",
-        titleReschedule: "Select New Date",
+    selectDate(haveFutureAppointment:boolean){
+       return {
+           title: haveFutureAppointment? "You have a booked appointment already":"Select Date",
+            titleReschedule: "Select New Date",
+       }
     },
     availableTimes: {
         title: "Available Times",
