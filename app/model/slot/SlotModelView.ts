@@ -27,11 +27,12 @@ type SlotStatus = "AVAILABLE" | "FULLY_BOOKED" | "BLOCKED" | "EXPIRED";
 type InitProps = {
     branchId: string;
     fromDate: string;
-    status: SlotStatus;
+    status?: SlotStatus;
     branchName: string;
     distance: string;
     // Reschedule mode
     isRescheduleMode: boolean;
+    haveSlotBookedInFuture:boolean;
     rescheduleData?: {
         appointmentId: string;
         serviceType: string;
@@ -45,20 +46,14 @@ type Resolver = (data: GetWeeklySlotsParams & { branchId: string }) => Promise<
     | { errors: TypeError<GetWeeklySlotsParams & { branchId: string }>; values?: undefined }
 >;
 
-// Helper to sort slots by date
-const sortSlotsByDate = (slotsByDay: Record<string, SlotResponse[]> | undefined): Map<string, SlotResponse[]> => {
-    if (!slotsByDay) return new Map();
-    return new Map(
-        Object.entries(slotsByDay).sort(([a], [b]) => Date.parse(a) - Date.parse(b))
-    );
-};
+
 
 export const useSlotModelView = () => {
 
 
     const { branchId } = useParams();
     const locationState = useLocation().state || {};
-    const { branchName, distance, mode, appointmentId, serviceType, currentDateTime, rescheduleCount } = locationState as Partial<RescheduleNavigationState> & { branchName?: string; distance?: string };
+    const { branchName, distance, mode, appointmentId, serviceType, currentDateTime, rescheduleCount,haveSlotBookedInFuture } = locationState as Partial<RescheduleNavigationState> & { branchName?: string; distance?: string };
 
     // Detect reschedule mode
     const isRescheduleMode = mode === 'reschedule';
@@ -66,10 +61,10 @@ export const useSlotModelView = () => {
     const initProps: InitProps = {
         branchId: branchId ?? "",
         fromDate: LocalDate.formattedDate(LocalDate.now),
-        status: "AVAILABLE",
         branchName: branchName ?? "",
         distance: distance ?? "",
         isRescheduleMode,
+        haveSlotBookedInFuture:haveSlotBookedInFuture ?? false,
         rescheduleData: isRescheduleMode ? {
             appointmentId: appointmentId ?? "",
             serviceType: serviceType ?? "",
@@ -119,9 +114,9 @@ export const useSlotModelView = () => {
                 }
 
                 if (isSuccess && data) {
-                    const sorted = sortSlotsByDate(data.slotsByDay);
+                    const sorted = SlotModelView.sortSlotsByDate(data.slotsByDay);
                     const datesArray = Array.from(sorted.keys());
-                    const selectedDate = sorted.size === 2 ? datesArray[0] : state.userData.fromDate;
+                    const selectedDate = datesArray.includes(state.userData.fromDate!)? state.userData.fromDate : datesArray[0];
 
                     stableDispatch({
                         type: ActionEvent.SET_API_RESPONSE_SUCCESS,
@@ -170,16 +165,19 @@ export const useSlotModelView = () => {
 
 
 
-    const currentDaySlots = useMemo(()=> model.currentWeek().data.get(state.userData.fromDate!) ?? [],[state.response])
+    const currentDaySlots = useMemo(()=> model.currentWeek().data.get(state.userData.fromDate!) ?? [],[model.currentWeek(), state.userData.fromDate, state.response]);
 
     return {
         state,
         model,
+        AppointmentAvailableFutureDates:model.currentWeek().days.length>0,
         currentDaySlots,
     };
 };
 
 export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, WeeklySlotsState> {
+
+
     constructor(
         private stateRef: RefObject<WeeklySlotsState>,
         protected dispatch: Dispatch<ActionDispatch<WeeklySlotsQuery, SlotsResponse>>,
@@ -189,6 +187,13 @@ export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, We
     ) {
         super(stateRef.current, dispatch, resolver, initialState);
     }
+    // Helper to sort slots by date
+    public static sortSlotsByDate = (slotsByDay: Record<string, SlotResponse[]> | undefined): Map<string, SlotResponse[]> => {
+        if (!slotsByDay) return new Map();
+        return new Map(
+            Object.entries(slotsByDay).sort(([a], [b]) => Date.parse(a) - Date.parse(b))
+        );
+    };
 
     /** Access current state from ref */
     private getCurrentState(): WeeklySlotsState {
@@ -220,19 +225,19 @@ export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, We
             month: LocalDate.month,
     })
     public currentWeek = () => {
-        const sorted = sortSlotsByDate(this.state.response?.data?.slotsByDay);
+        const sorted = SlotModelView.sortSlotsByDate(this.state.response?.data?.slotsByDay);
         return { days: Array.from(sorted.keys()), data: sorted };
     };
     // Handle slot selection - navigate to booking page with slot data
-    public handleSlotSelect = (slotId: string, event: MouseEvent<HTMLButtonElement>) => {
+    public handleSlotSelect = (day:string,slotId: string, event: MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        const currentDaySlots = this.currentWeek().data.get(this.state.userData.fromDate!) ?? [];
+        const currentDaySlots = this.currentWeek().data.get(day) ?? [];
 
         // Find the slot to get its details
         const slot = currentDaySlots.find((s) => s.id === slotId);
         if (slot) {
             const slotTime = `${this.sliceTime(slot.startTime)} - ${this.sliceTime(slot.endTime)}`;
-            const formattedDate = `${LocalDate.dayName(new Date(this.state.userData.fromDate!))} ${LocalDate.dayOfTheMonth(new Date(this.state.userData.fromDate!))} ${LocalDate.month}`;
+            const formattedDate = `${LocalDate.dayName(new Date(slot.day))} ${LocalDate.dayOfTheMonth(new Date(slot.day))} ${LocalDate.month}`;
 
             // Navigate to booking page with all slot data
             this.navigateToBooking(slot, formattedDate, slotTime);
@@ -240,8 +245,15 @@ export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, We
     };
     /** Check if slot is fully booked */
     isFullyBooked = (slot: SlotResponse): boolean => {
-        return slot.bookingCount === slot.maxBookingCapacity;
+        return slot.status === "FULLY_BOOKED";
     };
+    isBlocked(slot: SlotResponse): boolean {
+        return slot.status === "BLOCKED";
+
+    }
+    haveSlotBookedInFuture(): boolean {
+        return this.getCurrentState().haveSlotBookedInFuture;
+    }
 
     /** Handle date selection */
     selectedDay = (date: string, event: MouseEvent<HTMLButtonElement>): void => {
@@ -281,6 +293,7 @@ export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, We
         const slotId = slot.id;
 
         // If in reschedule mode, pass reschedule data
+
         if (currentState.isRescheduleMode && currentState.rescheduleData) {
             this.navigateFunction(`/appointments/${branchId}/slots/${slotId}/book`, {
                 state: {
@@ -289,7 +302,7 @@ export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, We
                     slotId,
                     branchId,
                     branchName: currentState.branchName,
-                    day: currentState.userData.fromDate,
+                    day: slot.day,
                     startTime: slot.startTime,
                     endTime: slot.endTime,
                     displayDate,
@@ -324,12 +337,14 @@ export class SlotModelView extends ViewModel<WeeklySlotsQuery, SlotsResponse, We
     };
 }
 
-const initSlots = ({ branchId, fromDate, status, branchName, distance, isRescheduleMode, rescheduleData }: InitProps): WeeklySlotsState => ({
+const initSlots = ({ branchId, fromDate, status, branchName, distance, isRescheduleMode, rescheduleData ,
+                   haveSlotBookedInFuture}: InitProps): WeeklySlotsState => ({
     branchName,
     distance,
     isRescheduleMode,
     rescheduleData,
     isLoading: false,
+    haveSlotBookedInFuture: haveSlotBookedInFuture,
     errors: {
         response: { isError: false },
         fromDate: { isError: false },

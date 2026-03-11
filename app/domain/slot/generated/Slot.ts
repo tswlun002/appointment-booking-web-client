@@ -40,6 +40,7 @@ export interface RescheduleNavigationState {
     currentDateTime: string;
     rescheduleCount: number;
     distance: string;
+    haveSlotBookedInFuture:boolean
 }
 
 export interface WeeklySlotsState extends State<WeeklySlotsQuery, SlotsResponse>{
@@ -47,6 +48,7 @@ export interface WeeklySlotsState extends State<WeeklySlotsQuery, SlotsResponse>
     distance: string;
     // Reschedule mode data
     isRescheduleMode: boolean;
+    haveSlotBookedInFuture: boolean;
     rescheduleData?: {
         appointmentId: string;
         serviceType: string;
