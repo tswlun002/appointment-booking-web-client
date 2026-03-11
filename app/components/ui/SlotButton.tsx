@@ -6,35 +6,49 @@ interface SlotButtonProps {
     slot: SlotResponse;
     isSelected: boolean;
     isPast: boolean;
-    onSelect: (slotId: string, e: MouseEvent<HTMLButtonElement>) => void;
+    isFullyBooked: boolean;
+    isBlocked: boolean;
+    haveSlotBookedInFuture: boolean;
+    onSelect: (day:string,slotId: string, e: MouseEvent<HTMLButtonElement>) => void;
     formatTime: (time: string) => string;
 }
 
 /** Slot time button */
-const SlotButton = ({ slot, isSelected, isPast, onSelect, formatTime }: SlotButtonProps) => {
-    const isDisabled = isPast;
+const SlotButton = ({ slot, isSelected, isPast, onSelect,isFullyBooked,isBlocked, formatTime ,haveSlotBookedInFuture}: SlotButtonProps) => {
+    const isDisabled = isPast || isFullyBooked || isBlocked || haveSlotBookedInFuture;
 
     const getBackgroundColor = () => {
-        if (isPast) return colors.bgLight;
-        if (isSelected) return colors.primary;
+        if (isFullyBooked) return colors.red;
+        else if (isBlocked) return colors.primaryDark;
+        else if (isPast || haveSlotBookedInFuture) return colors.bgLight;
+        else if (isSelected) return colors.primary;
         return "transparent";
     };
 
     const getBorderColor = () => {
-        if (isPast) return colors.borderLight;
-        if (isSelected) return colors.primary;
+        if (isFullyBooked) return colors.red;
+        else if (isBlocked) return colors.primaryDark;
+        else if (isPast||haveSlotBookedInFuture) return colors.borderLight;
+        else if (isSelected) return colors.primary;
+
         return colors.borderLight;
     };
 
     const getTextColor = () => {
-        if (isPast) return colors.textMuted;
-        if (isSelected) return colors.white;
+        if (isFullyBooked) return colors.white;
+        else if (isBlocked) return colors.white;
+        else if (isPast||haveSlotBookedInFuture) return colors.textMuted;
+        else  if (isSelected) return colors.white;
+
         return colors.textSecondary;
     };
 
+    const title = isFullyBooked?"Slot is fully booked":isBlocked?"Slot is currently unavailable for bookings":
+    isPast ? "This time slot has passed" : haveSlotBookedInFuture?"You have a booked appointment already.": undefined;
+
     return (
         <button
-            onClick={(e) => !isDisabled && onSelect(slot.id, e)}
+            onClick={(e) => !isDisabled && onSelect(slot.day,slot.id, e)}
             disabled={isDisabled}
             className={`flex flex-row items-center justify-start p-3 rounded-lg border transition-all ${
                 isDisabled ? "cursor-not-allowed opacity-60" : "hover:shadow-md cursor-pointer"
@@ -43,7 +57,7 @@ const SlotButton = ({ slot, isSelected, isPast, onSelect, formatTime }: SlotButt
                 backgroundColor: getBackgroundColor(),
                 borderColor: getBorderColor(),
             }}
-            title={isPast ? "This time slot has passed" : undefined}
+            title={title}
         >
             <div
                 className="flex items-center gap-1"
