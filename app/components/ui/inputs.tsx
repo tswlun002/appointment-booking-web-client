@@ -254,6 +254,7 @@ export const CustomerSearchInput =<T,> ({
             </label>
         }
             <input
+                ref={inputRef}
                 id={id}
                 placeholder={label}
                 value={value}

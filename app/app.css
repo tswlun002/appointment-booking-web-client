@@ -28,11 +28,23 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    /* This forces the background to stay a solid color (e.g., white) */
+    /* Forces the background to stay white, overriding the browser's autofill colour */
     -webkit-box-shadow: 0 0 0px 1000px white inset !important;
     box-shadow: 0 0 0px 1000px white inset !important;
 
-    /* This ensures the text stays visible */
+    /* Ensures the text and cursor stay visible */
     -webkit-text-fill-color: #333 !important;
     color: #333 !important;
+    caret-color: #333 !important;
+
+    /*
+     * KEY FIX: Chrome fires a background-color transition animation when an
+     * autofilled field is focused ("autofill-off" animation). That animation
+     * temporarily overrides the box-shadow trick above, making the input
+     * transparent and exposing whatever is behind it (background images, etc.).
+     * Setting an extremely long transition (~2.7 hours) effectively freezes the
+     * background during any normal browsing session, preventing the glitch.
+     */
+    transition: background-color 9999s ease-in-out 0s,
+                color 9999s ease-in-out 0s !important;
 }
